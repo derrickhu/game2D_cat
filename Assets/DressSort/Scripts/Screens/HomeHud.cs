@@ -14,12 +14,15 @@ namespace DressSort
         public RectTransform dollSlot;
         public Text starLabel;
         public Text energyLabel;
+        public Image energyIcon;
+        public Image energyFill;
         public Text progressLabel;
         public Text toastLabel;
         public Button startButton;
         public Button dressButton;
         public Button gearButton;
         public Button wipeButton;
+        public Button energyPlus;
         public HomeSideEntry[] sideButtons;
 
         static readonly string[] LeftIds = { "circle", "rank", "checkin" };
@@ -27,7 +30,9 @@ namespace DressSort
         static readonly string[] RightIds = { "workshop", "quest", "event" };
         static readonly string[] RightNames = { "工坊", "任务", "活动" };
         static readonly float[] SideYs = { 318f, 122f, -74f };
-        static readonly Color CaptionFill = new Color32(0x1B, 0x72, 0x6E, 0xFF);
+        static readonly Color CaptionInk = Palette.Ink;
+        static readonly Color CaptionPlate = Palette.Cream;
+        static readonly Color CaptionStroke = new Color32(0xFF, 0xF4, 0xE6, 0xFF);
         const float StagePodiumY = 0.258f;
         const float DollHeightFrac = 0.42f;
         const float PortraitAspect = 864f / 1084f;
@@ -45,18 +50,7 @@ namespace DressSort
 
         void BuildChildren(GameDatabase db)
         {
-            UiKit.Icon(transform, "Star", db != null ? db.iconStar : null, new Vector2(0f, 1f),
-                new Vector2(70f, -70f), new Vector2(64f, 64f));
-            starLabel = UiKit.Label(transform, "StarCount", "0", new Vector2(0f, 1f),
-                new Vector2(168f, -70f), new Vector2(140f, 70f), 46, Palette.Ink,
-                TextAnchor.MiddleLeft);
-            energyLabel = UiKit.Label(transform, "Energy", "体力 5/5", new Vector2(0f, 1f),
-                new Vector2(430f, -70f), new Vector2(220f, 70f), 36, Palette.Ink,
-                TextAnchor.MiddleLeft);
-
-            Image gear = UiKit.Icon(transform, "Gear", db != null ? db.iconGear : null,
-                new Vector2(1f, 1f), new Vector2(-70f, -70f), new Vector2(64f, 64f));
-            gearButton = MakeHit(gear.gameObject);
+            EnsureEnergyBar(db);
 
             dollSlot = UiKit.Rect(transform, "DollSlot", new Vector2(0.5f, 1f),
                 new Vector2(0f, -780f), new Vector2(640f, 780f));
@@ -94,6 +88,8 @@ namespace DressSort
             if (title != null)
                 title.gameObject.SetActive(false);
 
+            EnsureEnergyBar(UiKit.Skin);
+
             Place(startButton != null ? startButton.transform as RectTransform : null,
                 new Vector2(0.5f, 0f), new Vector2(0f, 300f), new Vector2(460f, 184f));
             Place(dressButton != null ? dressButton.transform as RectTransform : null,
@@ -129,30 +125,48 @@ namespace DressSort
         void OverlaySideLabel(HomeSideEntry entry)
         {
             if (entry == null || entry.button == null || entry.label == null) return;
-            Transform plateT = entry.button.transform.Find("Plate");
-            if (plateT != null)
-                plateT.gameObject.SetActive(false);
-
-            Transform host = entry.icon != null ? entry.icon.transform : entry.button.transform;
-            entry.label.transform.SetParent(host, false);
-            Place(entry.label.rectTransform, new Vector2(0.5f, 0f),
-                new Vector2(0f, 22f), new Vector2(160f, 40f));
+            Image plate = EnsureCaptionPlate(entry.button.transform);
+            Place(plate.rectTransform, new Vector2(0.5f, 0f),
+                new Vector2(0f, -8f), new Vector2(152f, 36f));
+            entry.label.transform.SetParent(plate.transform, false);
+            Place(entry.label.rectTransform, new Vector2(0.5f, 0.5f),
+                Vector2.zero, new Vector2(148f, 34f));
             StyleSideLabel(entry.label);
+        }
+
+        static Image EnsureCaptionPlate(Transform host)
+        {
+            Transform plateT = host.Find("Plate");
+            Image plate = plateT != null ? plateT.GetComponent<Image>() : null;
+            if (plate == null)
+            {
+                plate = UiKit.Slice(host, "Plate", UiKit.SoftRect, new Vector2(0.5f, 0f),
+                    new Vector2(0f, -8f), new Vector2(152f, 36f), CaptionPlate);
+            }
+            plate.gameObject.SetActive(true);
+            plate.sprite = UiKit.SoftRect;
+            plate.type = Image.Type.Sliced;
+            plate.color = CaptionPlate;
+            plate.raycastTarget = false;
+            return plate;
         }
 
         static void StyleSideLabel(Text label)
         {
             if (label == null) return;
-            label.fontSize = 32;
-            label.fontStyle = FontStyle.Normal;
-            label.color = CaptionFill;
+            label.fontSize = 30;
+            label.fontStyle = FontStyle.Bold;
+            label.color = CaptionInk;
             label.alignment = TextAnchor.MiddleCenter;
             label.horizontalOverflow = HorizontalWrapMode.Overflow;
             label.verticalOverflow = VerticalWrapMode.Overflow;
             label.resizeTextForBestFit = false;
             var outline = label.GetComponent<Outline>();
-            if (outline != null)
-                outline.enabled = false;
+            if (outline == null)
+                outline = label.gameObject.AddComponent<Outline>();
+            outline.effectColor = CaptionStroke;
+            outline.effectDistance = new Vector2(1.6f, -1.6f);
+            outline.enabled = true;
             var shadow = label.GetComponent<Shadow>();
             if (shadow != null)
                 shadow.enabled = false;
@@ -175,8 +189,9 @@ namespace DressSort
                 Vector2.zero, new Vector2(168f, 168f));
             icon.raycastTarget = true;
 
-            Text label = UiKit.Label(icon.transform, "Label", caption, new Vector2(0.5f, 0f),
-                new Vector2(0f, 22f), new Vector2(160f, 40f), 32, CaptionFill);
+            Image plate = EnsureCaptionPlate(rect);
+            Text label = UiKit.Label(plate.transform, "Label", caption, new Vector2(0.5f, 0.5f),
+                Vector2.zero, new Vector2(148f, 34f), 30, CaptionInk);
             StyleSideLabel(label);
 
             var button = rect.gameObject.AddComponent<Button>();
@@ -210,18 +225,6 @@ namespace DressSort
             colors.pressedColor = new Color(0.88f, 0.88f, 0.88f);
             colors.fadeDuration = 0.05f;
             button.colors = colors;
-            return button;
-        }
-
-        static Button MakeHit(GameObject go)
-        {
-            var image = go.GetComponent<Image>();
-            image.raycastTarget = true;
-            var button = go.GetComponent<Button>();
-            if (button == null)
-                button = go.AddComponent<Button>();
-            button.targetGraphic = image;
-            button.transition = Selectable.Transition.None;
             return button;
         }
 
@@ -280,12 +283,12 @@ namespace DressSort
             }
         }
 
-        public void Wire(UnityAction onStart, UnityAction onDress, UnityAction onGear,
+        public void Wire(UnityAction onStart, UnityAction onDress, UnityAction onEnergyPlus,
             UnityAction onWipe, Action<string, string> onSide)
         {
             Bind(startButton, onStart);
             Bind(dressButton, onDress);
-            Bind(gearButton, onGear);
+            Bind(energyPlus, onEnergyPlus);
             Bind(wipeButton, onWipe);
             if (sideButtons == null) return;
             for (int i = 0; i < sideButtons.Length; i++)
@@ -307,11 +310,120 @@ namespace DressSort
 
         public void SetEnergy(int current, int max)
         {
+            EnsureEnergyBar(UiKit.Skin);
+            if (energyLabel != null)
+                energyLabel.text = current + "/" + max;
+        }
+
+        void EnsureEnergyBar(GameDatabase db)
+        {
+            HideNamed("Star");
+            HideNamed("StarCount");
+            HideNamed("Gear");
+            HideNamed("EnergyTrack");
+            HideNamed("EnergyTrackBack");
+            if (gearButton != null)
+                gearButton.gameObject.SetActive(false);
+            if (starLabel != null)
+                starLabel.gameObject.SetActive(false);
+            if (energyFill != null)
+                energyFill.gameObject.SetActive(false);
+
+            Sprite sprite = EnergySprite(db);
+            if (energyIcon == null)
+            {
+                Transform existing = transform.Find("EnergyIcon");
+                energyIcon = existing != null ? existing.GetComponent<Image>() : null;
+            }
+            if (energyIcon == null)
+                energyIcon = UiKit.Icon(transform, "EnergyIcon", sprite, new Vector2(0f, 1f),
+                    new Vector2(72f, -72f), new Vector2(64f, 64f));
+            if (sprite != null)
+                energyIcon.sprite = sprite;
+            energyIcon.type = Image.Type.Simple;
+            energyIcon.preserveAspect = true;
+            energyIcon.color = Color.white;
+            energyIcon.raycastTarget = false;
+            energyIcon.gameObject.SetActive(true);
+            Place(energyIcon.rectTransform, new Vector2(0f, 1f),
+                new Vector2(72f, -72f), new Vector2(64f, 64f));
+
+            Image plate = EnsureEnergyCountPlate();
+            Place(plate.rectTransform, new Vector2(0f, 1f),
+                new Vector2(176f, -72f), new Vector2(132f, 44f));
+
             if (energyLabel == null)
-                energyLabel = UiKit.Label(transform, "Energy", "", new Vector2(0f, 1f),
-                    new Vector2(430f, -70f), new Vector2(220f, 70f), 36, Palette.Ink,
-                    TextAnchor.MiddleLeft);
-            energyLabel.text = "体力 " + current + "/" + max;
+            {
+                Transform labelT = transform.Find("Energy");
+                if (labelT == null && energyIcon != null)
+                    labelT = energyIcon.transform.Find("Energy");
+                if (labelT == null)
+                    labelT = plate.transform.Find("Energy");
+                energyLabel = labelT != null ? labelT.GetComponent<Text>() : null;
+            }
+            if (energyLabel == null)
+                energyLabel = UiKit.Label(plate.transform, "Energy", "5/5", new Vector2(0.5f, 0.5f),
+                    Vector2.zero, new Vector2(124f, 40f), 34, Color.white);
+            energyLabel.transform.SetParent(plate.transform, false);
+            energyLabel.fontSize = 34;
+            energyLabel.color = Color.white;
+            energyLabel.alignment = TextAnchor.MiddleCenter;
+            var outline = energyLabel.GetComponent<Outline>();
+            if (outline != null)
+                outline.enabled = false;
+            Place(energyLabel.rectTransform, new Vector2(0.5f, 0.5f),
+                Vector2.zero, new Vector2(124f, 40f));
+
+            if (energyPlus == null)
+            {
+                Transform plusT = transform.Find("EnergyPlus");
+                if (plusT != null)
+                    energyPlus = plusT.GetComponent<Button>();
+            }
+            if (energyPlus == null)
+            {
+                Image face = UiKit.Icon(transform, "EnergyPlus", UiKit.Circle, new Vector2(0f, 1f),
+                    new Vector2(276f, -72f), new Vector2(40f, 40f));
+                face.color = new Color32(0x6F, 0xC8, 0x5A, 0xFF);
+                face.raycastTarget = true;
+                UiKit.Label(face.transform, "Label", "+", new Vector2(0.5f, 0.5f),
+                    Vector2.zero, new Vector2(40f, 40f), 32, Color.white);
+                energyPlus = face.gameObject.AddComponent<Button>();
+                energyPlus.targetGraphic = face;
+                energyPlus.transition = Selectable.Transition.None;
+            }
+            energyPlus.gameObject.SetActive(true);
+            Place(energyPlus.transform as RectTransform, new Vector2(0f, 1f),
+                new Vector2(276f, -72f), new Vector2(40f, 40f));
+        }
+
+        Image EnsureEnergyCountPlate()
+        {
+            Transform plateT = transform.Find("EnergyCountPlate");
+            Image plate = plateT != null ? plateT.GetComponent<Image>() : null;
+            if (plate == null)
+                plate = UiKit.Slice(transform, "EnergyCountPlate", UiKit.SoftRect, new Vector2(0f, 1f),
+                    new Vector2(176f, -72f), new Vector2(132f, 44f), Palette.Ink);
+            plate.sprite = UiKit.SoftRect;
+            plate.type = Image.Type.Sliced;
+            plate.color = Palette.Ink;
+            plate.raycastTarget = false;
+            plate.gameObject.SetActive(true);
+            return plate;
+        }
+
+        static Sprite EnergySprite(GameDatabase db)
+        {
+            if (db != null && db.iconHomeEnergy != null)
+                return db.iconHomeEnergy;
+            return UiKit.Skin != null ? UiKit.Skin.iconHomeEnergy : null;
+        }
+
+        void HideNamed(string child)
+        {
+            Transform found = transform.Find(child);
+            if (found != null)
+                found.gameObject.SetActive(false);
         }
 
         public void ShowToast(string message)

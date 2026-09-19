@@ -67,6 +67,7 @@ MonoBehaviour:
   iconHomeWorkshop: {fileID: 21300000, guid: 814c5d342640947c0b0e95b8282db237, type: 3}
   iconHomeQuest: {fileID: 21300000, guid: 1016d9a01f4c446e28d57836ab99185d, type: 3}
   iconHomeEvent: {fileID: 21300000, guid: 93ce5b055bce94d0dacb1bb22c04a00a, type: 3}
+  iconHomeEnergy: {fileID: 21300000, guid: 4f5323475fed4148ab9c44dcd3d00c11, type: 3}
   btnGameUndo: {fileID: 21300000, guid: 00b768715837447897b829f5a53c9adf, type: 3}
   btnGameShuffle: {fileID: 21300000, guid: d867468b00884896aac5c09763d89305, type: 3}
   btnGameBack: {fileID: 21300000, guid: 0cb085eaf3e5439fa129a4d384a8f9fb, type: 3}

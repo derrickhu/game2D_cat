@@ -164,7 +164,7 @@ namespace DressSort.EditorTools
                 item.worn = LoadSprite("Wings/" + id);
                 item.accent = Palette.Aqua;
                 item.boardEligible = false;
-                item.unlockedFromStart = false;
+                item.unlockedFromStart = true;
                 EditorUtility.SetDirty(item);
                 items.Add(item);
                 byId[id] = item;
@@ -257,6 +257,7 @@ namespace DressSort.EditorTools
             database.iconHomeWorkshop = LoadSprite("Ui/Home/icon_home_workshop");
             database.iconHomeQuest = LoadSprite("Ui/Home/icon_home_quest");
             database.iconHomeEvent = LoadSprite("Ui/Home/icon_home_event");
+            database.iconHomeEnergy = LoadSprite("Ui/Home/icon_home_energy");
             GamePrefabBuilder.BindGameSprites(database);
             DressUpPrefabBuilder.BindSprites(database);
             EditorUtility.SetDirty(database);

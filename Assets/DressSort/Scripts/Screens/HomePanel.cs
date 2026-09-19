@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace DressSort
 {
@@ -28,7 +27,7 @@ namespace DressSort
                 return;
             }
 
-            hud.Wire(OnStart, () => app.Show(ScreenId.DressUp), OnGear, OnWipe, OnSide);
+            hud.Wire(OnStart, () => app.Show(ScreenId.DressUp), OnEnergyPlus, OnWipe, OnSide);
             hud.ApplyChromeLayout();
 
             if (root.parent is RectTransform frame)
@@ -46,8 +45,6 @@ namespace DressSort
             if (doll != null)
                 doll.Show(app.Wardrobe.EquippedDress, app.Wardrobe.EquippedWings,
                     app.Wardrobe.EquippedHair);
-            if (hud != null && hud.starLabel != null)
-                hud.starLabel.text = app.Wardrobe.Stars.ToString();
             if (hud != null)
                 hud.SetEnergy(app.Wardrobe.RecoverEnergy(), WardrobeService.MaxEnergy);
             if (hud != null && hud.progressLabel != null)
@@ -68,15 +65,15 @@ namespace DressSort
                 Toast("体力不足，过一会儿再来");
         }
 
+        void OnEnergyPlus()
+        {
+            Toast("体力补充即将开放");
+        }
+
         void OnWipe()
         {
             app.Wardrobe.Wipe();
             OnShow();
-        }
-
-        void OnGear()
-        {
-            Toast("设置稍后开放");
         }
 
         void OnSide(string id, string title)

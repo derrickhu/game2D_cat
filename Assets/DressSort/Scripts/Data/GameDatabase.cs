@@ -53,6 +53,7 @@ namespace DressSort
         public Sprite iconHomeWorkshop;
         public Sprite iconHomeQuest;
         public Sprite iconHomeEvent;
+        public Sprite iconHomeEnergy;
 
         [Header("对局")]
         public Sprite btnGameUndo;

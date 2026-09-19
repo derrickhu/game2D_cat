@@ -46,6 +46,7 @@ namespace DressSort.EditorTools
             database.iconHomeWorkshop = Load("Ui/Home/icon_home_workshop");
             database.iconHomeQuest = Load("Ui/Home/icon_home_quest");
             database.iconHomeEvent = Load("Ui/Home/icon_home_event");
+            database.iconHomeEnergy = Load("Ui/Home/icon_home_energy");
             EditorUtility.SetDirty(database);
         }
 

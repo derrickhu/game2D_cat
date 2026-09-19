@@ -141,17 +141,21 @@ namespace DressSort
                 db.dressupCardLock = LoadUiSprite(dressup + "card_lock");
             }
 
-            if (db.btnHomeStart == null)
             {
                 const string home = "Assets/DressSort/Art/Ui/Home/";
-                db.btnHomeStart = LoadUiSprite(home + "btn_home_start");
-                db.btnHomeDress = LoadUiSprite(home + "btn_home_dress");
-                db.iconHomeCircle = LoadUiSprite(home + "icon_home_circle");
-                db.iconHomeRank = LoadUiSprite(home + "icon_home_rank");
-                db.iconHomeCheckin = LoadUiSprite(home + "icon_home_checkin");
-                db.iconHomeWorkshop = LoadUiSprite(home + "icon_home_workshop");
-                db.iconHomeQuest = LoadUiSprite(home + "icon_home_quest");
-                db.iconHomeEvent = LoadUiSprite(home + "icon_home_event");
+                if (db.btnHomeStart == null)
+                {
+                    db.btnHomeStart = LoadUiSprite(home + "btn_home_start");
+                    db.btnHomeDress = LoadUiSprite(home + "btn_home_dress");
+                    db.iconHomeCircle = LoadUiSprite(home + "icon_home_circle");
+                    db.iconHomeRank = LoadUiSprite(home + "icon_home_rank");
+                    db.iconHomeCheckin = LoadUiSprite(home + "icon_home_checkin");
+                    db.iconHomeWorkshop = LoadUiSprite(home + "icon_home_workshop");
+                    db.iconHomeQuest = LoadUiSprite(home + "icon_home_quest");
+                    db.iconHomeEvent = LoadUiSprite(home + "icon_home_event");
+                }
+                if (db.iconHomeEnergy == null)
+                    db.iconHomeEnergy = LoadUiSprite(home + "icon_home_energy");
             }
 
             if (db.btnGameUndo == null || db.btnGameGear == null)
