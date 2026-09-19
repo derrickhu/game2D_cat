@@ -1,0 +1,32 @@
+Vertical 9:16 WeChat mini-game DRESS-UP screen, 1080x1920 phone frame, a finished UI mockup.
+
+Keep this exact layout, only restyle the chrome:
+top row three items; a girl standing free in the upper half; a short cream tray occupying only the lower third; three category tabs on the tray; two rows of four rectangular item cards; a wide save bar at the bottom of the tray.
+
+The first attached image is layout only: same positions, same spacing, same short tray height. The second attached image is the girl’s face.
+
+Draw in Japanese TV-anime cel: thin even mapping-pen black outlines, flat glaze, soft peach blush. UI feels like sticker paper and enamel pins.
+
+Colors anchored to real things:
+- tray and cards: vanilla ice cream `#FFF6EC`
+- selected tab and selected card rim: peach flesh `#F3A7B8`
+- save bar: wet new-copper teal `#2A9B96`
+- ink type: purple-black ink `#2C2433`
+- gold star: coin gold `#F0C84A`
+- locked cells: warm milk-tea gray
+
+Top bar: a cream rounded-rectangle 返回, a cream rounded-rectangle 装扮, a coin-gold star and the number 1.
+
+The girl stands full-body in the upper half with no card, no white plate, no frame behind her. Same face as the second photo: canned-apricot orange hair, neat bangs, left side ponytail, cream polka-dot barrette, tea-brown oval eyes, smug closed-lip smile. She wears a strawberry-milk gingham sleeveless A-line dress, cream Peter-pan collar, pink shoes. Arms away from the body, paper-doll pose.
+
+Background is a simple milk-and-peach wash, empty of furniture so the UI can be read.
+
+The lower tray is a thick vanilla-ice-cream sheet with a rounded top, a tiny peach handle pill, and a soft lilac drop shadow. It stays short so her whole body stays visible above it.
+
+Three rounded-rectangle tabs sit on the tray: 裙子 filled peach-flesh with white type, 发型 and 翅膀 cream with ink type.
+
+Wardrobe is four columns by two rows of rounded-rectangle cards, clearly rectangular, printer-paper white, thin ink outline, soft shadow. Each unlocked card shows one sleeveless paper-doll dress, flat 2–3 colors: mint, black ribbon, pink gingham, lemon. The pink-gingham card is selected: peach-flesh rim and a small peach check. Locked cards are milk-tea gray with a tiny gold padlock.
+
+Bottom of the tray: a wide wet-copper-teal rounded-rectangle 保存搭配 in bold white rounded Chinese.
+
+Only these Chinese words: 返回 装扮 裙子 发型 翅膀 保存搭配. Empty of English, empty of watermarks.

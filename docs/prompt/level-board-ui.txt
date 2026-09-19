@@ -1,0 +1,26 @@
+叠叠裙 · 对局页统一控件（B 衣橱 + D 跑道）
+
+关卡页用预制 GameScreen：底图（自带横杆）、衣架、齿轮、步数胶囊、底栏三钮都在预制里摆好。
+换关只换底图或衣架图，不改布局。菜单：叠叠裙 / 重建关卡预制。
+
+母版目录（仓库外）：
+/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/level-board-ui/
+
+成品：
+- Art/Ui/Bgs/bg_closet.jpg    第 1–10 关，自带枫木横杆
+- Art/Ui/Bgs/bg_runway.jpg    第 11–20 关，杆在同一高度
+- Art/Ui/Game/hanger_closet.png
+- Art/Ui/Game/btn_undo.png / btn_shuffle.png / btn_back.png / btn_gear.png / btn_steps.png
+- 以后每 10 关往 GameDatabase.boardBgs / boardHangers 加一张
+
+背景
+- 衣橱：牛奶墙 + 蜜桃地板，杆和衣架由界面画，方便加列。
+- 跑道：蜜桃场地 + 两侧浅泳池蓝。
+- 两套都是空场，不画裙子、不画字、不画按钮。
+
+按钮
+- 湿铜绿实心圆，奶油色图标，细匀黑线。撤回 / 随机 / 返回同一套。
+- 顶栏步数用黑胶囊奶油字。
+
+列顶
+- 枫木衣架小图，钩子朝上，两套背景都挂在列最上面。

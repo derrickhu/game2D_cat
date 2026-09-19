@@ -1,0 +1,31 @@
+Vertical 9:16 WeChat mini-game DRESS-UP UI mockup, 1080x1920, a styled interface design sheet.
+
+This is a chrome redesign. The attached photo is only the girl’s face.
+
+Japanese TV-anime cel: thin even mapping-pen black ink, flat glaze, sticker-paper UI with enamel shine chips and a short lilac drop shadow under every control.
+
+Color anchors:
+- cream tray: vanilla ice cream
+- selected: peach flesh
+- save: wet new-copper teal
+- type: purple-black ink
+- star: coin gold
+- locked: warm milk-tea gray
+
+LAYOUT, keep this structure:
+1. Top: cream rounded-rectangle 返回, cream rounded-rectangle 装扮, coin-gold star and 1.
+2. Upper half: one girl standing free, no plate, no card, no white box behind her.
+3. Lower third only: a vanilla-ice-cream tray with a rounded top edge and a peach handle pill.
+4. On the tray: three rounded-rectangle tabs 裙子 发型 翅膀. 裙子 is peach-flesh filled with white type; the other two are cream with ink type.
+5. Then a 4 by 2 grid of rounded-rectangle wardrobe cards, clearly rectangular.
+6. Bottom of the tray: a wide wet-copper-teal rounded-rectangle 保存搭配 in white rounded Chinese.
+
+The girl matches the attached face: canned-apricot orange hair, neat bangs, left low ponytail, cream polka-dot barrette, tea-brown oval eyes, smug closed-lip smile, peach blush. Full body, frontal paper-doll pose, arms off the torso. She wears a strawberry-milk gingham sleeveless A-line dress, cream Peter-pan collar, pink shoes.
+
+Background is a flat milk-peach wash so the UI reads first.
+
+Each unlocked card is printer-paper white with a thick cream rim and a tiny dress icon: mint, black-ribbon, pink gingham, lemon. The pink-gingham card has a peach-flesh outline and a peach check. Four locked cards are milk-tea gray with a small gold padlock.
+
+UI has the same weight as a polished casual game HUD: chunky readable Chinese, even margins, no extra ornaments.
+
+Only these Chinese words: 返回 装扮 裙子 发型 翅膀 保存搭配. Empty of English, empty of watermarks.

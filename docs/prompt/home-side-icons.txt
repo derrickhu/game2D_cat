@@ -1,0 +1,16 @@
+A mobile-game UI icon sheet, 4:3 landscape, a clean 3-column by 2-row grid of six circular buttons, equal size, equal spacing, on a flat solid gray-blue field the color of a school slate, #4A5A6B.
+
+Match this pastel garden illustration style: thin even black ink outlines like a mapping-pen, flat cel-shaded fills, creamy ceramic colors, 2D casual dress-up game UI.
+
+Every circle is the same size: a cream plate like fresh whipping cream, thin black outline, one small white highlight crescent at the top of the plate. The glyph sits in the center, large and readable at 128 pixels.
+
+Row 1 left: three tiny chibi girl heads chatting inside a round speech bubble, hydrangea-blue like fresh hydrangea petals.
+Row 1 middle: a trophy cup the color of gold coins, standing on a tiny three-step podium.
+Row 1 right: a standing desk calendar with a gold-coin star stamp on today's square.
+Row 2 left: a wooden dress mannequin beside a needle and a spool of strawberry-milk pink thread.
+Row 2 middle: a rolled cream paper scroll tied with a swimming-pool teal ribbon.
+Row 2 right: a cream gift box wrapped with a strawberry-milk pink ribbon bow.
+
+One icon per cell, generous padding, complete circles, identical plate size.
+
+NO TEXT, no letters, no numbers, no watermark, no grid lines.

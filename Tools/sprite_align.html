@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>叠叠裙 · 图层对齐</title>
+  <style>
+    :root {
+      --ink: #2c2433;
+      --line: #d8dde3;
+      --bg: #eef2f5;
+      --panel: #ffffff;
+      --teal: #2a9b96;
+      --pink: #d1276c;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; font: 14px/1.45 "Noto Sans SC", "PingFang SC", sans-serif; color: var(--ink); background: var(--bg); }
+    body { display: grid; grid-template-columns: 300px 1fr; }
+    aside { background: var(--panel); border-right: 1px solid var(--line); padding: 16px; overflow: auto; }
+    h1 { font-size: 16px; margin: 0 0 4px; }
+    .hint { color: #6b7280; font-size: 12px; margin: 0 0 16px; }
+    label { display: block; font-size: 12px; color: #4b5563; margin: 12px 0 4px; }
+    select, input[type="text"], input[type="number"] {
+      width: 100%; padding: 7px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff;
+    }
+    input[type="range"] { width: 100%; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button {
+      border: 0; border-radius: 999px; padding: 8px 12px; cursor: pointer; font-weight: 600;
+    }
+    .btn-teal { background: var(--teal); color: #fff; width: 100%; margin-top: 8px; }
+    .btn-pink { background: #f3a7b8; color: var(--ink); width: 100%; margin-top: 8px; }
+    .btn-ghost { background: #f3f4f6; color: var(--ink); width: 100%; margin-top: 8px; }
+    .stack { display: flex; gap: 8px; margin-top: 8px; }
+    .stack button { flex: 1; }
+    main { display: flex; flex-direction: column; min-width: 0; }
+    .toolbar { padding: 10px 16px; background: #fff; border-bottom: 1px solid var(--line); font-size: 12px; color: #4b5563; }
+    .stage-wrap { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    canvas { background-image:
+      linear-gradient(45deg, #d9dde3 25%, transparent 25%),
+      linear-gradient(-45deg, #d9dde3 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #d9dde3 75%),
+      linear-gradient(-45deg, transparent 75%, #d9dde3 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+      background-color: #f7f8fa;
+      box-shadow: 0 8px 24px rgba(44, 36, 51, 0.08);
+      cursor: grab;
+    }
+    canvas.dragging { cursor: grabbing; }
+    .nums { font-variant-numeric: tabular-nums; }
+    #status {
+      margin-top: 12px; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.4;
+      background: #f3f4f6; color: #374151; min-height: 40px;
+    }
+    #status.ok { background: #d1fae5; color: #065f46; font-weight: 600; }
+    #status.err { background: #fde2e7; color: #9f1239; font-weight: 600; }
+    #status.busy { background: #e0f2fe; color: #075985; }
+    #toast {
+      position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+      background: var(--teal); color: #fff; padding: 12px 20px; border-radius: 999px;
+      font-weight: 700; z-index: 30; box-shadow: 0 10px 28px rgba(44, 36, 51, 0.18);
+      max-width: min(720px, 80vw); text-align: center;
+    }
+    #toast.err { background: var(--pink); }
+    #toast[hidden] { display: none; }
+    #exportList { margin: 8px 0 0; padding: 0; list-style: none; font-size: 12px; color: #4b5563; }
+    #exportList li { padding: 3px 0; word-break: break-all; }
+    #layerList { margin: 0; padding: 0; list-style: none; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    #layerList li {
+      display: grid; grid-template-columns: 28px 1fr; gap: 6px; align-items: center;
+      padding: 7px 8px; border-bottom: 1px solid var(--line); cursor: pointer; background: #fff;
+    }
+    #layerList li:last-child { border-bottom: 0; }
+    #layerList li.on { background: #e6f7f6; }
+    #layerList li.off { opacity: 0.45; }
+    #layerList .eye { border-radius: 6px; padding: 2px 0; font-size: 12px; }
+    #layerList .meta { font-size: 11px; color: #6b7280; }
+    button:disabled { opacity: 0.55; cursor: wait; }
+  </style>
+</head>
+<body>
+  <aside>
+    <h1>图层对齐</h1>
+    <p class="hint">一次导入多张切图，互相叠着对。导出每张都是和基准一样大的透明底 PNG。</p>
+
+    <label>基准图</label>
+    <select id="baselineSelect"></select>
+    <button class="btn-ghost" type="button" id="pickBaseline">从文件选基准…</button>
+    <input id="baselineFile" type="file" accept="image/png" hidden>
+
+    <label>切图层（可多选，可再加）</label>
+    <button class="btn-pink" type="button" id="pickOverlay">导入切图</button>
+    <input id="overlayFile" type="file" accept="image/png" multiple hidden>
+    <ul id="layerList"></ul>
+    <div class="stack">
+      <button class="btn-ghost" type="button" id="layerUp">上移</button>
+      <button class="btn-ghost" type="button" id="layerDown">下移</button>
+    </div>
+    <div class="stack">
+      <button class="btn-ghost" type="button" id="layerDel">删除当前</button>
+      <button class="btn-ghost" type="button" id="layerClear">清空</button>
+    </div>
+
+    <label>基准透明度 <span id="baseAlphaLabel" class="nums">40%</span></label>
+    <input id="baseAlpha" type="range" min="0" max="100" value="40">
+    <label>当前层透明度 <span id="layerAlphaLabel" class="nums">100%</span></label>
+    <input id="layerAlpha" type="range" min="10" max="100" value="100">
+
+    <div class="row">
+      <div>
+        <label>X（像素）</label>
+        <input id="posX" type="number" step="1" value="0">
+      </div>
+      <div>
+        <label>Y（像素）</label>
+        <input id="posY" type="number" step="1" value="0">
+      </div>
+    </div>
+    <label>缩放 <span id="scaleLabel" class="nums">100%</span></label>
+    <input id="scale" type="range" min="20" max="200" value="100">
+
+    <div class="stack">
+      <button class="btn-ghost" type="button" id="nudgeL">←</button>
+      <button class="btn-ghost" type="button" id="nudgeR">→</button>
+    </div>
+    <div class="stack">
+      <button class="btn-ghost" type="button" id="nudgeU">↑</button>
+      <button class="btn-ghost" type="button" id="nudgeD">↓</button>
+    </div>
+    <button class="btn-ghost" type="button" id="reset">重置当前层</button>
+    <button class="btn-ghost" type="button" id="pinOrigin">贴到左上角 0,0</button>
+    <button class="btn-ghost" type="button" id="fitCenter">放到画布居中</button>
+
+    <label>导出文件名（当前层）</label>
+    <input id="exportName" type="text" value="aligned.png">
+    <p class="hint">每层自己的位置和缩放。导出当前，或一次导出全部。</p>
+    <label><input id="alsoGame" type="checkbox"> 再出一份 864×1084 游戏尺寸</label>
+    <button class="btn-teal" type="button" id="saveBtn">导出当前层</button>
+    <button class="btn-teal" type="button" id="saveAllBtn">导出全部层</button>
+    <button class="btn-ghost" type="button" id="downloadBtn">下载当前层</button>
+    <div id="status">还没导出</div>
+    <label>最近导出</label>
+    <ul id="exportList"></ul>
+    <p class="hint">点图层或画布里的图可选中。方向键移动 1px，Shift 10px。滚轮缩放当前层。</p>
+  </aside>
+  <main>
+    <div class="toolbar nums" id="info">先选基准图</div>
+    <div class="stage-wrap" id="stageWrap"><canvas id="stage" width="480" height="800"></canvas></div>
+  </main>
+  <div id="toast" hidden></div>
+  <script>
+    const state = {
+      baseline: null,
+      layers: [],
+      selected: -1,
+      baseAlpha: 0.4,
+      drag: null,
+      viewScale: 1,
+      nextId: 1,
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const canvas = $("stage");
+    const ctx = canvas.getContext("2d");
+
+    function selectedLayer() {
+      return state.layers[state.selected] || null;
+    }
+
+    function layerSize(layer) {
+      if (!layer) return { w: 0, h: 0 };
+      return {
+        w: Math.max(1, Math.round(layer.img.width * layer.scale)),
+        h: Math.max(1, Math.round(layer.img.height * layer.scale)),
+      };
+    }
+
+    function draw() {
+      const base = state.baseline;
+      if (!base) return;
+      const maxW = Math.max(240, window.innerWidth - 360);
+      const maxH = Math.max(240, window.innerHeight - 80);
+      state.viewScale = Math.min(maxW / base.width, maxH / base.height, 1);
+      canvas.width = Math.round(base.width * state.viewScale);
+      canvas.height = Math.round(base.height * state.viewScale);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.scale(state.viewScale, state.viewScale);
+      ctx.globalAlpha = state.baseAlpha;
+      ctx.drawImage(base, 0, 0);
+      ctx.globalAlpha = 1;
+      state.layers.forEach((layer, i) => {
+        if (!layer.visible) return;
+        const { w, h } = layerSize(layer);
+        ctx.globalAlpha = layer.alpha;
+        ctx.drawImage(layer.img, layer.x, layer.y, w, h);
+        ctx.globalAlpha = 1;
+        if (i === state.selected) {
+          ctx.save();
+          ctx.strokeStyle = "#2a9b96";
+          ctx.lineWidth = 2 / state.viewScale;
+          ctx.setLineDash([6 / state.viewScale, 4 / state.viewScale]);
+          ctx.strokeRect(layer.x + 0.5, layer.y + 0.5, w - 1, h - 1);
+          ctx.restore();
+        }
+      });
+      ctx.restore();
+      const layer = selectedLayer();
+      const { w, h } = layerSize(layer);
+      $("info").textContent = layer
+        ? `基准 ${base.width}×${base.height}  ·  ${layer.name} ${w}×${h}  @ (${layer.x}, ${layer.y})  ·  ${Math.round(layer.scale * 100)}%  ·  ${state.layers.length} 层`
+        : `基准 ${base.width}×${base.height}  ·  还没导入切图`;
+      $("posX").value = layer ? layer.x : 0;
+      $("posY").value = layer ? layer.y : 0;
+      $("scale").value = layer ? Math.round(layer.scale * 100) : 100;
+      $("scaleLabel").textContent = (layer ? Math.round(layer.scale * 100) : 100) + "%";
+      $("layerAlpha").value = layer ? Math.round(layer.alpha * 100) : 100;
+      $("layerAlphaLabel").textContent = (layer ? Math.round(layer.alpha * 100) : 100) + "%";
+      renderLayerList();
+    }
+
+    function renderLayerList() {
+      const box = $("layerList");
+      if (!state.layers.length) {
+        box.innerHTML = "<li class='off'><span></span><div>还没导入</div></li>";
+        return;
+      }
+      box.innerHTML = state.layers.map((layer, i) => {
+        const on = i === state.selected ? "on" : "";
+        const vis = layer.visible ? "" : "off";
+        return `<li class="${on} ${vis}" data-i="${i}">
+          <button class="btn-ghost eye" type="button" data-eye="${i}">${layer.visible ? "显示" : "隐藏"}</button>
+          <div><div>${layer.name}</div><div class="meta">${layer.img.width}×${layer.img.height}</div></div>
+        </li>`;
+      }).reverse().join("");
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    function selectLayer(i) {
+      if (i < 0 || i >= state.layers.length) {
+        state.selected = -1;
+        draw();
+        return;
+      }
+      state.selected = i;
+      const layer = state.layers[i];
+      suggestFromCut(layer.fileName);
+      draw();
+    }
+
+    async function addFiles(fileList) {
+      const files = Array.from(fileList || []).filter((f) => f && f.type === "image/png");
+      if (!files.length) return;
+      for (const file of files) {
+        const img = await loadImage(URL.createObjectURL(file));
+        const layer = {
+          id: state.nextId++,
+          name: file.name.replace(/\.png$/i, ""),
+          fileName: file.name,
+          img,
+          x: 0,
+          y: 0,
+          scale: 1,
+          alpha: 1,
+          visible: true,
+        };
+        if (state.baseline) {
+          layer.x = Math.round((state.baseline.width - img.width) / 2);
+          layer.y = Math.round((state.baseline.height - img.height) / 2);
+        }
+        state.layers.push(layer);
+        state.selected = state.layers.length - 1;
+      }
+      await suggestFromCut(state.layers[state.selected].fileName);
+      draw();
+      setStatus("", `已导入 ${files.length} 张，共 ${state.layers.length} 层`);
+    }
+
+    async function setBaselineFromUrl(url) {
+      state.baseline = await loadImage(url);
+      $("status").textContent = `基准 ${state.baseline.width}×${state.baseline.height}`;
+      draw();
+    }
+
+    function fitCenter() {
+      const layer = selectedLayer();
+      if (!state.baseline || !layer) return;
+      const { w, h } = layerSize(layer);
+      layer.x = Math.round((state.baseline.width - w) / 2);
+      layer.y = Math.round((state.baseline.height - h) / 2);
+      draw();
+    }
+
+    function resetPose() {
+      const layer = selectedLayer();
+      if (!layer) return;
+      layer.scale = 1;
+      if (state.baseline) {
+        layer.x = Math.round((state.baseline.width - layer.img.width) / 2);
+        layer.y = Math.round((state.baseline.height - layer.img.height) / 2);
+      } else {
+        layer.x = 0;
+        layer.y = 0;
+      }
+      draw();
+    }
+
+    function pinOrigin() {
+      const layer = selectedLayer();
+      if (!layer) return;
+      layer.scale = 1;
+      layer.x = 0;
+      layer.y = 0;
+      draw();
+    }
+
+    function setScaleAroundCenter(next) {
+      const layer = selectedLayer();
+      if (!layer) return;
+      const before = layerSize(layer);
+      const cx = layer.x + before.w / 2;
+      const cy = layer.y + before.h / 2;
+      layer.scale = Math.round(Math.min(2, Math.max(0.2, next)) * 100) / 100;
+      const after = layerSize(layer);
+      layer.x = Math.round(cx - after.w / 2);
+      layer.y = Math.round(cy - after.h / 2);
+    }
+
+    function composeExport(layer) {
+      if (!state.baseline || !layer) return null;
+      const out = document.createElement("canvas");
+      out.width = state.baseline.width;
+      out.height = state.baseline.height;
+      const c = out.getContext("2d");
+      const { w, h } = layerSize(layer);
+      c.clearRect(0, 0, out.width, out.height);
+      c.drawImage(layer.img, layer.x, layer.y, w, h);
+      return out;
+    }
+
+    function toGameSize(srcCanvas) {
+      const dest = document.createElement("canvas");
+      dest.width = 864;
+      dest.height = 1084;
+      const c = dest.getContext("2d");
+      const scale = dest.height / srcCanvas.height;
+      const nw = Math.max(1, Math.round(srcCanvas.width * scale));
+      c.drawImage(srcCanvas, Math.round((dest.width - nw) / 2), 0, nw, dest.height);
+      return dest;
+    }
+
+    function canvasPngBlob(c) {
+      return new Promise((resolve, reject) => {
+        c.toBlob((blob) => blob ? resolve(blob) : reject(new Error("编码 PNG 失败")), "image/png");
+      });
+    }
+
+    function setStatus(kind, text) {
+      const el = $("status");
+      el.className = kind || "";
+      el.textContent = text;
+    }
+
+    let toastTimer = 0;
+    function showToast(text, kind) {
+      const el = $("toast");
+      el.hidden = false;
+      el.className = kind === "err" ? "err" : "";
+      el.textContent = text;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.hidden = true; }, 4200);
+    }
+
+    function sanitizeName(name) {
+      let n = (name || "aligned.png").replace(/[^\w.\-\u4e00-\u9fff]+/g, "_");
+      if (!/\.png$/i.test(n)) n += ".png";
+      return n;
+    }
+
+    function stemFromCut(fileName) {
+      return fileName.replace(/\.png$/i, "").replace(/_aligned(_\d+)?$/i, "");
+    }
+
+    function stampedName(name) {
+      const stem = sanitizeName(name).replace(/\.png$/i, "");
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+      return `${stem}_${stamp}.png`;
+    }
+
+    async function uniqueName(name) {
+      const wanted = sanitizeName(name);
+      try {
+        const res = await fetch("/api/unique?name=" + encodeURIComponent(wanted));
+        if (res.ok) {
+          const data = await res.json();
+          if (data.name) return data.name;
+        }
+      } catch (err) { /* 旧服务没有这个接口时用时间戳 */ }
+      return stampedName(wanted);
+    }
+
+    async function refreshExports() {
+      try {
+        const res = await fetch("/api/exports");
+        if (!res.ok) return;
+        const data = await res.json();
+        $("exportList").innerHTML = (data.files || []).slice(0, 8).map((n) => `<li>${n}</li>`).join("")
+          || "<li>还没有文件</li>";
+      } catch (err) { /* 忽略 */ }
+    }
+
+    async function suggestFromCut(fileName) {
+      $("exportName").value = await uniqueName(stemFromCut(fileName) + "_aligned.png");
+    }
+
+    async function saveSheet(sheet, name) {
+      const blob = await canvasPngBlob(sheet);
+      const fd = new FormData();
+      fd.append("name", name);
+      fd.append("file", blob, name);
+      if ($("alsoGame").checked) {
+        const game = await canvasPngBlob(toGameSize(sheet));
+        fd.append("gameName", name.replace(/\.png$/i, "") + "_864.png");
+        fd.append("gameFile", game, name.replace(/\.png$/i, "") + "_864.png");
+      }
+      const res = await fetch("/api/save", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "保存失败");
+      return data;
+    }
+
+    async function exportPng(saveToProject, all) {
+      const targets = all ? state.layers.filter((l) => l.visible) : (selectedLayer() ? [selectedLayer()] : []);
+      if (!targets.length) {
+        setStatus("err", "先导入切图");
+        showToast("先导入切图", "err");
+        return;
+      }
+      if (!state.baseline) {
+        setStatus("err", "先选基准图");
+        showToast("先选基准图", "err");
+        return;
+      }
+      $("saveBtn").disabled = true;
+      $("saveAllBtn").disabled = true;
+      $("downloadBtn").disabled = true;
+      setStatus("busy", all ? "正在导出全部层…" : "正在导出，大图编码要几秒…");
+      try {
+        if (!saveToProject) {
+          const sheet = composeExport(targets[0]);
+          const name = sanitizeName($("exportName").value);
+          const blob = await canvasPngBlob(sheet);
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = name;
+          a.click();
+          URL.revokeObjectURL(a.href);
+          setStatus("ok", "已下载 " + name);
+          showToast("已下载 " + name);
+          return;
+        }
+        const saved = [];
+        for (const layer of targets) {
+          const sheet = composeExport(layer);
+          const name = targets.length === 1
+            ? sanitizeName($("exportName").value)
+            : await uniqueName(stemFromCut(layer.fileName) + "_aligned.png");
+          const data = await saveSheet(sheet, name);
+          saved.push(...(data.paths || []));
+        }
+        const text = "已保存 " + saved.join("，");
+        setStatus("ok", text);
+        showToast("导出成功：" + saved.length + " 个文件");
+        if (selectedLayer()) $("exportName").value = await uniqueName(stemFromCut(selectedLayer().fileName) + "_aligned.png");
+        await refreshExports();
+      } catch (err) {
+        const msg = err && err.message ? err.message : "导出失败";
+        setStatus("err", msg);
+        showToast(msg, "err");
+      } finally {
+        $("saveBtn").disabled = false;
+        $("saveAllBtn").disabled = false;
+        $("downloadBtn").disabled = false;
+      }
+    }
+
+    function localPoint(ev) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (ev.clientX - rect.left) / state.viewScale,
+        y: (ev.clientY - rect.top) / state.viewScale,
+      };
+    }
+
+    function layerContains(layer, p) {
+      if (!layer || !layer.visible) return false;
+      const { w, h } = layerSize(layer);
+      return p.x >= layer.x && p.y >= layer.y && p.x <= layer.x + w && p.y <= layer.y + h;
+    }
+
+    function hitLayer(p) {
+      for (let i = state.layers.length - 1; i >= 0; i--) {
+        if (layerContains(state.layers[i], p)) return i;
+      }
+      return -1;
+    }
+
+    function moveSelected(dx, dy) {
+      const layer = selectedLayer();
+      if (!layer) return;
+      layer.x += dx;
+      layer.y += dy;
+      draw();
+    }
+
+    function swapLayers(a, b) {
+      if (a < 0 || b < 0 || a >= state.layers.length || b >= state.layers.length) return;
+      const tmp = state.layers[a];
+      state.layers[a] = state.layers[b];
+      state.layers[b] = tmp;
+      state.selected = b;
+      draw();
+    }
+
+    canvas.addEventListener("pointerdown", (ev) => {
+      const p = localPoint(ev);
+      let i = state.selected;
+      if (!layerContains(selectedLayer(), p)) {
+        i = hitLayer(p);
+        if (i < 0) return;
+        if (i !== state.selected) selectLayer(i);
+      }
+      const layer = state.layers[i];
+      state.drag = { dx: p.x - layer.x, dy: p.y - layer.y };
+      canvas.classList.add("dragging");
+      canvas.setPointerCapture(ev.pointerId);
+    });
+    canvas.addEventListener("pointermove", (ev) => {
+      if (!state.drag) return;
+      const layer = selectedLayer();
+      if (!layer) return;
+      const p = localPoint(ev);
+      layer.x = Math.round(p.x - state.drag.dx);
+      layer.y = Math.round(p.y - state.drag.dy);
+      draw();
+    });
+    canvas.addEventListener("pointerup", () => {
+      state.drag = null;
+      canvas.classList.remove("dragging");
+    });
+    canvas.addEventListener("wheel", (ev) => {
+      if (!selectedLayer()) return;
+      ev.preventDefault();
+      setScaleAroundCenter(selectedLayer().scale + (ev.deltaY > 0 ? -0.02 : 0.02));
+      draw();
+    }, { passive: false });
+
+    window.addEventListener("keydown", (ev) => {
+      if (!selectedLayer()) return;
+      if (ev.target && (ev.target.tagName === "INPUT" || ev.target.tagName === "TEXTAREA")) return;
+      const step = ev.shiftKey ? 10 : 1;
+      if (ev.key === "ArrowLeft") { moveSelected(-step, 0); ev.preventDefault(); }
+      if (ev.key === "ArrowRight") { moveSelected(step, 0); ev.preventDefault(); }
+      if (ev.key === "ArrowUp") { moveSelected(0, -step); ev.preventDefault(); }
+      if (ev.key === "ArrowDown") { moveSelected(0, step); ev.preventDefault(); }
+      if (ev.key === "[" || ev.key === "-") { setScaleAroundCenter(selectedLayer().scale - 0.01); draw(); }
+      if (ev.key === "]" || ev.key === "=") { setScaleAroundCenter(selectedLayer().scale + 0.01); draw(); }
+    });
+
+    $("layerList").addEventListener("click", (ev) => {
+      const eye = ev.target.closest("[data-eye]");
+      if (eye) {
+        const i = Number(eye.dataset.eye);
+        state.layers[i].visible = !state.layers[i].visible;
+        draw();
+        ev.stopPropagation();
+        return;
+      }
+      const row = ev.target.closest("li[data-i]");
+      if (row) selectLayer(Number(row.dataset.i));
+    });
+
+    $("baseAlpha").addEventListener("input", () => {
+      state.baseAlpha = Number($("baseAlpha").value) / 100;
+      $("baseAlphaLabel").textContent = $("baseAlpha").value + "%";
+      draw();
+    });
+    $("layerAlpha").addEventListener("input", () => {
+      const layer = selectedLayer();
+      if (!layer) return;
+      layer.alpha = Number($("layerAlpha").value) / 100;
+      $("layerAlphaLabel").textContent = $("layerAlpha").value + "%";
+      draw();
+    });
+    $("posX").addEventListener("change", () => {
+      const layer = selectedLayer();
+      if (!layer) return;
+      layer.x = Number($("posX").value) || 0;
+      draw();
+    });
+    $("posY").addEventListener("change", () => {
+      const layer = selectedLayer();
+      if (!layer) return;
+      layer.y = Number($("posY").value) || 0;
+      draw();
+    });
+    $("scale").addEventListener("input", () => {
+      setScaleAroundCenter(Number($("scale").value) / 100);
+      draw();
+    });
+    $("nudgeL").onclick = () => moveSelected(-1, 0);
+    $("nudgeR").onclick = () => moveSelected(1, 0);
+    $("nudgeU").onclick = () => moveSelected(0, -1);
+    $("nudgeD").onclick = () => moveSelected(0, 1);
+    $("reset").onclick = resetPose;
+    $("pinOrigin").onclick = pinOrigin;
+    $("fitCenter").onclick = fitCenter;
+    $("layerUp").onclick = () => swapLayers(state.selected, state.selected + 1);
+    $("layerDown").onclick = () => swapLayers(state.selected, state.selected - 1);
+    $("layerDel").onclick = () => {
+      if (state.selected < 0) return;
+      state.layers.splice(state.selected, 1);
+      state.selected = Math.min(state.selected, state.layers.length - 1);
+      draw();
+    };
+    $("layerClear").onclick = () => {
+      state.layers = [];
+      state.selected = -1;
+      draw();
+    };
+    $("saveBtn").onclick = () => exportPng(true, false);
+    $("saveAllBtn").onclick = () => exportPng(true, true);
+    $("downloadBtn").onclick = () => exportPng(false, false);
+    $("pickBaseline").onclick = () => $("baselineFile").click();
+    $("pickOverlay").onclick = () => $("overlayFile").click();
+    $("baselineSelect").addEventListener("change", () => {
+      if ($("baselineSelect").value) setBaselineFromUrl($("baselineSelect").value);
+    });
+    $("baselineFile").addEventListener("change", async () => {
+      const file = $("baselineFile").files[0];
+      if (!file) return;
+      state.baseline = await loadImage(URL.createObjectURL(file));
+      draw();
+    });
+    $("overlayFile").addEventListener("change", async () => {
+      await addFiles($("overlayFile").files);
+      $("overlayFile").value = "";
+    });
+
+    ["stageWrap"].forEach((id) => {
+      const el = $(id);
+      el.addEventListener("dragover", (ev) => { ev.preventDefault(); });
+      el.addEventListener("drop", async (ev) => {
+        ev.preventDefault();
+        await addFiles(ev.dataTransfer.files);
+      });
+    });
+
+    async function boot() {
+      const res = await fetch("/api/baselines");
+      const data = await res.json();
+      const sel = $("baselineSelect");
+      sel.innerHTML = data.files.map((f) => `<option value="${f.url}">${f.label}</option>`).join("");
+      if (data.files.length) await setBaselineFromUrl(data.files[0].url);
+      await refreshExports();
+      draw();
+    }
+    boot();
+    window.addEventListener("resize", draw);
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+== 玩法自检 ==
+关卡数 8，物品数 10
+第1关 5列x5 牌数25 手里2 步数上限40 求解成功(16步) 奖励电光青水手裙
+第2关 5列x5 牌数25 手里1 步数上限44 求解成功(24步) 奖励青柠绿吊带裙
+第3关 5列x6 牌数30 手里2 步数上限50 求解成功(28步) 奖励奶白一字肩裙
+第4关 5列x6 牌数30 手里0 步数上限54 求解成功(33步) 奖励橘橙方领裙
+第5关 5列x6 牌数30 手里1 步数上限58 求解成功(24步) 奖励淡紫圆点裙
+第6关 5列x6 牌数30 手里2 步数上限62 求解成功(35步) 奖励薄荷立领长袖裙
+第7关 5列x6 牌数30 手里4 步数上限66 求解成功(49步) 奖励电光青蝶翼
+第8关 5列x6 牌数30 手里1 步数上限70 求解成功(36步) 奖励洋红花瓣翼
+撤回还原局面：通过
+已解状态判胜：通过
+
+== 截图 ==
+重载数据库：物品 10，章节 1，关卡 8
+Home -> Screenshots/dresssort-home.png
+LevelMap -> Screenshots/dresssort-levelmap.png
+Game -> Screenshots/dresssort-game-start.png
+Game -> Screenshots/dresssort-game-shift.png
+Reward -> Screenshots/dresssort-reward.png
+Reward -> Screenshots/dresssort-reward-open.png
+DressUp -> Screenshots/dresssort-dressup.png
+Home -> Screenshots/dresssort-home-equipped.png

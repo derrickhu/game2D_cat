@@ -1,0 +1,6 @@
+A single wide horizontal capsule button for a mobile game, centered on the canvas.
+
+Fill is paper white #FFFFFF. Thin even black outline. Soft rounded capsule ends. Flat cel fill, no gradient, no shine, no inner text, no icon, no shadow.
+
+Background is one flat solid gray-blue #4A5A6B filling the entire image.
+The capsule occupies most of the width with a little margin on every side.

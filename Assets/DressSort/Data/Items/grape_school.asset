@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b087983e010c9483cb7da0ebf73a9ba9, type: 3}
+  m_Name: grape_school
+  m_EditorClassIdentifier: 
+  id: grape_school
+  displayName: "\u8461\u8404\u6821\u670D"
+  slot: 0
+  icon: {fileID: 21300000, guid: 16aba59ba48004159929fb27a9d5b803, type: 3}
+  worn: {fileID: 21300000, guid: d81ba676296e841e2b9b72191390af5b, type: 3}
+  wornBack: {fileID: 0}
+  boardEligible: 1
+  accent: {r: 0.7254902, g: 0.54901963, b: 0.9098039, a: 1}
+  unlockedFromStart: 0
+  layeredWithHair: 0

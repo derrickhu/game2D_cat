@@ -1,0 +1,49 @@
+# 棋盘裙子小图规范（锁定无袖色块）
+
+基准是玩家选定的这一版：无袖 A 字色块裙，像纸娃娃衣服。
+成品对照 `Assets/DressSort/Art/Icons/dress_black_ribbon.png`、`dress_lemon_print.png`、`dress_orange_slice.png`。
+这是关卡里叠的那枚裙标，不是换装立绘。立绘仍走 `full_apricot` 全身像管线。
+
+## 剪影（每件都一样）
+
+- 正面、同一高度、空领
+- 大胆 A 字裙摆，圆下摆，一块色就认得出来
+- **无袖**：肩线是简单往里收的缺口，两个小袖笼
+- 下摆左右各一只圆钝的黑脚，像纸娃娃衣架座
+- 领口只选一样：一颗奶油结，或奶油彼得潘领，或彼得潘领加最多三颗圆扣
+- 无袖黑裙那种「只有一个结」也算完整件
+
+## 画法
+
+- 日式电视动画赛璐璐，细匀黑线，像绘图笔一次描完
+- 平涂釉面，儿童贴纸那种干净色块
+- 一件裙子只用 2～3 个平涂色。格子最多四个大方块（粉格那种）
+- 颜色用实物锚定：泳池水、草莓牛奶、熟橘子、葡萄糖、钢笔墨、打印纸
+
+## 生图
+
+Gemini NB2，`--image-size 2K`。底用整片学校石板灰蓝 `#4A5A6B`，方便去底。
+提示词只写正面要求。`NO TEXT, no labels, no captions, no writing anywhere in the image`
+不要把已有裙子整张当 `--image` 参考，模型会照抄成同一件。
+
+一张表出多件时：同一高度、同一正面、格子之间留同色石板缝。
+
+## 入库
+
+母版：`/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/<任务名>/`
+去底后 `fit_height` 到 256 画布、内容高约 232，拷到：
+- `Art/Icons/dress_{id}.png`
+- `Resources/DressIcons/{id}.png`
+图集只收这些小图。AI 不画白描边、不画灰底卡片。
+
+## 提示词骨架
+
+A {cols}-by-{rows} grid on a flat school-slate gray-blue field, thick even gutters of the same slate.
+
+{N} fingertip-size sleeveless paper-doll dress tokens, same height, front view. Japanese TV-anime cel, thin even black ink like a mapping pen. Bold A-line, round hem, tiny inward shoulder notches, empty armholes, two round black feet at the hem. Two or three flat color blocks. Empty neck. Flat glaze.
+
+{每件一行：实物色 + 无袖 + 结或彼得潘领或三颗扣}
+
+Tokens stay chunky and readable.
+
+NO TEXT, no labels, no captions, no writing anywhere in the image

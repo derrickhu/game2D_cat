@@ -1,0 +1,6 @@
+A single large rounded rectangle card for a mobile game wardrobe cell, centered on the canvas.
+
+Fill is vanilla-ice-cream #FFF6EC. Thin even black outline. Corner radius like a soft candy. Flat cel fill, no gradient, no inner icon, no text, no shadow.
+
+Background is one flat solid gray-blue #4A5A6B filling the entire image.
+The card leaves a small even margin on every side.

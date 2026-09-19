@@ -1,0 +1,14 @@
+A mobile-game UI icon sheet, 4:3 landscape, a clean 3-column by 2-row grid of six circular buttons, equal size, equal spacing, on a flat solid gray-blue field the color of a school slate, #4A5A6B.
+
+Cute 2D casual game icons: thick even black outlines, flat cel fill, cream plate like fresh whipping cream. Each glyph is one oversized simple shape filling about seventy percent of the circle, chunky and round, readable at 64 pixels.
+
+Row 1 left: one big round speech bubble holding two fat round girl heads, hydrangea-blue like fresh hydrangea petals.
+Row 1 middle: one oversized trophy cup the color of gold coins, short thick handles, a tiny block base.
+Row 1 right: one oversized rounded calendar card with a single fat gold-coin star in the center.
+Row 2 left: one oversized wooden dress mannequin, round head, simple torso, thick stand.
+Row 2 middle: one oversized rolled cream scroll tied with a fat swimming-pool teal ribbon.
+Row 2 right: one oversized cream gift cube with a fat strawberry-milk pink bow.
+
+One icon per cell, complete circles, identical plate size, generous padding.
+
+NO TEXT, no letters, no numbers, no watermark, no grid lines.

@@ -1,0 +1,6 @@
+A single wide horizontal capsule button for a mobile game, centered on the canvas.
+
+Fill is wet-copper teal #2A9B96, the color of a wet new copper coin. Thin even black outline, about four pixels. Soft rounded capsule ends. Flat cel fill, no gradient, no shine, no inner text, no icon, no shadow under the button.
+
+Background is one flat solid gray-blue #4A5A6B filling the entire image.
+The capsule occupies most of the width with a little margin on every side.

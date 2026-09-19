@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2e4bd98310c41ed948892acbfd094d, type: 3}
+  m_Name: GameDatabase
+  m_EditorClassIdentifier: 
+  items:
+  - {fileID: 11400000, guid: 128f9e0cd8ec84dd3b424ff548380195, type: 2}
+  - {fileID: 11400000, guid: 437dfbeb248014f00babd5c9fb3ffcf9, type: 2}
+  - {fileID: 11400000, guid: cab90879e140d4dfcb100768997ebe46, type: 2}
+  - {fileID: 11400000, guid: 35b73fe63203142fe99f911ed3c2990e, type: 2}
+  - {fileID: 11400000, guid: 1868528c29d8e400595808bc7de6adf4, type: 2}
+  - {fileID: 11400000, guid: 89d880b91d73b4d26a273e57b604c25c, type: 2}
+  - {fileID: 11400000, guid: 40191e452d9cf4b0b82ae97f27084b4e, type: 2}
+  - {fileID: 11400000, guid: 40e64fc57358b4d7f96f529942a36408, type: 2}
+  - {fileID: 11400000, guid: d364ca4f1575442628fe38f7e89a152a, type: 2}
+  - {fileID: 11400000, guid: fea886a462b2d427db4e9a31a3965388, type: 2}
+  - {fileID: 11400000, guid: 16a1b2c3d4e5f60718293a4b5c6d7e85, type: 2}
+  - {fileID: 11400000, guid: 11a1b2c3d4e5f60718293a4b5c6d7e80, type: 2}
+  - {fileID: 11400000, guid: 12a1b2c3d4e5f60718293a4b5c6d7e81, type: 2}
+  - {fileID: 11400000, guid: 13a1b2c3d4e5f60718293a4b5c6d7e82, type: 2}
+  - {fileID: 11400000, guid: 14a1b2c3d4e5f60718293a4b5c6d7e83, type: 2}
+  - {fileID: 11400000, guid: 15a1b2c3d4e5f60718293a4b5c6d7e84, type: 2}
+  - {fileID: 11400000, guid: fc2e4756980ef4585b3a404a32835bda, type: 2}
+  chapters:
+  - {fileID: 11400000, guid: 921e32a24ea994c419bce26702b8331d, type: 2}
+  defaultDress: {fileID: 11400000, guid: 128f9e0cd8ec84dd3b424ff548380195, type: 2}
+  defaultHair: {fileID: 11400000, guid: fc2e4756980ef4585b3a404a32835bda, type: 2}
+  uiBg: {fileID: 21300000, guid: be50326f81a3b4e5f79146d57890123c, type: 3}
+  uiBgs:
+  - {fileID: 21300000, guid: 7a1c9e2b4d6f80a1b3c5d7e9f0123456, type: 3}
+  - {fileID: 21300000, guid: 8b2d0f3c5e7081b2c4d6e8f0a1324567, type: 3}
+  - {fileID: 21300000, guid: 9c3e104d6f8192c3d5e7f90b2435678a, type: 3}
+  - {fileID: 21300000, guid: ad4f215e7092a3d4e6f803c54678901b, type: 3}
+  - {fileID: 21300000, guid: be50326f81a3b4e5f79146d57890123c, type: 3}
+  uiBgIndex: 4
+  uiBtnTeal: {fileID: 21300000, guid: 182e3c00242604cb2b52062d91b1bcd1, type: 3}
+  uiBtnPink: {fileID: 21300000, guid: dd22867eafbf94814ba7559d573e6ced, type: 3}
+  uiBtnWhite: {fileID: 21300000, guid: 212f15d78247140b0999adb48c23d07e, type: 3}
+  uiCard: {fileID: 21300000, guid: a0f35454d5f0c4e4a9ceeef7556127e4, type: 3}
+  uiCardOn: {fileID: 21300000, guid: c5b106587cdb94d77bb3f06d403c10d4, type: 3}
+  uiLane: {fileID: 21300000, guid: f38be128f59da4b9da2fc448a6050820, type: 3}
+  pageLoading: {fileID: 21300000, guid: eaccd657fd3d840f88adb7262861035e, type: 3}
+  iconBack: {fileID: 21300000, guid: 3a719f6a23e924fc5b52678d3f122dce, type: 3}
+  iconGear: {fileID: 21300000, guid: d9c04aa0e907b4211ae1e5d9b3890486, type: 3}
+  iconLock: {fileID: 21300000, guid: 5a2c33d22a78c4617befc105348b4078, type: 3}
+  iconCheck: {fileID: 21300000, guid: e80b348669eea4b12a3e9a51c9149841, type: 3}
+  iconUndo: {fileID: 21300000, guid: accb2d8465dc940cb91aa9512fcf2ea9, type: 3}
+  iconShuffle: {fileID: 21300000, guid: b211dd8c6413c4391aa47ffb44ba384b, type: 3}
+  iconEject: {fileID: 21300000, guid: c37008110b3fc493bbee7cb73b61eaaa, type: 3}
+  iconHanger: {fileID: 21300000, guid: bfd038c053134a58b42229b2d02b879c, type: 3}
+  iconStar: {fileID: 21300000, guid: d5db78f0fc86440e2ab0d11c08d3c2e1, type: 3}
+  iconMystery: {fileID: 21300000, guid: 1d192031acb3248e1a7b8e655b115f5d, type: 3}
+  btnHomeStart: {fileID: 21300000, guid: f4df3aee4d8cb4bb2ae42901c6061f08, type: 3}
+  btnHomeDress: {fileID: 21300000, guid: 1a5a87bbea2c549a39cd7ea6a8d3dc4f, type: 3}
+  iconHomeCircle: {fileID: 21300000, guid: 7c57add49c03e4e49a943d17afa4dba3, type: 3}
+  iconHomeRank: {fileID: 21300000, guid: 66a3adb9e313340e6b117f7e2b657953, type: 3}
+  iconHomeCheckin: {fileID: 21300000, guid: 7f3c6eb155249430c91840a0291a8735, type: 3}
+  iconHomeWorkshop: {fileID: 21300000, guid: 814c5d342640947c0b0e95b8282db237, type: 3}
+  iconHomeQuest: {fileID: 21300000, guid: 1016d9a01f4c446e28d57836ab99185d, type: 3}
+  iconHomeEvent: {fileID: 21300000, guid: 93ce5b055bce94d0dacb1bb22c04a00a, type: 3}
+  btnGameUndo: {fileID: 21300000, guid: 00b768715837447897b829f5a53c9adf, type: 3}
+  btnGameShuffle: {fileID: 21300000, guid: d867468b00884896aac5c09763d89305, type: 3}
+  btnGameBack: {fileID: 21300000, guid: 0cb085eaf3e5439fa129a4d384a8f9fb, type: 3}
+  btnGameSteps: {fileID: 21300000, guid: 68692626c496413281f2004f62c11030, type: 3}
+  btnGameGear: {fileID: 21300000, guid: 3106930b44684985a7554aa51dd5312f, type: 3}
+  boardBgs:
+  - {fileID: 21300000, guid: fe37a00e5d9d41e0a9bc8012f1a09c76, type: 3}
+  - {fileID: 21300000, guid: 6b0598a1515948ab822d7ca6499e0228, type: 3}
+  boardHangers:
+  - {fileID: 21300000, guid: bfd038c053134a58b42229b2d02b879c, type: 3}
+  - {fileID: 21300000, guid: bfd038c053134a58b42229b2d02b879c, type: 3}
+  boardLaneSolved: {fileID: 21300000, guid: 7c4e1b9a2d3f40c8a5e16f82b0d94c31, type: 3}
+  boardCheckSolved: {fileID: 21300000, guid: 8d5f2c0b3e4a41d9b6f27a93c1e05d42, type: 3}
+  boardBgBand: 10
+  dressupBg: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e801, type: 3}
+  dressupTitle: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e815, type: 3}
+  dressupBack: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e803, type: 3}
+  dressupSave: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e804, type: 3}
+  dressupPodium: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e817, type: 3}
+  dressupShelf: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e816, type: 3}
+  dressupTray: {fileID: 21300000, guid: a1b2c3d4e5f60718293a4b5c6d7e8f01, type: 3}
+  dressupBtnCream: {fileID: 21300000, guid: a1b2c3d4e5f60718293a4b5c6d7e8f02, type: 3}
+  dressupBtnPeach: {fileID: 21300000, guid: a1b2c3d4e5f60718293a4b5c6d7e8f03, type: 3}
+  dressupCard: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e806, type: 3}
+  dressupCardOn: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e807, type: 3}
+  dressupCardLock: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e808, type: 3}
+  dressupTabDressOn: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e809, type: 3}
+  dressupTabDressOff: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e80a, type: 3}
+  dressupTabHairOn: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e80b, type: 3}
+  dressupTabHairOff: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e80c, type: 3}
+  dressupTabWingsOn: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e80d, type: 3}
+  dressupTabWingsOff: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e80e, type: 3}

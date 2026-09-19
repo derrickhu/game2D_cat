@@ -1,0 +1,18 @@
+Vertical 9:16 WeChat mini-game home screen mockup, 1080x1920 feel, clean Japanese TV-anime UI.
+
+The attached girl is the only character: strawberry-milkshake pink hair, neat bangs, left side ponytail, pink polka-dot barrette, smug closed-lip smile, tea-leaf green eyes. She stands in the center wearing the pool-teal two-layer sailor dress, white sailor collar, pink bow, white sleeve cuffs, teal shoes, right hand gently lifting the skirt. Same thin even black outlines and cel-shading as the reference.
+
+Background is milk-and-water pale `#F7FBFC`. Soft tiny hearts far in the distance.
+
+Top-left: a small gold-coin yellow star and the number 12 in purple-black ink.
+Top-right: a simple round settings gear.
+
+Below the top bar: a white rounded title plaque with a thin black outline. The only words on the plaque are the three Chinese characters 叠叠裙, large rounded type, pool-teal `#2A9B96`.
+
+The girl fills the middle of the screen, full body, plenty of margin.
+
+Bottom: one wide capsule button in wet-copper teal `#2A9B96` with white rounded Chinese 开始游戏.
+Under it a smaller capsule in peach-flesh pink `#F3A7B8` with white rounded Chinese 装扮.
+Under that a tiny ink caption 已解锁 3/8.
+
+Empty of extra mascots, empty of English, empty of watermarks. Only the Chinese listed above.

@@ -1,0 +1,21 @@
+Vertical 9:16 WeChat mini-game level-select screen, clean Japanese TV-anime UI matching a pink-haired sailor-dress girl game.
+
+Background milk-and-water pale `#F7FBFC`. Thin even black outlines, cel-shaded icons, white cards.
+
+Top row: left a white capsule 返回, center a white plaque 选择关卡, right a gold star and 12.
+
+Main area: a 3-by-3 grid of square vanilla-ice-cream cards `#FFF6EC` with thin black outlines.
+
+Each unlocked card shows one cute little-girl dress icon, front view, no person:
+1 pool-teal sailor dress with pink bow
+2 black A-line dress with a white ribbon
+3 pink gingham lolita dress
+4 lemon-print shirt dress
+5 orange-slice summer dress
+6 ivory lace dress
+
+Cards 7, 8, 9 are locked: greyed mystery gift box and a small padlock.
+
+Under each card a caption: 第1关 第2关 第3关 第4关 第5关 第6关 第7关 第8关 第9关. Card 1 has a tiny teal check.
+
+Empty of characters, empty of English sentences, empty of watermarks. Only the Chinese listed above.

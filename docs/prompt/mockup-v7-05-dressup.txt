@@ -1,0 +1,17 @@
+Vertical 9:16 WeChat mini-game dress-up screen, clean Japanese TV-anime UI.
+
+The attached girl is the only character, same face and line art: strawberry-milkshake pink hair, left side ponytail, polka-dot barrette, smug smile, tea-leaf green eyes, pool-teal two-layer sailor dress, right hand lifting the skirt.
+
+Background milk-and-water pale `#F7FBFC`.
+
+Top: left white capsule 返回, center white plaque 装扮, right gold star and 12.
+
+Middle: a large white stage card with thin black outline. The girl stands full-body on the stage, dress fully readable.
+
+Under the stage two tabs: left tab filled peach-flesh pink `#F3A7B8` with white Chinese 裙子, right tab white with ink Chinese 翅膀.
+
+Bottom wardrobe: a white rounded panel, 4 columns by 2 rows of dress icons, front view, no person. First cell is the teal sailor dress with a pink check. Others: black ribbon dress, pink gingham, lemon print, orange-slice, ivory lace, then two locked grey dresses with padlocks.
+
+Bottom-most: a wide wet-copper teal `#2A9B96` capsule with white rounded Chinese 保存搭配.
+
+Empty of English, empty of watermarks. Only the Chinese listed above.

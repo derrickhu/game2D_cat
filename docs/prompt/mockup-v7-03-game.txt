@@ -1,0 +1,18 @@
+Vertical 9:16 WeChat mini-game sort-board screen, clean Japanese TV-anime UI.
+
+Background milk-and-water pale `#F7FBFC`. Thin even black outlines. Dress icons in official anime cel style, front view, no person.
+
+Top HUD three white capsules:
+left 第1关
+center 裙子
+right 剩余 24 步
+
+Middle: four tall cream columns `#FFF6EC` side by side. Each column is a stack of five overlapping dress icons, same width, like hanging clothes. Dress types repeat: pool-teal sailor, black ribbon dress, pink gingham, lemon print, orange-slice, ivory lace. One cell in the third column is a cream gift box with a question mark.
+
+A small black triangle sits on top of each column pointing down.
+
+Below the columns, one held dress floating alone: the pool-teal sailor dress, slightly larger, a soft oval shadow under it.
+
+Bottom three equal capsules in wet-copper teal `#2A9B96` with white rounded Chinese: 撤回    随机    返回
+
+Empty of characters, empty of English sentences, empty of watermarks. Only the Chinese listed above.

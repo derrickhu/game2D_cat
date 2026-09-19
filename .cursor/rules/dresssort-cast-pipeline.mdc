@@ -1,0 +1,37 @@
+---
+description: 叠叠裙角色全身像生图与切层管线
+alwaysApply: true
+---
+
+# 叠叠裙角色管线
+
+基准全身像：`Assets/DressSort/Art/Cast/fullbody/full_apricot.png`
+（杏橙发、茶褐椭圆眼、得意浅笑、细匀黑线赛璐璐）。以后生图都按这张的脸、比例、画法来，按需换发型和身体造型。
+
+## 怎么出新资源
+
+1. **一张全身像同时换发型和一条游戏里还缺无头身体的裙子。** 用户切开就是 2 个资源：头 + 身体。
+2. 短发整团待在头上：齐下巴、丸子、朝上短双马尾。呆毛用校园款：头顶挑一小撮，离头皮 2–3 厘米剪断，发根向上炸开，像小海胆或可达鸭头顶那几根。
+3. 长发按纸娃娃 / Live2D 拆三层，同一正面、同一画布叠：
+   - **后发 Hair_Back**（衣服后面）：整颗头形都是实心下垂发。业内（Live2D 官方「划分头发」、ChibiDoll hair tutorial、换装游戏 Hair Backs）是先把完整发型画在头上，**脸后面被挡住的那一块也要补画满**。不镂脸、不画刘海/呆毛/发夹。
+   - **身体** 无头裙子。
+   - **前发 Hair_Front**（衣服前面）：脸 + 刘海 + 呆毛 + 颊边锁。
+   一张三连图里出：正面全身 | 前发 | 后发。侧面容易穿帮。
+   **游戏里永远按这个顺序叠，所有换装都一样：** 翅膀 → 后发 → 衣服/身体 → 头和前发。
+4. 提示词只写正面要求，颜色用实物锚定。参考图只用基准的脸部特写，不要贴整身水手裙。
+5. Gemini NB2，`--image-size 2K`，竖构图 `3:4`。提示词进 `docs/prompt/`。
+   **母版一律写到** `/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/<任务名>/`
+   （长发分层用 `cast-hairdress/`，loading/头像/logo 用 `branding/`）。
+   先 `mkdir` 并做写入测试，Shell 要完整文件系统权限。**不要写进仓库内 `game_assets_tmp/`。**
+   去底后放到 `Art/Cast/fullbody/`，用 `Tools/sprite_align.py` 对齐后再替换 `Portraits/`。
+   **对齐导出的长文件名只留在 `Art/Cast/aligned/`。** 拷进游戏时必须改成短 id，和 `DressSortBuilder` 里的中文名一一对应：
+   - 裙子无头身体 `Art/Portraits/body_{id}.png`，未拆头全身 `Art/Portraits/portrait_{id}.png`，图标 `Art/Icons/dress_{id}.png`
+   - 头/前发 `Art/Portraits/head_{key}.png`，后发 `Art/Portraits/hairback_{key}.png`，图标 `Art/Icons/hair_{key}.png`
+   - 例：柠檬衬衫裙 = `lemon_print`，奶茶长发 = `hair_milktea_long` / `head_milktea_long` + `hairback_milktea_long`
+6. 不要自动切头。各层必须是同一画布尺寸，游戏里直接叠。
+
+## 棋盘裙子小图（锁定无袖色块）
+
+关卡叠裙小图按 `docs/prompt/board-dress-spec.txt`，基准看 `Art/Icons/dress_black_ribbon.png`。
+正面无袖 A 字色块，肩线只是往里收的缺口，下摆两只黑脚，2～3 个平涂色，细匀黑线赛璐璐。领口只放一个结或彼得潘领或三颗扣。不要碎花、不要灰底卡片、不要把已有裙子当 `--image` 参考。
+入库：`Art/Icons/dress_{id}.png` + `Resources/DressIcons/{id}.png`，256 画布内容高约 232。

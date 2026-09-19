@@ -1,0 +1,6 @@
+A single tall rounded rectangle column tray for a dress-stacking game, portrait orientation, centered on the canvas.
+
+Fill is vanilla-ice-cream #FFF6EC. Thin even black outline. Soft candy corners. Flat cel fill, no inner dresses, no text, no triangles, no shadow.
+
+Background is one flat solid gray-blue #4A5A6B filling the entire image.
+The tray is much taller than it is wide, like a locker door, with a small margin on every side.
