@@ -20,6 +20,8 @@ namespace DressSort
             public string equippedHair;
             public int levelsCleared;
             public int stars;
+            public int energy;
+            public long energyUtc;
         }
 
         readonly GameDatabase database;
@@ -31,8 +33,13 @@ namespace DressSort
             Load();
         }
 
+        public const int MaxEnergy = 5;
+        public const int EnergyPerLevel = 1;
+        const long RecoverTicks = 5L * 60L * 10000000L;
+
         public int LevelsCleared => data.levelsCleared;
         public int Stars => data.stars;
+        public int Energy => data.energy;
         public int UnlockedCount => data.unlocked.Count;
         public int TotalCount => database.items.Count;
 
@@ -90,6 +97,44 @@ namespace DressSort
 
         public bool IsLevelPlayable(int levelIndex) => levelIndex <= data.levelsCleared + 1;
 
+        public int RecoverEnergy()
+        {
+            long now = System.DateTime.UtcNow.Ticks;
+            if (data.energyUtc <= 0)
+            {
+                data.energy = MaxEnergy;
+                data.energyUtc = now;
+                Save();
+                return data.energy;
+            }
+
+            if (data.energy >= MaxEnergy)
+            {
+                data.energyUtc = now;
+                return data.energy;
+            }
+
+            long gained = (now - data.energyUtc) / RecoverTicks;
+            if (gained > 0)
+            {
+                data.energy = Mathf.Min(MaxEnergy, data.energy + (int)gained);
+                data.energyUtc += gained * RecoverTicks;
+                if (data.energy >= MaxEnergy)
+                    data.energyUtc = now;
+                Save();
+            }
+            return data.energy;
+        }
+
+        public bool SpendEnergy(int cost = EnergyPerLevel)
+        {
+            RecoverEnergy();
+            if (data.energy < cost) return false;
+            data.energy -= cost;
+            Save();
+            return true;
+        }
+
         // ------------------------------------------------------------ 读写
 
         void Load()
@@ -119,6 +164,8 @@ namespace DressSort
                 data.equippedDress = database.defaultDress.id;
             if (string.IsNullOrEmpty(data.equippedHair) && database.defaultHair != null)
                 data.equippedHair = database.defaultHair.id;
+
+            RecoverEnergy();
         }
 
         void Save()

@@ -372,10 +372,14 @@ namespace DressSort
             }
         }
 
-        public void StartLevel(LevelDef level)
+        public bool StartLevel(LevelDef level)
         {
+            if (level == null) return false;
+            if (!Wardrobe.SpendEnergy())
+                return false;
             CurrentLevel = level;
             Show(ScreenId.Game);
+            return true;
         }
 
         public T PanelOf<T>(ScreenId id) where T : Panel =>

@@ -13,6 +13,7 @@ namespace DressSort
     {
         public RectTransform dollSlot;
         public Text starLabel;
+        public Text energyLabel;
         public Text progressLabel;
         public Text toastLabel;
         public Button startButton;
@@ -48,6 +49,9 @@ namespace DressSort
                 new Vector2(70f, -70f), new Vector2(64f, 64f));
             starLabel = UiKit.Label(transform, "StarCount", "0", new Vector2(0f, 1f),
                 new Vector2(168f, -70f), new Vector2(140f, 70f), 46, Palette.Ink,
+                TextAnchor.MiddleLeft);
+            energyLabel = UiKit.Label(transform, "Energy", "体力 5/5", new Vector2(0f, 1f),
+                new Vector2(430f, -70f), new Vector2(220f, 70f), 36, Palette.Ink,
                 TextAnchor.MiddleLeft);
 
             Image gear = UiKit.Icon(transform, "Gear", db != null ? db.iconGear : null,
@@ -299,6 +303,15 @@ namespace DressSort
             if (button == null || action == null) return;
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(action);
+        }
+
+        public void SetEnergy(int current, int max)
+        {
+            if (energyLabel == null)
+                energyLabel = UiKit.Label(transform, "Energy", "", new Vector2(0f, 1f),
+                    new Vector2(430f, -70f), new Vector2(220f, 70f), 36, Palette.Ink,
+                    TextAnchor.MiddleLeft);
+            energyLabel.text = "体力 " + current + "/" + max;
         }
 
         public void ShowToast(string message)

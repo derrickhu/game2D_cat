@@ -48,6 +48,8 @@ namespace DressSort
                     app.Wardrobe.EquippedHair);
             if (hud != null && hud.starLabel != null)
                 hud.starLabel.text = app.Wardrobe.Stars.ToString();
+            if (hud != null)
+                hud.SetEnergy(app.Wardrobe.RecoverEnergy(), WardrobeService.MaxEnergy);
             if (hud != null && hud.progressLabel != null)
                 hud.progressLabel.text = $"已解锁 {app.Wardrobe.UnlockedCount} / {app.Wardrobe.TotalCount}";
         }
@@ -61,8 +63,9 @@ namespace DressSort
             }
 
             LevelDef only = app.LevelAt(1);
-            if (only != null)
-                app.StartLevel(only);
+            if (only == null) return;
+            if (!app.StartLevel(only))
+                Toast("体力不足，过一会儿再来");
         }
 
         void OnWipe()
