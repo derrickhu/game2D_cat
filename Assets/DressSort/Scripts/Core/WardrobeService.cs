@@ -25,6 +25,7 @@ namespace DressSort
             public int checkRun;
             public int checkDay;
             public int clubDay;
+            public int packDay;
         }
 
         readonly GameDatabase database;
@@ -97,8 +98,6 @@ namespace DressSort
             data.stars += starsEarned;
             Save();
         }
-
-        public bool IsLevelPlayable(int levelIndex) => levelIndex <= data.levelsCleared + 1;
 
         public int RecoverEnergy()
         {
@@ -191,6 +190,20 @@ namespace DressSort
             data.clubDay = Today;
             Save();
             GainEnergy(ClubReward);
+            return true;
+        }
+
+        public const int PackReward = 2;
+
+        public bool PackRewardedToday => data.packDay == Today;
+
+        /// <summary>活动装箱当天第一次完成给体力。已经领过返回 false。</summary>
+        public bool ClaimPack()
+        {
+            if (PackRewardedToday) return false;
+            data.packDay = Today;
+            Save();
+            GainEnergy(PackReward);
             return true;
         }
 

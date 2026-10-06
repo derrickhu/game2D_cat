@@ -8,10 +8,10 @@ namespace DressSort
     public enum ScreenId
     {
         Home,
-        LevelMap,
         Game,
         Reward,
         DressUp,
+        Pack,
     }
 
     /// <summary>
@@ -48,6 +48,9 @@ namespace DressSort
         public LevelDef PendingLevel { get; set; }
 
         public LevelDef CurrentLevel { get; set; }
+
+        /// <summary>回到首页时要提示的一句话，首页显示后清空。</summary>
+        public string Notice { get; set; }
 
         readonly Dictionary<ScreenId, Panel> panels = new Dictionary<ScreenId, Panel>();
         readonly Dictionary<ScreenId, RectTransform> safeRoots = new Dictionary<ScreenId, RectTransform>();
@@ -182,18 +185,49 @@ namespace DressSort
                 db.gameRod = LoadUiSprite(ui + "Game/rod");
                 db.gamePauseBoard = LoadUiSprite(ui + "Game/pause_board");
             }
-            if (db.boardBgs == null || db.boardBgs.Count < 1 || db.boardHangers == null || db.boardHangers.Count < 1)
+            if (db.gameParcel == null)
             {
-                db.boardBgs = new List<Sprite>
+                db.gameParcel = LoadUiSprite(ui + "Game/parcel");
+                db.gameDustCover = LoadUiSprite(ui + "Game/dust_cover");
+                db.gameCoverTag = LoadUiSprite(ui + "Game/cover_tag");
+            }
+            if (db.gameLock == null)
+            {
+                db.gameLock = LoadUiSprite(ui + "Game/lock");
+                db.gameKey = LoadUiSprite(ui + "Game/key");
+                db.gameBubble = LoadUiSprite(ui + "Game/bubble");
+            }
+            if (db.gameAlarm == null)
+                db.gameAlarm = LoadUiSprite(ui + "Game/alarm");
+            if (db.mysteryItem == null)
+                db.mysteryItem = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemDef>(
+                    "Assets/DressSort/Data/Items/mystery.asset");
+            if (db.packLane == null)
+            {
+                db.packLane = LoadUiSprite(ui + "Pack/lane");
+                db.packLaneOn = LoadUiSprite(ui + "Pack/lane_on");
+                db.packLaneReady = LoadUiSprite(ui + "Pack/lane_ready");
+                db.packBox = LoadUiSprite(ui + "Pack/box");
+                db.packBtn = LoadUiSprite(ui + "Pack/btn_pack");
+                db.packRefill = LoadUiSprite(ui + "Pack/btn_refill");
+                db.packLock = LoadUiSprite(ui + "Pack/lock");
+                db.packAd = LoadUiSprite(ui + "Pack/ad");
+                db.packCheck = LoadUiSprite(ui + "Pack/check");
+            }
+            if (db.boardBgs == null || db.boardBgs.Count < GameDatabase.BoardThemes.Length
+                || db.boardRods == null || db.boardRods.Count < GameDatabase.BoardThemes.Length)
+            {
+                db.boardBgs = new List<Sprite>();
+                db.boardHangers = new List<Sprite>();
+                db.boardRods = new List<Sprite>();
+                foreach (string theme in GameDatabase.BoardThemes)
                 {
-                    LoadUiSprite(ui + "Bgs/bg_shop"),
-                };
-                db.boardHangers = new List<Sprite>
-                {
-                    LoadUiSprite(ui + "Game/hanger_closet"),
-                    LoadUiSprite(ui + "Game/hanger_closet"),
-                };
-                db.boardBgBand = 10;
+                    bool shop = theme == "shop";
+                    db.boardBgs.Add(LoadUiSprite(ui + "Bgs/" + (shop ? "bg_shop" : "board_" + theme)));
+                    db.boardHangers.Add(LoadUiSprite(ui + "Game/hanger_" + (shop ? "closet" : theme)));
+                    db.boardRods.Add(LoadUiSprite(ui + "Game/" + (shop ? "rod" : "rod_" + theme)));
+                }
+                db.boardBgBand = 20;
                 if (db.iconHanger == null)
                     db.iconHanger = LoadUiSprite(ui + "Game/hanger_closet");
             }
@@ -271,10 +305,10 @@ namespace DressSort
         void BuildPanels()
         {
             Add<HomePanel>(ScreenId.Home);
-            Add<LevelMapPanel>(ScreenId.LevelMap);
             Add<GamePanel>(ScreenId.Game);
             Add<RewardPanel>(ScreenId.Reward);
             Add<DressUpPanel>(ScreenId.DressUp);
+            Add<PackPanel>(ScreenId.Pack);
         }
 
         void Add<T>(ScreenId id) where T : Panel
@@ -404,13 +438,12 @@ namespace DressSort
         public T PanelOf<T>(ScreenId id) where T : Panel =>
             panels.TryGetValue(id, out Panel panel) ? panel as T : null;
 
-        public LevelDef LevelAt(int index)
-        {
-            List<LevelDef> all = database.AllLevels();
-            return index >= 1 && index <= all.Count ? all[index - 1] : null;
-        }
+        public LevelDef LevelAt(int index) => LevelCatalog.Get(database, index);
 
-        public int LevelCount => database.AllLevels().Count;
+        public int LevelCount => LevelCatalog.Count;
+
+        /// <summary>每关只玩一次，永远接着打下一关。全部通关返回 null。</summary>
+        public LevelDef NextLevel => LevelAt(Wardrobe.LevelsCleared + 1);
 
         /// <summary>切换全页背景。后面做换装背景页时直接调这个。</summary>
         public void SetBackground(int index)

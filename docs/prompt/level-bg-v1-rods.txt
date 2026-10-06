@@ -1,0 +1,10 @@
+Flat 2D mobile game sprite sheet, wide canvas. Five long horizontal clothes rods stacked from top to bottom, each one spanning almost the full width of the canvas, evenly spaced with wide flat slate blue-gray gaps between them, the color of a school chalkboard.
+
+Shared look: flat matte print style like the menu pieces of a cozy casual game, a crisp thin cocoa brown outline, flat color fills, a soft lighter stripe along the top of each pole, a round knob cap at each end. All five rods are the same length and thickness, only the material changes.
+
+Rod 1, top: pale driftwood the color of beach sand, with a few turns of white rope wrapped near each end.
+Rod 2: a green bamboo pole the green of a matcha cookie, with thin bamboo joints.
+Rod 3: a polished brass rod the yellow of a new brass coin, each end cap shaped like a small round star.
+Rod 4: a dark wrought iron rod like a cast iron pan, round ball end caps.
+Rod 5, bottom: a frosted silver rod like a stainless steel spoon, each end cap a small round snowball.
+NO TEXT.

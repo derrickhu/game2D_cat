@@ -401,6 +401,50 @@ namespace DressSort
             return WxType()?.GetMethod("GetSystemInfoSync", Type.EmptyTypes)?.Invoke(null, null);
         }
 
+        /// <summary>
+        /// 激励视频。广告位还没配、或在编辑器里，直接当看完。
+        /// 配了广告位才走微信 CreateRewardedVideoAd，看完才算成功。
+        /// </summary>
+        public const string RewardedAdUnitId = "";
+
+        public static void ShowRewarded(Action success, Action fail)
+        {
+            if (string.IsNullOrEmpty(RewardedAdUnitId) || Application.isEditor)
+            {
+                success?.Invoke();
+                return;
+            }
+#if UNITY_MINIGAME || WEIXINMINIGAME || UNITY_WEIXINMINIGAME || MINIGAME_SUBPLATFORM_WEIXIN
+            try
+            {
+                WeChatWASM.WXRewardedVideoAd ad = WeChatWASM.WX.CreateRewardedVideoAd(
+                    new WeChatWASM.WXCreateRewardedVideoAdParam { adUnitId = RewardedAdUnitId });
+                bool settled = false;
+                ad.OnClose(res =>
+                {
+                    if (settled) return;
+                    settled = true;
+                    if (res != null && res.isEnded)
+                        success?.Invoke();
+                    else
+                        fail?.Invoke();
+                });
+                ad.Show(null, _ =>
+                {
+                    if (settled) return;
+                    settled = true;
+                    fail?.Invoke();
+                });
+            }
+            catch (Exception)
+            {
+                fail?.Invoke();
+            }
+#else
+            success?.Invoke();
+#endif
+        }
+
         static object Member(object o, string name)
         {
             if (o == null) return null;

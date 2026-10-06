@@ -7,7 +7,7 @@ using UnityEngine;
 namespace DressSort.EditorTools
 {
     /// <summary>
-    /// 把 Art 目录里的图打成 ItemDef / LevelDef / ChapterDef / GameDatabase，再建好场景。
+    /// 把 Art 目录里的图打成 ItemDef / GameDatabase，再建好场景。关卡由 LevelCatalog 按关号生成。
     /// 美术管线跑完之后点一次这个菜单，工程就全接上了。
     /// </summary>
     public static class DressSortBuilder
@@ -15,7 +15,6 @@ namespace DressSort.EditorTools
         const string Root = "Assets/DressSort";
         const string DataDir = Root + "/Data";
         const string ItemDir = DataDir + "/Items";
-        const string LevelDir = DataDir + "/Levels";
         const string DatabasePath = DataDir + "/GameDatabase.asset";
         const string ScenePath = Root + "/DressSort.unity";
         const int DefaultBgIndex = 4;
@@ -74,19 +73,6 @@ namespace DressSort.EditorTools
             ("hair_denim", "雾蓝"),
         };
 
-        // 每关用哪五款、给什么奖励。奖励顺序保证十件都拿得到。
-        static readonly (int[] palette, string reward, int height, int scramble, int limit)[] Levels =
-        {
-            (new[] { 0, 1, 2, 3, 4 }, "pink_gingham", 5, 16, 40),
-            (new[] { 1, 2, 3, 4, 5 }, "lemon_print", 5, 20, 44),
-            (new[] { 0, 2, 4, 5, 6 }, "orange_slice", 6, 24, 50),
-            (new[] { 1, 3, 4, 6, 7 }, "ivory_lace", 6, 28, 54),
-            (new[] { 0, 2, 5, 6, 7 }, "strawberry", 6, 32, 58),
-            (new[] { 2, 3, 4, 5, 7 }, "grape_school", 6, 36, 62),
-            (new[] { 0, 1, 5, 6, 7 }, "wing_aqua", 6, 40, 66),
-            (new[] { 1, 2, 4, 6, 7 }, "wing_rose", 6, 44, 70),
-        };
-
         [InitializeOnLoadMethod]
         static void UseDressSortAsPlayScene()
         {
@@ -129,7 +115,6 @@ namespace DressSort.EditorTools
         public static void RebuildAll()
         {
             Directory.CreateDirectory(ItemDir);
-            Directory.CreateDirectory(LevelDir);
             AssetDatabase.ImportAsset(Root + "/Art/Ui", ImportAssetOptions.ImportRecursive);
             AssetDatabase.Refresh();
 
@@ -199,35 +184,9 @@ namespace DressSort.EditorTools
             mystery.unlockedFromStart = false;
             EditorUtility.SetDirty(mystery);
 
-            var levels = new List<LevelDef>();
-            for (int i = 0; i < Levels.Length; i++)
-            {
-                (int[] palette, string reward, int height, int scramble, int limit) config = Levels[i];
-                LevelDef level = UpsertLevel(i + 1);
-                level.index = i + 1;
-                level.themeName = "裙子";
-                level.columns = config.palette.Length;
-                level.columnHeight = config.height;
-                level.moveLimit = config.limit;
-                level.scrambleMoves = config.scramble;
-                level.shuffles = 3;
-                level.palette = new List<ItemDef>();
-                foreach (int index in config.palette)
-                    level.palette.Add(byId[Dresses[index].id]);
-                level.mystery = mystery;
-                level.reward = byId.TryGetValue(config.reward, out ItemDef r) ? r : null;
-                EditorUtility.SetDirty(level);
-                levels.Add(level);
-            }
-
-            var chapter = LoadOrCreate<ChapterDef>(DataDir + "/Chapter01.asset");
-            chapter.chapterName = "粉裙日记";
-            chapter.levels = levels;
-            EditorUtility.SetDirty(chapter);
-
             var database = LoadOrCreate<GameDatabase>(DatabasePath);
             database.items = items;
-            database.chapters = new List<ChapterDef> { chapter };
+            database.mysteryItem = mystery;
             database.defaultDress = byId["teal_sailor"];
             database.defaultHair = byId.ContainsKey("hair_milktea_long") && byId["hair_milktea_long"].worn != null
                 ? byId["hair_milktea_long"]
@@ -270,7 +229,7 @@ namespace DressSort.EditorTools
 
             AssetDatabase.SaveAssets();
             BuildScene(database);
-            Debug.Log($"[叠叠裙] 重建完成：{items.Count} 件物品，{levels.Count} 关");
+            Debug.Log($"[叠叠裙] 重建完成：{items.Count} 件物品，{LevelCatalog.Count} 关");
         }
 
         [MenuItem("叠叠裙/绑定背景", priority = 2)]
@@ -336,8 +295,6 @@ namespace DressSort.EditorTools
 
         static ItemDef Upsert(string id) => LoadOrCreate<ItemDef>($"{ItemDir}/{id}.asset");
 
-        static LevelDef UpsertLevel(int index) => LoadOrCreate<LevelDef>($"{LevelDir}/Level{index:00}.asset");
-
         static T LoadOrCreate<T>(string path) where T : ScriptableObject
         {
             var asset = AssetDatabase.LoadAssetAtPath<T>(path);
@@ -378,6 +335,7 @@ namespace DressSort.EditorTools
             mystery.displayName = "神秘礼盒";
             mystery.icon = LoadSprite("Icons/dress_mystery");
             EditorUtility.SetDirty(mystery);
+            database.mysteryItem = mystery;
 
             foreach ((string id, string label) in Wings)
             {

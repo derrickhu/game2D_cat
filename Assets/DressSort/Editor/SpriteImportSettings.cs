@@ -43,7 +43,13 @@ namespace DressSort.EditorTools
                 : 512;
             importer.textureCompression = TextureImporterCompression.CompressedHQ;
 
-            if (assetPath.Contains("/Art/Ui/btn_"))
+            if (assetPath.EndsWith("/Game/dust_cover.png"))
+                importer.spriteBorder = new Vector4(60f, 44f, 60f, 84f);
+            else if (assetPath.EndsWith("/Pack/lane.png") || assetPath.EndsWith("/Pack/lane_ready.png"))
+                importer.spriteBorder = new Vector4(52f, 120f, 52f, 56f);
+            else if (assetPath.EndsWith("/Pack/lane_on.png"))
+                importer.spriteBorder = new Vector4(72f, 140f, 72f, 72f);
+            else if (assetPath.Contains("/Art/Ui/btn_"))
                 importer.spriteBorder = new Vector4(160f, 80f, 160f, 80f);
             else if (assetPath.Contains("/Art/Ui/card"))
                 importer.spriteBorder = new Vector4(56f, 56f, 56f, 56f);

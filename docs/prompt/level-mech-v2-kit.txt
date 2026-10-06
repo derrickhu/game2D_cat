@@ -1,0 +1,13 @@
+Flat 2D mobile game UI sprite sheet, square canvas. Four separate items arranged in a two by two grid on a wide flat slate blue-gray background, the color of a school chalkboard, with generous empty gaps between the items.
+
+Shared look: flat matte print style like the menu pieces of a cozy casual game, a crisp thin cocoa brown outline, flat color fills, and a flat darker band along the bottom edge for a hint of thickness. Soft warm colors, even matte paper finish, front view, each item centered in its quarter.
+
+Top left: a chunky padlock seen from the front, body the yellow of a new brass coin with a deeper honey bottom band, a round keyhole in cocoa brown, a thick silver-gray shackle like a stainless steel spoon.
+
+Top right: a cute old-fashioned key lying diagonally, the yellow of a new brass coin, a round loop handle with a small heart cutout, a short blade with two square teeth, deeper honey shading band.
+
+Bottom left: a round cartoon bomb like a black bowling ball, charcoal body with one soft white shine spot, a short brass cap on top, a curly fuse string the color of a jute rope, and a small spark at the tip the orange of a tangerine.
+
+Bottom right: a round speech bubble the white of fresh milk, a thin cocoa brown outline, a small rounded tail pointing straight down from the bottom center. The face is empty.
+
+NO TEXT.

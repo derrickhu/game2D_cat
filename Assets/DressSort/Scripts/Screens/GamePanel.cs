@@ -45,12 +45,13 @@ namespace DressSort
             {
                 hud.laneSolved = app.Database.boardLaneSolved;
                 hud.checkSolved = app.Database.boardCheckSolved;
+                hud.BindMechanics(app.Database);
             }
             hud.Wire(OnSwap, OnUndo, OnShuffle,
                 () => { CancelSwap(); hud.ShowPause(true); },
                 () => hud.ShowPause(false),
                 OnRestart,
-                () => { hud.ShowPause(false); app.Show(ScreenId.LevelMap); });
+                () => { hud.ShowPause(false); app.Show(ScreenId.Home); });
 
             board = BoardView.Create(hud.boardRoot != null ? hud.boardRoot : root,
                 new BoardView.Layout { overlap = 0.70f });
@@ -77,7 +78,7 @@ namespace DressSort
                     hud.ShowToast("这一关的配置不完整");
                 return;
             }
-            Deal(Random.Range(1, 999999));
+            Deal(level.seed);
         }
 
         public SortBoard Logic => logic;
@@ -110,20 +111,24 @@ namespace DressSort
             }
 
             logic = new SortBoard(level.columns, level.columnHeight, level.columns, level.moveLimit);
-            logic.Deal(level.scrambleMoves, seed);
+            logic.SetCovers(level.dustCovers);
+            logic.SetLocks(level.locks);
+            logic.SetTargets(level.targets);
+            logic.Deal(level.scrambleMoves, seed, level.parcels, level.alarms);
 
             if (hud != null)
             {
                 hud.ApplyTheme(
                     app.Database.BoardBgFor(level.index),
                     app.Database.BoardHangerFor(level.index),
+                    app.Database.BoardRodFor(level.index),
                     level.columns);
             }
 
             board.Bind(logic, level.palette, level.mystery);
             UpdateHud();
             if (hud != null)
-                hud.ShowToast("点一列，手里这件插到最上");
+                hud.ShowToast(LevelCatalog.IntroFor(level));
         }
 
         void OnColumnClicked(int column)
@@ -133,10 +138,16 @@ namespace DressSort
             {
                 if (hud != null)
                 {
-                    if (logic.IsColumnSolved(column))
+                    if (logic.IsCovered(column))
+                        hud.ShowToast("再叠好 " + logic.CoverLeft(column) + " 列，防尘罩就拉开");
+                    else if (logic.IsLocked(column))
+                        hud.ShowToast("锁着呢，先把带钥匙的那件顶出来");
+                    else if (logic.IsColumnSolved(column))
                         hud.ShowToast("这列已经叠好了");
+                    else if (logic.AlarmRang)
+                        hud.ShowToast("闹钟响了，撤回一步或者重新开始");
                     else if (logic.OutOfMoves)
-                        hud.ShowToast("步数用完了，点随机重开");
+                        hud.ShowToast("步数用完了，撤回或者重新开始");
                     else
                         hud.ShowToast("手里没有可放的");
                 }
@@ -149,6 +160,12 @@ namespace DressSort
         {
             yield return board.PlayColumn(column);
             UpdateHud();
+            if (logic.LastUnlocked.Length > 0)
+                hud.ShowToast("钥匙打开了一把锁");
+            else if (logic.LastAlarmOff)
+                hud.ShowToast("闹钟关掉了");
+            else if (logic.LastOpened.Length > 0)
+                hud.ShowToast("防尘罩拉开了");
 
             if (logic.IsWin())
             {
@@ -159,10 +176,17 @@ namespace DressSort
                 yield break;
             }
 
+            if (logic.AlarmRang)
+            {
+                finished = true;
+                hud.ShowToast("闹钟响了！撤回一步或者重新开始");
+                yield break;
+            }
+
             if (logic.OutOfMoves)
             {
                 finished = true;
-                hud.ShowToast("步数用完了，点随机重开这一关");
+                hud.ShowToast("步数用完了，撤回或者重新开始");
             }
         }
 
@@ -174,7 +198,33 @@ namespace DressSort
             app.Wardrobe.ReportCleared(level.index, stars);
             RankService.Submit(app.Wardrobe.LevelsCleared);
             app.PendingLevel = level;
-            app.Show(level.reward != null ? ScreenId.Reward : ScreenId.Home);
+            if (level.reward != null)
+            {
+                app.Show(ScreenId.Reward);
+                return;
+            }
+            GoNext();
+        }
+
+        /// <summary>过关直接接下一关，不回选关页。体力不够或全部通关就回首页。</summary>
+        void GoNext()
+        {
+            LevelDef next = app.NextLevel;
+            if (next == null)
+            {
+                app.Notice = "全部 " + app.LevelCount + " 关都通关啦";
+                app.Show(ScreenId.Home);
+                return;
+            }
+            if (!app.Wardrobe.SpendEnergy())
+            {
+                app.Notice = "体力不足，休息一下再来第 " + next.index + " 关";
+                app.Show(ScreenId.Home);
+                return;
+            }
+            app.CurrentLevel = next;
+            level = next;
+            Deal(level.seed);
         }
 
         void OnUndo()
@@ -206,7 +256,7 @@ namespace DressSort
 
             int keep = finished ? level.shuffles : shufflesLeft - 1;
             int swaps = swapsLeft;
-            Deal(Random.Range(1, 999999));
+            Deal(level.seed + (level.shuffles - keep) * 104729);
             shufflesLeft = keep;
             swapsLeft = swaps;
             UpdateHud();
@@ -245,7 +295,16 @@ namespace DressSort
             if (board.Busy || finished) return;
             if (!logic.CanSwap(column, row))
             {
-                hud.ShowToast(row < 0 ? "这列是空的" : "两件一样，换了没变化");
+                if (logic.IsCovered(column))
+                    hud.ShowToast("防尘罩还没拉开");
+                else if (logic.IsLocked(column))
+                    hud.ShowToast("这列还锁着");
+                else if (logic.HasKey(column, row) || logic.AlarmLeft(column, row) >= 0)
+                    hud.ShowToast("挂钥匙和闹钟的要靠顶出来，换不了");
+                else if (logic.IsWrapped(column, row))
+                    hud.ShowToast("包裹还没拆开，换不了");
+                else
+                    hud.ShowToast(row < 0 ? "这列是空的" : "两件一样，换了没变化");
                 return;
             }
             CancelSwap();
@@ -257,7 +316,7 @@ namespace DressSort
         {
             yield return board.PlaySwap(column, row);
             UpdateHud();
-            hud.ShowToast("交换成功");
+            hud.ShowToast(logic.LastOpened.Length > 0 ? "交换成功，防尘罩拉开了" : "交换成功");
             if (logic.IsWin())
             {
                 finished = true;
@@ -271,7 +330,7 @@ namespace DressSort
         {
             if (board.Busy) return;
             hud.ShowPause(false);
-            Deal(Random.Range(1, 999999));
+            Deal(level.seed);
             hud.ShowToast("重新开始");
         }
 

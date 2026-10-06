@@ -68,21 +68,29 @@ namespace DressSort.EditorTools
             database.gameBadge = Load("Ui/Game/badge");
             database.gameRod = Load("Ui/Game/rod");
             database.gamePauseBoard = Load("Ui/Game/pause_board");
+            database.gameParcel = Load("Ui/Game/parcel");
+            database.gameDustCover = Load("Ui/Game/dust_cover");
+            database.gameCoverTag = Load("Ui/Game/cover_tag");
+            database.gameLock = Load("Ui/Game/lock");
+            database.gameKey = Load("Ui/Game/key");
+            database.gameAlarm = Load("Ui/Game/alarm");
+            database.gameBubble = Load("Ui/Game/bubble");
             database.dressupPanel = Load("Ui/DressUp/wardrobe_panel");
             database.dressupSave = Load("Ui/DressUp/btn_save");
             database.dressupTabOn = Load("Ui/DressUp/tab_on");
             database.dressupTabTrack = Load("Ui/DressUp/tab_track");
             database.iconHanger = Load("Ui/Game/hanger_closet");
-            database.boardBgs = new System.Collections.Generic.List<Sprite>
+            database.boardBgs = new System.Collections.Generic.List<Sprite>();
+            database.boardHangers = new System.Collections.Generic.List<Sprite>();
+            database.boardRods = new System.Collections.Generic.List<Sprite>();
+            foreach (string theme in GameDatabase.BoardThemes)
             {
-                LoadJpg("Ui/Bgs/bg_shop"),
-            };
-            database.boardHangers = new System.Collections.Generic.List<Sprite>
-            {
-                Load("Ui/Game/hanger_closet"),
-                Load("Ui/Game/hanger_closet"),
-            };
-            database.boardBgBand = 10;
+                bool shop = theme == "shop";
+                database.boardBgs.Add(LoadJpg("Ui/Bgs/" + (shop ? "bg_shop" : "board_" + theme)));
+                database.boardHangers.Add(Load("Ui/Game/hanger_" + (shop ? "closet" : theme)));
+                database.boardRods.Add(Load("Ui/Game/" + (shop ? "rod" : "rod_" + theme)));
+            }
+            database.boardBgBand = 20;
             database.boardLaneSolved = Load("Ui/Game/lane_solved");
             database.boardCheckSolved = Load("Ui/Game/check_solved");
             EditorUtility.SetDirty(database);

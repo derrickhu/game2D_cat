@@ -10,7 +10,7 @@ namespace DressSort
     /// </summary>
     public class GameHud : MonoBehaviour
     {
-        public const int MaxHangers = 7;
+        public const int MaxHangers = 8;
         public const float RodFromTop = 392f;
         public const float HangerWidth = 152f;
         public const float HangerHeight = 104f;
@@ -35,6 +35,13 @@ namespace DressSort
         public RectTransform holdSlot;
         public Sprite laneSolved;
         public Sprite checkSolved;
+        public Sprite parcelSprite;
+        public Sprite coverSprite;
+        public Sprite tagSprite;
+        public Sprite lockSprite;
+        public Sprite keySprite;
+        public Sprite alarmSprite;
+        public Sprite bubbleSprite;
         public Image tray;
         public Button swapButton;
         public Button undoButton;
@@ -84,6 +91,10 @@ namespace DressSort
 
             laneSolved = db != null ? db.boardLaneSolved : null;
             checkSolved = db != null ? db.boardCheckSolved : null;
+            parcelSprite = db != null ? db.gameParcel : null;
+            coverSprite = db != null ? db.gameDustCover : null;
+            tagSprite = db != null ? db.gameCoverTag : null;
+            BindMechanics(db);
 
             BuildTray(db);
 
@@ -98,6 +109,18 @@ namespace DressSort
 
             BuildTopBar(db);
             BuildPause(db);
+        }
+
+        public void BindMechanics(GameDatabase db)
+        {
+            if (db == null) return;
+            parcelSprite = db.gameParcel;
+            coverSprite = db.gameDustCover;
+            tagSprite = db.gameCoverTag;
+            lockSprite = db.gameLock;
+            keySprite = db.gameKey;
+            alarmSprite = db.gameAlarm;
+            bubbleSprite = db.gameBubble;
         }
 
         void BuildTray(GameDatabase db)
@@ -194,7 +217,7 @@ namespace DressSort
                 Color.white);
             restartButton = PauseButton(board.transform, "重新开始", db != null ? db.dressupTabOn : null, -35f,
                 Cocoa);
-            mapButton = PauseButton(board.transform, "返回地图", db != null ? db.dressupTabTrack : null, -190f,
+            mapButton = PauseButton(board.transform, "返回首页", db != null ? db.dressupTabTrack : null, -190f,
                 Color.white);
 
             pauseLayer.gameObject.SetActive(false);
@@ -239,10 +262,12 @@ namespace DressSort
                 face.color = ready ? Color.white : new Color(0.78f, 0.74f, 0.76f, 1f);
         }
 
-        public void ApplyTheme(Sprite background, Sprite hanger, int columns)
+        public void ApplyTheme(Sprite background, Sprite hanger, Sprite rodSprite, int columns)
         {
             if (backdrop != null && background != null)
                 backdrop.sprite = background;
+            if (rod != null && rodSprite != null)
+                rod.sprite = rodSprite;
             if (hanger != null && hangers != null)
             {
                 for (int i = 0; i < hangers.Length; i++)

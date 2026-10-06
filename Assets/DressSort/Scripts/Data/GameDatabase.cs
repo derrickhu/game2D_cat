@@ -11,7 +11,9 @@ namespace DressSort
     public class GameDatabase : ScriptableObject
     {
         public List<ItemDef> items = new List<ItemDef>();
-        public List<ChapterDef> chapters = new List<ChapterDef>();
+
+        [Tooltip("棋盘上的问号，过关时手里剩下的那件，不进衣柜")]
+        public ItemDef mysteryItem;
         public ItemDef defaultDress;
         public ItemDef defaultHair;
 
@@ -71,11 +73,31 @@ namespace DressSort
         public Sprite gameBadge;
         public Sprite gameRod;
         public Sprite gamePauseBoard;
+        public Sprite gameParcel;
+        public Sprite gameDustCover;
+        public Sprite gameCoverTag;
+        public Sprite gameLock;
+        public Sprite gameKey;
+        public Sprite gameAlarm;
+        public Sprite gameBubble;
+        public Sprite packLane;
+        public Sprite packLaneOn;
+        public Sprite packLaneReady;
+        public Sprite packBox;
+        public Sprite packBtn;
+        public Sprite packRefill;
+        public Sprite packLock;
+        public Sprite packAd;
+        public Sprite packCheck;
         public List<Sprite> boardBgs = new List<Sprite>();
         public List<Sprite> boardHangers = new List<Sprite>();
+        public List<Sprite> boardRods = new List<Sprite>();
         public Sprite boardLaneSolved;
         public Sprite boardCheckSolved;
-        public int boardBgBand = 10;
+        public int boardBgBand = 20;
+
+        /// <summary>棋盘主题按这个顺序每 boardBgBand 关换一次，走完一轮从头再来。</summary>
+        public static readonly string[] BoardThemes = { "shop", "seaside", "garden", "night", "autumn", "winter" };
 
         [Header("装扮")]
         public Sprite dressupBg;
@@ -110,12 +132,14 @@ namespace DressSort
             return hanger != null ? hanger : iconHanger;
         }
 
+        public Sprite BoardRodFor(int levelIndex) => PickByBand(boardRods, levelIndex, gameRod);
+
         Sprite PickByBand(List<Sprite> list, int levelIndex, Sprite fallback)
         {
             if (list == null || list.Count == 0)
                 return fallback;
             int band = (Mathf.Max(1, levelIndex) - 1) / Mathf.Max(1, boardBgBand);
-            Sprite picked = list[Mathf.Clamp(band, 0, list.Count - 1)];
+            Sprite picked = list[band % list.Count];
             return picked != null ? picked : fallback;
         }
 
@@ -172,21 +196,6 @@ namespace DressSort
             uiBgIndex = Mathf.Clamp(index, 0, uiBgs.Count - 1);
             if (uiBgs[uiBgIndex] != null)
                 uiBg = uiBgs[uiBgIndex];
-        }
-
-        public List<LevelDef> AllLevels()
-        {
-            var all = new List<LevelDef>();
-            for (int c = 0; c < chapters.Count; c++)
-            {
-                if (chapters[c] == null) continue;
-                for (int l = 0; l < chapters[c].levels.Count; l++)
-                {
-                    if (chapters[c].levels[l] != null)
-                        all.Add(chapters[c].levels[l]);
-                }
-            }
-            return all;
         }
 
         public List<ItemDef> ItemsInSlot(ItemSlot slot)

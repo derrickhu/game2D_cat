@@ -1,0 +1,11 @@
+Flat 2D mobile game UI sprite sheet, square canvas. Three separate items on a wide flat slate blue-gray background, the color of a school chalkboard, with generous empty gaps between the items.
+
+Shared look: flat matte print style like the menu pieces of a cozy casual game, a crisp thin cocoa brown outline, flat color fills, a faint tone-on-tone pattern, and a flat darker band along the bottom edge for a hint of thickness. Soft muted pastel colors, even matte paper finish, front view.
+
+Left half: one tall garment dust cover seen from the front, about three times as tall as it is wide, softly rounded corners, filling most of the left half from top to bottom. Its face is frosted lavender like a lilac bath bead, with a faint diagonal pinstripe pattern and a few soft vertical fold lines like thin fabric. A vanilla cream zipper runs straight down the middle with a small cocoa brown zipper pull near the top. Deeper lilac bottom band.
+
+Right half, top: a square parcel wrapped in kraft paper the color of a brown paper lunch bag, tied with a vanilla cream ribbon in a cross and a small bow on top, faint tonal paper speckles, deeper caramel bottom band.
+
+Right half, bottom: a round hang tag like a clothing price tag, vanilla custard cream face, a thin raspberry jam red rim, a small hole near the top with a short cocoa brown string. The face is empty.
+
+NO TEXT.

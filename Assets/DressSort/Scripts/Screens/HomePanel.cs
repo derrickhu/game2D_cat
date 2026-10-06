@@ -49,19 +49,22 @@ namespace DressSort
                 hud.SetEnergy(app.Wardrobe.RecoverEnergy(), WardrobeService.MaxEnergy);
             if (hud != null && hud.progressLabel != null)
                 hud.progressLabel.text = $"已解锁 {app.Wardrobe.UnlockedCount} / {app.Wardrobe.TotalCount}";
+            if (!string.IsNullOrEmpty(app.Notice))
+            {
+                Toast(app.Notice);
+                app.Notice = null;
+            }
         }
 
         void OnStart()
         {
-            if (app.LevelCount > 1)
+            LevelDef next = app.NextLevel;
+            if (next == null)
             {
-                app.Show(ScreenId.LevelMap);
+                Toast("全部 " + app.LevelCount + " 关都通关啦");
                 return;
             }
-
-            LevelDef only = app.LevelAt(1);
-            if (only == null) return;
-            if (!app.StartLevel(only))
+            if (!app.StartLevel(next))
                 Toast("体力不足，过一会儿再来");
         }
 
@@ -89,6 +92,9 @@ namespace DressSort
                     break;
                 case "circle":
                     PopupView.Open<ClubPopup>("ClubPopup", layer, app, OnShow);
+                    break;
+                case "event":
+                    app.Show(ScreenId.Pack);
                     break;
                 default:
                     Toast(title + " 即将开放");

@@ -30,8 +30,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 14a1b2c3d4e5f60718293a4b5c6d7e83, type: 2}
   - {fileID: 11400000, guid: 15a1b2c3d4e5f60718293a4b5c6d7e84, type: 2}
   - {fileID: 11400000, guid: fc2e4756980ef4585b3a404a32835bda, type: 2}
-  chapters:
-  - {fileID: 11400000, guid: 921e32a24ea994c419bce26702b8331d, type: 2}
+  mysteryItem: {fileID: 11400000, guid: 72f31f3fc3411456a8f71ebbb6b856c2, type: 2}
   defaultDress: {fileID: 11400000, guid: 128f9e0cd8ec84dd3b424ff548380195, type: 2}
   defaultHair: {fileID: 11400000, guid: fc2e4756980ef4585b3a404a32835bda, type: 2}
   uiBg: {fileID: 21300000, guid: be50326f81a3b4e5f79146d57890123c, type: 3}
@@ -83,14 +82,46 @@ MonoBehaviour:
   gameBadge: {fileID: 21300000, guid: 5577a139f67d84d87b33f9cd2b4d38d4, type: 3}
   gameRod: {fileID: 21300000, guid: ba8a315086b404cba9ece96cafe7b423, type: 3}
   gamePauseBoard: {fileID: 21300000, guid: 574b5be09a094448ea5f620f07af56c6, type: 3}
+  gameParcel: {fileID: 21300000, guid: 74fa4575f87d04c05b1c7fd7db111a8f, type: 3}
+  gameDustCover: {fileID: 21300000, guid: 28fe662eecce241fd887ab59339ec85f, type: 3}
+  gameCoverTag: {fileID: 21300000, guid: ca51b6d5b62904568b391b23c8016057, type: 3}
+  gameLock: {fileID: 21300000, guid: e08c52417084f44e4b89d1c1ead7e1f9, type: 3}
+  gameKey: {fileID: 21300000, guid: b1d23423582c44ec0856a249392db79b, type: 3}
+  gameAlarm: {fileID: 21300000, guid: 74a3b888ef92544a38718552696c1a0f, type: 3}
+  gameBubble: {fileID: 21300000, guid: f4ac1afc57bc74274aaf37575c706df8, type: 3}
+  packLane: {fileID: 21300000, guid: 62d4fb5ae6f294e03a946d7848239b6a, type: 3}
+  packLaneOn: {fileID: 21300000, guid: 08d81270a14504df28e5e6337cd2cadd, type: 3}
+  packLaneReady: {fileID: 21300000, guid: 78925b9ada4544df3ac4758b73527f6f, type: 3}
+  packBox: {fileID: 21300000, guid: c402de7bd10ba462aad87bd5b40414f7, type: 3}
+  packBtn: {fileID: 21300000, guid: 36cb505d920bc42f9a559f55da1bff8b, type: 3}
+  packRefill: {fileID: 21300000, guid: abc0465c2f5754a6cae48f50d219ec52, type: 3}
+  packLock: {fileID: 21300000, guid: 413aa1bd6a18d41349b2f69e38a09c4b, type: 3}
+  packAd: {fileID: 21300000, guid: 9d9cd07d153f446f4b2d7f84cf24575e, type: 3}
+  packCheck: {fileID: 21300000, guid: 8f010291bff5e42e5b8a74bfcfd2bacb, type: 3}
   boardBgs:
   - {fileID: 21300000, guid: 3c243db4f96044532811c237118f712c, type: 3}
+  - {fileID: 21300000, guid: b1b49005186e7458dbbe541558cb4948, type: 3}
+  - {fileID: 21300000, guid: 2d3993147704f458599a02e9b18fd418, type: 3}
+  - {fileID: 21300000, guid: a5993b87ef5da4fe49f40286c4d0c9d6, type: 3}
+  - {fileID: 21300000, guid: 456c0cae404104879a2f8c26ecb44fd1, type: 3}
+  - {fileID: 21300000, guid: a1b0c9ba8b0294adfa4e90e1fe58bd88, type: 3}
   boardHangers:
   - {fileID: 21300000, guid: bfd038c053134a58b42229b2d02b879c, type: 3}
-  - {fileID: 21300000, guid: bfd038c053134a58b42229b2d02b879c, type: 3}
+  - {fileID: 21300000, guid: cdfc40dff44b34ca28dc852507b0e720, type: 3}
+  - {fileID: 21300000, guid: 3856cea93c19a4db4b521240cafd2754, type: 3}
+  - {fileID: 21300000, guid: b936d7ac8469b4c1d86ab07108c2f7a4, type: 3}
+  - {fileID: 21300000, guid: db87d8daceaee4fbeb6e302faa5032f4, type: 3}
+  - {fileID: 21300000, guid: c7962c81546c841bc9099c7245baf676, type: 3}
+  boardRods:
+  - {fileID: 21300000, guid: ba8a315086b404cba9ece96cafe7b423, type: 3}
+  - {fileID: 21300000, guid: e9e07fce0f20f4025b1759613b728f3c, type: 3}
+  - {fileID: 21300000, guid: 23dfa5ef7b96044579a0828077b7d5b6, type: 3}
+  - {fileID: 21300000, guid: 75494dc5622d64eaea08c85cdef5e1d0, type: 3}
+  - {fileID: 21300000, guid: d7856182c3ad84e0fb4e5ef51d22edb0, type: 3}
+  - {fileID: 21300000, guid: 980d54783012e40f38db9c9568a9db58, type: 3}
   boardLaneSolved: {fileID: 21300000, guid: 7c4e1b9a2d3f40c8a5e16f82b0d94c31, type: 3}
   boardCheckSolved: {fileID: 21300000, guid: 8d5f2c0b3e4a41d9b6f27a93c1e05d42, type: 3}
-  boardBgBand: 10
+  boardBgBand: 20
   dressupBg: {fileID: 21300000, guid: 6fafdd95148554c388cb878e6953cf1a, type: 3}
   dressupTitle: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e802, type: 3}
   dressupBack: {fileID: 21300000, guid: a11b2c3d4e5f60718293a4b5c6d7e803, type: 3}

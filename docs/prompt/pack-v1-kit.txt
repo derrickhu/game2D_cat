@@ -1,0 +1,17 @@
+Flat 2D mobile game UI sprite sheet, square canvas, exactly 3 columns and 3 rows. Each item sits alone in the center of its cell, with wide flat slate blue-gray gaps around it, the color of a school chalkboard.
+
+Shared look: flat matte print style like the menu pieces of a cozy casual game, a crisp thin cocoa brown outline, flat color fills, a faint tone-on-tone pattern inside each face, and a flat darker band along the bottom edge for a hint of thickness. Soft muted pastel colors, even matte paper finish.
+
+Row 1 holds three tall lane panels, each about three times as tall as it is wide, with softly rounded corners:
+Row 1 left: vanilla custard cream face with a faint quilted diamond pattern, warm biscuit beige bottom band. The face is empty.
+Row 1 middle: the same cream lane wrapped in a thick raspberry jam red rim, faint quilted diamond pattern, biscuit beige bottom band. The face is empty.
+Row 1 right: pistachio mint face with faint tonal tiny dots, deeper sage green bottom band. The face is empty.
+
+Row 2 left: a wide storage trunk seen from the front, about twice as wide as it is tall, strawberry milk pink body, a vanilla cream lid with a small cocoa brown handle, a faint heart pattern on the body, and four empty square window holes in a row across the front. Deeper rose bottom band.
+Row 2 middle: a capsule button about three times as wide as it is tall, raspberry jam red fill, faint tonal small hearts, deeper wine red bottom band. The face is empty.
+Row 2 right: a capsule button about three times as wide as it is tall, honey apricot fill like apricot jam, faint tonal tiny dots, deeper apricot bottom band. The face is empty.
+
+Row 3 left: a chunky cocoa brown padlock, flat, with a vanilla cream keyhole.
+Row 3 middle: a small round badge, raspberry jam red disc, deeper wine bottom band, a chunky vanilla cream play triangle in the middle.
+Row 3 right: a small round check badge, pistachio mint disc, a chunky vanilla cream check mark in the middle.
+NO TEXT.

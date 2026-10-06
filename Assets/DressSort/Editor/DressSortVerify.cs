@@ -51,34 +51,8 @@ namespace DressSort.EditorTools
             var sb = new StringBuilder();
             sb.AppendLine("== 玩法自检 ==");
 
-            List<LevelDef> levels = database.AllLevels();
-            sb.AppendLine($"关卡数 {levels.Count}，物品数 {database.items.Count}");
-
-            foreach (LevelDef level in levels)
-            {
-                if (!level.IsValid)
-                {
-                    sb.AppendLine($"第{level.index}关 配置不完整");
-                    continue;
-                }
-
-                // 逆向打乱生成的局面，把打乱步骤正着走回去一定能解开
-                var board = new SortBoard(level.columns, level.columnHeight, level.columns,
-                    level.moveLimit);
-                board.Deal(level.scrambleMoves, 12345 + level.index);
-
-                int total = 0;
-                for (int c = 0; c < board.ColumnCount; c++)
-                    total += board.CountIn(c);
-
-                bool solvable = BruteSolve(level, 12345 + level.index, out int usedSteps);
-
-                sb.AppendLine(
-                    $"第{level.index}关 {level.columns}列x{level.columnHeight} " +
-                    $"牌数{total} 手里{(board.Held == board.MysteryIndex ? "问号" : board.Held.ToString())} " +
-                    $"步数上限{level.moveLimit} 求解{(solvable ? $"成功({usedSteps}步)" : "失败")} " +
-                    $"奖励{(level.reward != null ? level.reward.displayName : "无")}");
-            }
+            sb.AppendLine(LevelReport(database, LevelCatalog.Count, 30));
+            sb.AppendLine(MechanicsReport());
 
             // shift 机制与撤回的对称性
             var probe = new SortBoard(5, 6, 5, 99);
@@ -159,62 +133,162 @@ namespace DressSort.EditorTools
             return sb.ToString();
         }
 
-        /// <summary>
-        /// 贪心加随机重启的求解器，只用来确认局面在步数上限内确实能解开，
-        /// 不是给玩家用的提示功能。
-        /// </summary>
-        static bool BruteSolve(LevelDef level, int seed, out int steps)
+        static SortBoard DealFor(LevelDef level, int seed)
         {
-            var random = new System.Random(seed);
-            for (int attempt = 0; attempt < 400; attempt++)
+            var board = new SortBoard(level.columns, level.columnHeight, level.columns, level.moveLimit);
+            board.SetCovers(level.dustCovers);
+            board.SetLocks(level.locks);
+            board.SetTargets(level.targets);
+            board.Deal(level.scrambleMoves, seed, level.parcels, level.alarms);
+            return board;
+        }
+
+        /// <summary>
+        /// 每关只发它固定种子那一盘，按倒推走法正着走一遍确认能解。
+        /// 前 detail 关逐关列出，后面按每 100 关汇总。
+        /// </summary>
+        public static string LevelReport(GameDatabase database, int count, int detail)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"关卡数 {count}，物品数 {database.items.Count}");
+            int failed = 0;
+            for (int i = 1; i <= count; i++)
             {
-                var board = new SortBoard(level.columns, level.columnHeight, level.columns,
-                    level.moveLimit);
-                board.Deal(level.scrambleMoves, seed);
-
-                for (int move = 0; move < level.moveLimit; move++)
+                LevelDef level = LevelCatalog.Get(database, i);
+                if (level == null || !level.IsValid)
                 {
-                    if (board.IsWin())
-                    {
-                        steps = board.Steps;
-                        return true;
-                    }
-
-                    int best = -1;
-                    int bestScore = int.MinValue;
-                    for (int c = 0; c < board.ColumnCount; c++)
-                    {
-                        IReadOnlyList<int> column = board.Column(c);
-                        int score = 0;
-                        // 优先放进已经堆着同款的列，并且别把整理好的列打散
-                        for (int r = 0; r < column.Count; r++)
-                        {
-                            if (column[r] == board.Held) score += 3;
-                        }
-                        if (column.Count > 0 && column[0] == board.Held) score += 6;
-                        if (board.IsColumnSolved(c)) score -= 40;
-                        score += random.Next(0, 5);
-
-                        if (score > bestScore)
-                        {
-                            bestScore = score;
-                            best = c;
-                        }
-                    }
-
-                    if (best < 0 || !board.CanPlay(best)) break;
-                    board.Play(best);
+                    sb.AppendLine($"第{i}关 配置不完整");
+                    failed++;
+                    continue;
+                }
+                bool verified = DealFor(level, level.seed).Verified;
+                bool solved = ReplaySolve(level, level.seed, out int steps);
+                bool ok = verified && solved && steps <= level.moveLimit;
+                if (!ok)
+                {
+                    failed++;
+                    sb.AppendLine($"!! 第{i}关 固定盘解不开");
                 }
 
-                if (board.IsWin())
+                if (i <= detail || !ok)
+                {
+                    sb.AppendLine(
+                        $"第{i}关 {level.columns}列x{level.columnHeight} 打乱{level.scrambleMoves} 上限{level.moveLimit} " +
+                        $"包裹{level.parcels} 罩[{string.Join(",", level.dustCovers)}] 锁[{string.Join(",", level.locks)}] " +
+                        $"专属[{string.Join(",", level.targets)}] 闹钟{level.alarms} 正解{steps}步 " +
+                        $"奖励{(level.reward != null ? level.reward.displayName : "无")}");
+                }
+                if (i % 100 == 0)
+                    sb.AppendLine(SummaryFor(database, i - 99, i));
+            }
+            sb.AppendLine($"固定盘全部可解：{(failed == 0 ? "通过" : "失败 " + failed + " 关")}");
+            return sb.ToString();
+        }
+
+        static string SummaryFor(GameDatabase database, int from, int to)
+        {
+            int cells = 0, parcels = 0, covers = 0, locks = 0, targets = 0, alarms = 0, eight = 0;
+            for (int i = from; i <= to; i++)
+            {
+                LevelDef l = LevelCatalog.Get(database, i);
+                cells += l.columns * l.columnHeight;
+                if (l.columns == 8) eight++;
+                if (l.parcels > 0) parcels++;
+                if (l.HasCovers) covers++;
+                if (l.HasLocks) locks++;
+                if (l.HasTargets) targets++;
+                if (l.alarms > 0) alarms++;
+            }
+            int n = to - from + 1;
+            return $"-- 第{from}-{to}关：平均{cells / n}件 8列{eight}关 包裹{parcels} 防尘罩{covers} 锁{locks} 专属{targets} 闹钟{alarms}";
+        }
+
+        /// <summary>按发牌时倒推的走法正着走一遍，闹钟响了也算失败。</summary>
+        static bool ReplaySolve(LevelDef level, int seed, out int steps)
+        {
+            SortBoard board = DealFor(level, seed);
+            var recipe = new List<int>(board.Recipe);
+            foreach (int column in recipe)
+            {
+                if (board.IsWin()) break;
+                if (!board.CanPlay(column))
+                {
+                    steps = 0;
+                    return false;
+                }
+                board.Play(column);
+                if (board.AlarmRang)
                 {
                     steps = board.Steps;
-                    return true;
+                    return false;
                 }
             }
+            steps = board.Steps;
+            return board.IsWin();
+        }
 
-            steps = 0;
-            return false;
+        /// <summary>锁、钥匙、闹钟、专属列的规则单测。</summary>
+        public static string MechanicsReport()
+        {
+            var sb = new StringBuilder();
+
+            var locked = new SortBoard(3, 3, 3, 99);
+            locked.SetLocks(new[] { 0, 0, 1 });
+            locked.Load(new[]
+            {
+                new[] { 0, 0, 1 },
+                new[] { 1, 1, 0 },
+                new[] { 2, 2, 2 },
+            }, 3);
+            locked.PutKey(0, 2);
+            bool blocked = !locked.CanPlay(2) && locked.IsLocked(2);
+            locked.Play(0);
+            bool opened = !locked.IsLocked(2) && locked.LastUnlocked.Length == 1 && locked.LastUnlocked[0] == 2;
+            locked.Undo();
+            sb.AppendLine("锁住的列不能点，顶出钥匙开锁，撤回不再上锁：" +
+                (blocked && opened && !locked.IsLocked(2) ? "通过" : "失败"));
+
+            var alarm = new SortBoard(3, 3, 3, 99);
+            alarm.Load(new[]
+            {
+                new[] { 0, 1, 0 },
+                new[] { 1, 0, 1 },
+                new[] { 2, 2, 2 },
+            }, 3);
+            alarm.PutAlarm(1, 2, 2);
+            bool counting = alarm.AlarmLeft(1, 2) == 2;
+            alarm.Play(0);
+            bool tick = alarm.AlarmLeft(1, 2) == 1 && !alarm.AlarmRang;
+            alarm.Play(0);
+            bool rang = alarm.AlarmRang && !alarm.CanPlay(1);
+            alarm.Undo();
+            alarm.Play(1);
+            bool alarmOff = !alarm.AlarmRang && alarm.LastAlarmOff;
+            sb.AppendLine("闹钟倒数、响铃、撤回后顶出关掉：" + (counting && tick && rang && alarmOff ? "通过" : "失败"));
+
+            var target = new SortBoard(2, 2, 2, 99);
+            target.SetTargets(new[] { 1, 0 });
+            target.Load(new[]
+            {
+                new[] { 1, 1 },
+                new[] { 0, 0 },
+            }, 2);
+            bool wrongNotSolved = !target.IsColumnSolved(0) && target.IsColumnSolved(1) && !target.IsWin();
+            target.Load(new[]
+            {
+                new[] { 0, 0 },
+                new[] { 1, 1 },
+            }, 2);
+            sb.AppendLine("专属列只认指定款：" + (wrongNotSolved && target.IsWin() ? "通过" : "失败"));
+
+            var same1 = new SortBoard(6, 6, 6, 120);
+            same1.SetLocks(new[] { 0, 1, 0, 0, 0, 0 });
+            same1.Deal(40, 4242, 4, 2);
+            var same2 = new SortBoard(6, 6, 6, 120);
+            same2.SetLocks(new[] { 0, 1, 0, 0, 0, 0 });
+            same2.Deal(40, 4242, 4, 2);
+            sb.AppendLine("同一种子发同一盘：" + (Snapshot(same1) == Snapshot(same2) && same1.Verified ? "通过" : "失败"));
+            return sb.ToString();
         }
 
         // ------------------------------------------------------------- 截图
@@ -229,8 +303,7 @@ namespace DressSort.EditorTools
             // 建新场景会顺手卸掉没人引用的资产，之前拿到的引用会变成已销毁的空壳，
             // 所以这里必须重新按路径取一次
             database = AssetDatabase.LoadAssetAtPath<GameDatabase>(DatabasePath);
-            log.AppendLine($"重载数据库：物品 {database.items.Count}，章节 {database.chapters.Count}，" +
-                $"关卡 {database.AllLevels().Count}");
+            log.AppendLine($"重载数据库：物品 {database.items.Count}，关卡 {LevelCatalog.Count}");
 
             var rt = new RenderTexture(ShotWidth, ShotHeight, 24, RenderTextureFormat.ARGB32)
             {
@@ -252,9 +325,6 @@ namespace DressSort.EditorTools
             app.Show(ScreenId.Home);
 
             Shoot(app, camera, rt, ScreenId.Home, "home", log);
-
-            app.Show(ScreenId.LevelMap);
-            Shoot(app, camera, rt, ScreenId.LevelMap, "levelmap", log);
 
             app.CurrentLevel = app.LevelAt(1);
             app.Show(ScreenId.Game);

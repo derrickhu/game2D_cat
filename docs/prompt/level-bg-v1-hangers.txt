@@ -1,0 +1,11 @@
+Flat 2D mobile game sprite sheet, square canvas, exactly 3 columns and 2 rows. Each item sits alone in the center of its cell, with wide flat slate blue-gray gaps around it, the color of a school chalkboard.
+
+Every item is the same closet hanger seen straight on: a round hook at the top, a short neck, two sloped shoulders and a straight bottom bar with round ends, the middle open so the background shows through. Thick even black ink outline like a mapping pen, flat cel fill with one soft lighter stripe along the top of the shoulders. All five hangers are the same size and shape, only the colors change.
+
+Row 1 left: white painted wood like a beach house shutter, pool aqua hook.
+Row 1 middle: painted wood the pink of cherry blossom petals, silver hook.
+Row 1 right: painted wood the lilac of lavender milk tea, hook the yellow of a new brass coin.
+Row 2 left: dark walnut wood like a chocolate bar, black iron hook.
+Row 2 middle: painted wood the pale blue of a frosted window, silver hook.
+Row 2 right: empty slate cell.
+NO TEXT.
