@@ -1,0 +1,12 @@
+Mobile casual game UI title banners, three separate banners stacked in one column with wide empty slate gaps between them, front view, flat 2D.
+
+Every banner is the same shape: a wide satin ribbon banner of raspberry jam red, the red of a gift-box ribbon, gently arched upward in the middle, with a folded swallow-tail ribbon end on each side in a deeper cherry red, a white gloss streak along the top edge of the ribbon and a deeper shade band along the bottom edge. A small golden yellow heart sits on the top center edge of the ribbon. One thick even dark plum ink outline closes the whole shape.
+
+On each ribbon face, centered, chunky rounded bold Chinese characters in pure white with a thick dark plum outline and a soft raspberry drop shadow, clean and perfectly readable, like a cute casual mobile game title:
+Top banner text: 签到
+Middle banner text: 排行榜
+Bottom banner text: 游戏圈
+Each banner shows only its own characters, exactly as written.
+
+Style: glossy candy casual mobile game UI, saturated sweet colors, cel shading.
+Background: flat solid slate blue-gray, the color of a school chalkboard, everywhere between and around the banners.

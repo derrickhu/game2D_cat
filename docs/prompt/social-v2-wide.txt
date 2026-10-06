@@ -1,0 +1,16 @@
+Mobile casual game UI sprite sheet, six separate wide horizontal items stacked in one column of six rows, every item floating alone with wide empty slate gaps between rows. Front view, flat 2D. Every item is a long horizontal capsule or bar about 4 times wider than tall, all six the same width.
+
+Shared style for every item: glossy candy casual mobile game UI, chunky and rounded, saturated sweet colors, soft 3D bevel: a bright white gloss streak along the upper part of each surface and a deeper shade band along the bottom, plus a thicker darker base lip under the bottom edge like a chunky toy button, one thick even dark plum ink outline closing every shape, cel shading.
+
+Row 1: glossy capsule button in mint ice cream green, the green of pistachio mint ice cream, deeper forest green base lip, plain empty face.
+Row 2: glossy capsule button in tangerine orange, the orange of a ripe tangerine, deeper pumpkin orange base lip, plain empty face.
+Row 3: glossy capsule button in lavender taro purple, the soft purple of taro milk tea, deeper grape purple base lip, plain empty face.
+Row 4: wide rounded-rectangle list row card in vanilla custard cream with a strawberry milk pink rim, the pink of a strawberry macaron shell, plain empty face.
+Row 5: the same wide list row card in lemon drop yellow with a tangerine orange rim and three tiny white sparkles on the right end, plain empty face.
+Row 6: wide rounded-rectangle grand prize card in strawberry milk pink with a raspberry jam red rim, a row of tiny white stitch dashes around the inside of the rim, and a small golden gift box with a red bow tucked on the right end; the rest of the face is plain and empty.
+
+The left and right ends of every item are identical semicircles or identical rounded corners, the top and bottom edges are straight and parallel, so they can be stretched.
+
+Background: flat solid slate blue-gray, the color of a school chalkboard, everywhere between the items.
+Style reference image: only for the color mood and line weight of the game.
+NO TEXT.

@@ -49,6 +49,28 @@ namespace DressSort.EditorTools
                 importer.spriteBorder = new Vector4(56f, 56f, 56f, 56f);
             else if (assetPath.Contains("/Art/Ui/lane"))
                 importer.spriteBorder = new Vector4(48f, 96f, 48f, 96f);
+            else if (assetPath.EndsWith("/Social/social_board.png"))
+                importer.spriteBorder = new Vector4(120f, 170f, 120f, 165f);
+            else if (assetPath.Contains("/Social/board_"))
+                importer.spriteBorder = new Vector4(145f, 190f, 145f, 155f);
+            else if (assetPath.EndsWith("/Social/rank_row.png"))
+                importer.spriteBorder = new Vector4(56f, 96f, 56f, 86f);
+            else if (assetPath.EndsWith("/Social/rank_row_mine.png"))
+                importer.spriteBorder = new Vector4(70f, 105f, 70f, 95f);
+            else if (assetPath.EndsWith("/Social/day7_idle.png"))
+                importer.spriteBorder = new Vector4(56f, 100f, 56f, 92f);
+            else if (assetPath.EndsWith("/Social/day7_today.png"))
+                importer.spriteBorder = new Vector4(64f, 104f, 64f, 98f);
+            else if (assetPath.Contains("/Social/btn_"))
+                importer.spriteBorder = new Vector4(72f, 70f, 72f, 64f);
+            else if (assetPath.EndsWith("/DressUp/tab_track.png"))
+                importer.spriteBorder = new Vector4(94f, 94f, 94f, 94f);
+            else if (assetPath.EndsWith("/DressUp/tab_on.png"))
+                importer.spriteBorder = new Vector4(88f, 88f, 88f, 88f);
+            else if (assetPath.EndsWith("/DressUp/btn_save.png"))
+                importer.spriteBorder = new Vector4(92f, 92f, 92f, 92f);
+            else if (assetPath.EndsWith("/DressUp/star_chip.png"))
+                importer.spriteBorder = new Vector4(140f, 72f, 72f, 72f);
         }
     }
 }

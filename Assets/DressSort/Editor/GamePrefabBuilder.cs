@@ -62,13 +62,20 @@ namespace DressSort.EditorTools
             database.btnGameUndo = Load("Ui/Game/btn_undo");
             database.btnGameShuffle = Load("Ui/Game/btn_shuffle");
             database.btnGameBack = Load("Ui/Game/btn_back");
-            database.btnGameSteps = Load("Ui/Game/btn_steps");
+            database.btnGameSteps = Load("Ui/DressUp/tab_track");
             database.btnGameGear = Load("Ui/Game/btn_gear");
+            database.btnGameSwap = Load("Ui/Game/btn_swap");
+            database.gameBadge = Load("Ui/Game/badge");
+            database.gameRod = Load("Ui/Game/rod");
+            database.gamePauseBoard = Load("Ui/Game/pause_board");
+            database.dressupPanel = Load("Ui/DressUp/wardrobe_panel");
+            database.dressupSave = Load("Ui/DressUp/btn_save");
+            database.dressupTabOn = Load("Ui/DressUp/tab_on");
+            database.dressupTabTrack = Load("Ui/DressUp/tab_track");
             database.iconHanger = Load("Ui/Game/hanger_closet");
             database.boardBgs = new System.Collections.Generic.List<Sprite>
             {
-                LoadJpg("Ui/Bgs/bg_closet"),
-                LoadJpg("Ui/Bgs/bg_runway"),
+                LoadJpg("Ui/Bgs/bg_shop"),
             };
             database.boardHangers = new System.Collections.Generic.List<Sprite>
             {

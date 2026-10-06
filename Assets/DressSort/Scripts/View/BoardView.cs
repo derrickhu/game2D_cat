@@ -55,8 +55,45 @@ namespace DressSort
         readonly List<Image> laneChecks = new List<Image>();
         Image heldItem;
 
+        readonly List<Image> laneBacks = new List<Image>();
+        readonly List<LaneTap> laneTaps = new List<LaneTap>();
+
+        static readonly Color LaneIdle = new Color(1f, 1f, 1f, 0.34f);
+        static readonly Color LanePick = new Color(1f, 0.82f, 0.86f, 0.78f);
+
         public bool Busy { get; private set; }
         public System.Action<int> OnColumnClicked;
+
+        /// <summary>「交换」选格模式：点列时回调具体是哪一格。</summary>
+        public System.Action<int, int> OnItemClicked;
+        bool pickMode;
+
+        /// <summary>记下按下的位置，Button 抬起时据此换算点中的是哪一格。</summary>
+        class LaneTap : MonoBehaviour, UnityEngine.EventSystems.IPointerDownHandler
+        {
+            public Vector2 screen;
+            public Camera eventCamera;
+
+            public void OnPointerDown(UnityEngine.EventSystems.PointerEventData data)
+            {
+                screen = data.position;
+                eventCamera = data.pressEventCamera;
+            }
+        }
+
+        public bool PickMode
+        {
+            get => pickMode;
+            set
+            {
+                pickMode = value;
+                for (int i = 0; i < laneBacks.Count; i++)
+                {
+                    if (laneBacks[i] != null)
+                        laneBacks[i].color = value ? LanePick : LaneIdle;
+                }
+            }
+        }
 
         public static BoardView Create(Transform parent, Layout layout)
         {
@@ -115,12 +152,16 @@ namespace DressSort
                 UiKit.Discard(laneWashes[i]);
             for (int i = laneChecks.Count - 1; i >= 0; i--)
                 UiKit.Discard(laneChecks[i]);
+            for (int i = laneBacks.Count - 1; i >= 0; i--)
+                UiKit.Discard(laneBacks[i]);
             for (int i = laneRoots.Count - 1; i >= 0; i--)
                 UiKit.Discard(laneRoots[i]);
             laneRoots.Clear();
             laneItems.Clear();
             laneWashes.Clear();
             laneChecks.Clear();
+            laneBacks.Clear();
+            laneTaps.Clear();
 
             for (int c = 0; c < board.ColumnCount; c++)
             {
@@ -133,6 +174,14 @@ namespace DressSort
                 float washH = Mathf.Max(80f, washTop - washBottom);
                 float laneHeight = hangerH + LaneHeight;
 
+                Image back = UiKit.Slice(root, "LaneBack_" + c, UiKit.Rounded,
+                    new Vector2(0.5f, 1f), new Vector2(x, (washTop + washBottom) * 0.5f),
+                    new Vector2(layout.itemSize + 18f, washH + 6f), pickMode ? LanePick : LaneIdle);
+                back.pixelsPerUnitMultiplier = 0.4f;
+                back.raycastTarget = false;
+                back.transform.SetSiblingIndex(0);
+                laneBacks.Add(back);
+
                 Sprite washSprite = hud != null ? hud.laneSolved : null;
                 if (washSprite != null)
                 {
@@ -141,7 +190,7 @@ namespace DressSort
                         new Vector2(layout.itemSize + 12f, washH),
                         new Color(1f, 1f, 1f, 0f));
                     wash.raycastTarget = false;
-                    wash.transform.SetSiblingIndex(0);
+                    wash.transform.SetSiblingIndex(back.transform.GetSiblingIndex() + 1);
                     laneWashes.Add(wash);
                 }
                 else
@@ -166,7 +215,8 @@ namespace DressSort
                 Button hit = UiKit.HitArea(root, "Lane_" + c, new Vector2(0.5f, 1f),
                     new Vector2(x, hangerTop - laneHeight * 0.5f),
                     new Vector2(Mathf.Max(GameHud.HangerWidth, layout.itemSize) + 12f, laneHeight),
-                    () => OnColumnClicked?.Invoke(index));
+                    () => OnLaneClicked(index));
+                laneTaps.Add(hit.gameObject.AddComponent<LaneTap>());
                 laneRoots.Add(hit.transform as RectTransform);
                 laneItems.Add(new List<Image>());
             }
@@ -175,6 +225,37 @@ namespace DressSort
             if (holdRoot == null)
                 holdRoot = UiKit.Rect(root, "Hold", new Vector2(0.5f, 0f),
                     new Vector2(0f, 400f), new Vector2(200f, 200f));
+        }
+
+        void OnLaneClicked(int column)
+        {
+            if (!pickMode || OnItemClicked == null)
+            {
+                OnColumnClicked?.Invoke(column);
+                return;
+            }
+            OnItemClicked(column, RowAt(column));
+        }
+
+        /// <summary>
+        /// 同列越靠下的压在上面，所以第 r 件露出来的只有它顶边往下一个叠放步长那一截，
+        /// 最下面那件整件可点。
+        /// </summary>
+        int RowAt(int column)
+        {
+            int count = board.CountIn(column);
+            if (count == 0 || column >= laneTaps.Count || laneTaps[column] == null) return -1;
+            LaneTap tap = laneTaps[column];
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(root, tap.screen,
+                    tap.eventCamera, out Vector2 local))
+                return count - 1;
+
+            Rect r = root.rect;
+            float y = local.y - r.yMax;
+            float stackTop = SlotPosition(column, 0).y + layout.itemSize * 0.5f;
+            float step = layout.itemSize * layout.overlap;
+            int row = Mathf.FloorToInt((stackTop - y) / step);
+            return Mathf.Clamp(row, 0, count - 1);
         }
 
         float LaneXFallback(int column)
@@ -384,6 +465,85 @@ namespace DressSort
                 yield return AnimateReadySettles();
             }
 
+            if (board.IsColumnSolved(column))
+                yield return Celebrate(column);
+
+            SnapSolvedChrome();
+            Busy = false;
+        }
+
+        public Coroutine PlaySwap(int column, int row)
+        {
+            return StartCoroutine(SwapRoutine(column, row));
+        }
+
+        IEnumerator SwapRoutine(int column, int row)
+        {
+            Busy = true;
+            List<Image> views = laneItems[column];
+            Image incoming = heldItem;
+            if (incoming == null || row < 0 || row >= views.Count)
+            {
+                Busy = false;
+                yield break;
+            }
+            Image outgoing = views[row];
+            heldItem = null;
+
+            board.Swap(column, row);
+
+            Vector2 itemSize = new Vector2(layout.itemSize, layout.itemSize);
+            Vector2 holdSize = itemSize * 1.15f;
+
+            Vector3 world = incoming.rectTransform.position;
+            incoming.rectTransform.SetParent(laneRoots[column].parent, false);
+            PlaceOnBoard(incoming.rectTransform, SlotPosition(column, row));
+            incoming.rectTransform.position = world;
+            views[row] = incoming;
+            ApplySiblingOrder(column);
+
+            world = outgoing.rectTransform.position;
+            outgoing.rectTransform.SetParent(holdRoot, true);
+            PlaceHold(outgoing.rectTransform);
+            outgoing.rectTransform.position = world;
+            outgoing.rectTransform.SetAsLastSibling();
+
+            var motions = new List<Motion>
+            {
+                new Motion
+                {
+                    rect = incoming.rectTransform,
+                    from = incoming.rectTransform.anchoredPosition,
+                    to = SlotPosition(column, row),
+                    sizeFrom = holdSize,
+                    sizeTo = itemSize,
+                    duration = 0.32f,
+                    arc = 60f,
+                    scale = true,
+                    ease = EaseKind.OutBack,
+                },
+                new Motion
+                {
+                    rect = outgoing.rectTransform,
+                    from = outgoing.rectTransform.anchoredPosition,
+                    to = Vector2.zero,
+                    sizeFrom = itemSize,
+                    sizeTo = holdSize,
+                    delay = 0.04f,
+                    duration = 0.32f,
+                    arc = 60f,
+                    scale = true,
+                    ease = EaseKind.OutCubic,
+                },
+            };
+            yield return RunMotions(motions);
+
+            heldItem = outgoing;
+            if (board.LastSettles != null && board.LastSettles.Length > 0)
+            {
+                yield return PulseHold();
+                yield return AnimateReadySettles();
+            }
             if (board.IsColumnSolved(column))
                 yield return Celebrate(column);
 

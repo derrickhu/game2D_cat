@@ -1,0 +1,16 @@
+Flat 2D mobile game UI sprite sheet, square canvas, exactly 3 columns and 3 rows. Each item sits alone in the center of its cell, with wide flat slate blue-gray gaps around it, the color of a school chalkboard.
+
+Shared look: flat matte print style like the menu buttons of a cozy casual game, a crisp thin cocoa brown outline, flat color fills, a faint tone-on-tone dot pattern inside each face, and a flat darker band along the bottom edge for a hint of thickness. Soft muted pastel colors, even matte paper finish, calm and quiet like a picture book.
+
+Rows 1 and 2 are six round menu buttons of the same size. Each is a flat disc in its own muted color with a slightly deeper bottom band, and in the middle a simple chunky symbol in vanilla cream with a cocoa brown outline and one small accent color:
+Row 1 left: forget-me-not sky blue disc, two overlapping speech bubbles, the front bubble holding three small strawberry pink dots.
+Row 1 middle: apricot orange disc, a trophy cup with a small strawberry pink star on its front.
+Row 1 right: pistachio mint disc, a little desk calendar page with a small lemon yellow star on it.
+Row 2 left: strawberry milk pink disc, a dress form mannequin wearing a tiny raspberry bow.
+Row 2 middle: soft lavender purple disc, a rolled paper scroll tied with a small mint ribbon.
+Row 2 right: lemon custard yellow disc, a gift box with a raspberry red ribbon bow.
+
+Row 3 left: a chunky lightning bolt alone, lemon custard yellow fill with a cocoa brown outline and a slightly deeper yellow lower half.
+Row 3 middle: a round close button, raspberry jam red disc with a deeper wine bottom band and a chunky vanilla cream X in the middle.
+Row 3 right: a small horizontal name tag about two and a half times as wide as it is tall, rounded ends, plain white face with a faint pale gray bottom band and a cocoa brown outline. The face is empty.
+NO TEXT.

@@ -1,0 +1,15 @@
+Mobile casual game UI name tags, six separate small ribbon name tags in a clean 2-column by 3-row grid, every tag floating alone and centered in its cell with wide empty slate gaps between tags. Front view, flat 2D.
+
+Every tag is the same shape: a short wide satin ribbon tag, gently rounded, with a tiny folded notch tail on each side, a white gloss streak along its top edge and a deeper shade band along its bottom edge, one thick even dark plum ink outline closing the whole shape.
+
+On each tag face, centered, chunky rounded bold Chinese characters in pure white with a thick dark plum outline, clean and perfectly readable, like a cute casual mobile game:
+Row 1 left: sky soda blue ribbon, text 游戏圈
+Row 1 right: tangerine orange ribbon, text 排行榜
+Row 2 left: mint ice cream green ribbon, text 签到
+Row 2 right: strawberry milk pink ribbon, text 工坊
+Row 3 left: lavender taro purple ribbon, text 任务
+Row 3 right: lemon drop yellow ribbon with darker honey shading, text 活动
+Each tag shows only its own characters, exactly as written.
+
+Style: glossy candy casual mobile game UI, saturated sweet colors, cel shading.
+Background: flat solid slate blue-gray, the color of a school chalkboard, everywhere between the tags.

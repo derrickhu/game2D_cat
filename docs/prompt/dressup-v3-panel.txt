@@ -1,0 +1,10 @@
+Flat 2D mobile game UI art, 4:3 landscape canvas.
+
+The top 12 percent of the canvas is flat solid slate blue-gray, the color of a school chalkboard.
+Below it, filling the rest of the canvas edge to edge on the left, right and bottom, is one big wardrobe fabric panel:
+- Its top edge is a row of even rounded white lace scallops with tiny round eyelet holes, running the full width, each scallop closed by a thin cocoa brown outline.
+- Right under the lace, a narrow ribbon band of raspberry jam red runs across the full width.
+- The panel body is flat dusty strawberry milk pink, covered with a faint tone-on-tone print: small hearts and tiny dots in a slightly deeper rose, evenly spaced in a diagonal lattice, very low contrast, like a soft damask wallpaper.
+
+Matte paper print look, flat even colors, crisp clean edges. The body shows only the faint print, ready for item cards to be laid on top.
+NO TEXT.

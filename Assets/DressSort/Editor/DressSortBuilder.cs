@@ -258,6 +258,12 @@ namespace DressSort.EditorTools
             database.iconHomeQuest = LoadSprite("Ui/Home/icon_home_quest");
             database.iconHomeEvent = LoadSprite("Ui/Home/icon_home_event");
             database.iconHomeEnergy = LoadSprite("Ui/Home/icon_home_energy");
+            database.labelHomeCircle = LoadSprite("Ui/Home/label_home_circle");
+            database.labelHomeRank = LoadSprite("Ui/Home/label_home_rank");
+            database.labelHomeCheckin = LoadSprite("Ui/Home/label_home_checkin");
+            database.labelHomeWorkshop = LoadSprite("Ui/Home/label_home_workshop");
+            database.labelHomeQuest = LoadSprite("Ui/Home/label_home_quest");
+            database.labelHomeEvent = LoadSprite("Ui/Home/label_home_event");
             GamePrefabBuilder.BindGameSprites(database);
             DressUpPrefabBuilder.BindSprites(database);
             EditorUtility.SetDirty(database);

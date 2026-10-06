@@ -21,6 +21,9 @@ namespace DressSort
 
         public int shuffles = 3;
 
+        [Tooltip("「交换」道具次数：手里那件和架上任意一件对调")]
+        public int swaps = 2;
+
         [Tooltip("参与这一关的款式，长度要等于列数")]
         public List<ItemDef> palette = new List<ItemDef>();
 

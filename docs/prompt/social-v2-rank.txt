@@ -1,0 +1,15 @@
+Mobile casual game UI sprite sheet, six separate items in a clean 3-column by 2-row grid, every item floating alone and centered in its cell with wide empty slate gaps between items. Front view, flat 2D.
+
+Shared style for every item: glossy candy casual mobile game UI, chunky and rounded, saturated sweet colors, soft 3D bevel: a bright white gloss streak on the upper part of each surface and a deeper shade band along the bottom, one thick even dark plum ink outline closing every shape, cel shading.
+
+Row 1 left: first place medal, a round glossy gold coin medal, the yellow of a shiny new gold coin, with a raised star in the center and two short raspberry red ribbon tails hanging below.
+Row 1 middle: second place medal, the same medal in polished silver like a new silver spoon, with a raised star in the center and two short sky soda blue ribbon tails hanging below.
+Row 1 right: third place medal, the same medal in warm bronze like a new copper penny, with a raised star in the center and two short mint ice cream green ribbon tails hanging below.
+
+Row 2 left: round avatar frame, a thick ring of strawberry milk pink with a scalloped wavy outer edge like a lace doily, a tiny raspberry red bow at the bottom center, and a completely empty see-through round hole in the middle showing the slate background.
+Row 2 middle: a plain round vanilla custard cream disc, flat, same size as the hole of the avatar frame, with a thin dark plum outline.
+Row 2 right: a small golden crown, the yellow of a shiny new gold coin, three rounded points each topped with a tiny raspberry red ball.
+
+Background: flat solid slate blue-gray, the color of a school chalkboard, everywhere between the items and inside the avatar frame hole.
+Style reference image: only for the color mood and line weight of the game.
+NO TEXT.

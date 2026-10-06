@@ -17,7 +17,7 @@ MonoBehaviour:
     Appid: wxd7e8bab5c9f43673
     CDN: 
     assetLoadType: 1
-    compressDataPackage: 0
+    compressDataPackage: 1
     VideoUrl: images/loading.mp4
     relativeDST: wechat-minigame
     DST: /Users/rosa/rosa_games/game2D_cat/wechat-minigame

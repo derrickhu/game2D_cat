@@ -22,6 +22,9 @@ namespace DressSort
             public int stars;
             public int energy;
             public long energyUtc;
+            public int checkRun;
+            public int checkDay;
+            public int clubDay;
         }
 
         readonly GameDatabase database;
@@ -132,6 +135,62 @@ namespace DressSort
             if (data.energy < cost) return false;
             data.energy -= cost;
             Save();
+            return true;
+        }
+
+        /// <summary>签到、游戏圈这类奖励可以把体力加到上限以上，自然恢复只补到上限。</summary>
+        public void GainEnergy(int amount)
+        {
+            if (amount <= 0) return;
+            RecoverEnergy();
+            data.energy += amount;
+            Save();
+        }
+
+        // ------------------------------------------------------------ 签到与游戏圈
+
+        /// <summary>七日签到每天的体力，第 7 天是大份。</summary>
+        public static readonly int[] CheckInRewards = { 2, 2, 3, 2, 2, 3, 5 };
+        public const int CheckInDays = 7;
+        public const int ClubReward = 3;
+
+        static int DayKey(System.DateTime d) => d.Year * 10000 + d.Month * 100 + d.Day;
+        static int Today => DayKey(System.DateTime.Now);
+        static int Yesterday => DayKey(System.DateTime.Now.AddDays(-1));
+
+        public bool CheckedInToday => data.checkDay == Today;
+
+        /// <summary>这一轮已经签了几天。断签一天或七天签满后，从第 1 天重新开始。</summary>
+        public int CheckInRun
+        {
+            get
+            {
+                if (CheckedInToday) return data.checkRun;
+                if (data.checkDay == Yesterday && data.checkRun < CheckInDays) return data.checkRun;
+                return 0;
+            }
+        }
+
+        /// <summary>签到成功返回当天是第几天（1~7），今天已签返回 0。</summary>
+        public int CheckIn()
+        {
+            if (CheckedInToday) return 0;
+            int run = CheckInRun + 1;
+            data.checkRun = run;
+            data.checkDay = Today;
+            Save();
+            GainEnergy(CheckInRewards[run - 1]);
+            return run;
+        }
+
+        public bool ClubClaimedToday => data.clubDay == Today;
+
+        public bool ClaimClub()
+        {
+            if (ClubClaimedToday) return false;
+            data.clubDay = Today;
+            Save();
+            GainEnergy(ClubReward);
             return true;
         }
 

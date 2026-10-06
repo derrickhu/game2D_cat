@@ -1,0 +1,15 @@
+Mobile casual game home screen side buttons, six separate round icon buttons in a clean 3-column by 2-row grid, every button floating alone and centered in its cell with wide empty slate gaps between buttons. Front view, flat 2D.
+
+Shared style for every button: a chunky glossy round candy button like a sweets-shop puzzle game. Each button is a puffy disc with a thick white rim, the disc itself filled with one saturated candy color, a big bright white gloss crescent across the upper left of the disc, a deeper shade of the same color along the bottom, and a thicker darker base lip under the button so it looks like a pressable 3D toy. The symbol on each button is big, fills about 70% of the disc, chunky and rounded, with its own white gloss highlights. One thick even dark plum ink outline closes every shape. Cel shading, cheerful and cute.
+
+Row 1 left: disc of sky soda blue, the blue of a cream soda, symbol: two cute round speech bubbles overlapping, one strawberry milk pink and one vanilla cream, with three little dots in the front bubble.
+Row 1 middle: disc of tangerine orange, symbol: a big shiny gold trophy cup, the yellow of a new gold coin, with a raspberry red star on its front.
+Row 1 right: disc of mint ice cream green, symbol: a cute calendar page with two spiral rings on top and a big gold star in the middle.
+
+Row 2 left: disc of strawberry milk pink, symbol: a sewing mannequin dress form in vanilla cream wearing a little raspberry red bow, standing on a wooden stand.
+Row 2 middle: disc of lavender taro purple, symbol: a rolled paper scroll in vanilla cream tied with a mint green ribbon, with a tiny gold check mark.
+Row 2 right: disc of lemon drop yellow, symbol: a gift box in raspberry red with a big white ribbon bow on top and tiny white sparkles.
+
+Background: flat solid slate blue-gray, the color of a school chalkboard, everywhere between the buttons.
+Style reference image: only for the color mood and line weight of the game.
+NO TEXT.

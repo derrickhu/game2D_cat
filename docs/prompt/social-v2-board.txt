@@ -1,0 +1,14 @@
+Mobile casual game UI asset, one single popup window frame, front view, centered, filling about 82% of the canvas height.
+
+Style: glossy candy casual mobile game UI, chunky and rounded, saturated sweet colors, soft 3D bevel on every surface, one thick even dark plum ink outline closing every shape, cel shading with a bright white gloss streak on the upper part of each surface and a deeper shade band along the bottom.
+
+The window is a tall portrait rounded rectangle.
+Outer frame: a thick puffy rim of strawberry milk pink, the pink of a strawberry macaron shell, about 6% of the window width thick on every side, with a white gloss streak along the top rim and a raspberry jam red shade band along the bottom rim, and a row of tiny white stitch dashes running all the way around the middle of the rim like a sewn cushion.
+Inner panel: inset inside the rim, vanilla custard cream, the yellowish cream of custard pudding, one single flat color from edge to edge, with a thin dark plum outline where it meets the rim and a soft pink inner shadow just under the top edge.
+Below the window a slightly darker raspberry base lip gives it thickness like a chunky toy.
+
+All four corners are identical generous rounded corners. The left and right edges are straight and parallel, the top and bottom edges are straight and parallel, so the frame can be stretched.
+
+Background: flat solid slate blue-gray, the color of a school chalkboard, with a wide even margin around the window.
+Style reference image: only for the color mood and line weight of the game.
+NO TEXT.

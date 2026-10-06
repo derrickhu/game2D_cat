@@ -1,0 +1,15 @@
+Mobile casual game UI sprite sheet, six separate items in a clean 3-column by 2-row grid, every item floating alone and centered in its cell with wide empty slate gaps between items. Front view, flat 2D.
+
+Shared style for every item: glossy candy casual mobile game UI, chunky and rounded, saturated sweet colors, soft 3D bevel: a bright white gloss streak on the upper part of each surface and a deeper shade band along the bottom, one thick even dark plum ink outline closing every shape, cel shading.
+
+Row 1 left: round close button, a glossy raspberry jam red candy disc with a thick white rim, a chunky white X in the middle with rounded ends, deeper red shade at the bottom of the disc.
+Row 1 middle: square daily reward card, rounded corners, body of vanilla custard cream, a header strip across the top in mint ice cream green, the green of pistachio mint ice cream, the header strip has a white gloss line; the card face below the header is plain and empty.
+Row 1 right: the same square daily reward card for today, body of lemon drop yellow, the bright yellow of a lemon candy, header strip in tangerine orange, a soft golden glow halo around the card and three tiny white sparkles near its corners; the card face below the header is plain and empty.
+
+Row 2 left: claimed stamp, a round raspberry red wax seal with a scalloped wavy edge, a chunky white check mark in the center, slightly tilted, glossy highlight on the top left.
+Row 2 middle: the same square daily reward card already claimed, body of lavender taro purple, the soft purple of taro milk tea, header strip in a deeper grape purple; the card face below the header is plain and empty.
+Row 2 right: a glossy round number badge, a vanilla custard cream disc with a thick strawberry milk pink rim, plain empty center.
+
+Background: flat solid slate blue-gray, the color of a school chalkboard, everywhere between the items.
+Style reference image: only for the color mood and line weight of the game.
+NO TEXT.

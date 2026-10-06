@@ -1,0 +1,13 @@
+{
+  "name": "dresssort-api",
+  "version": "1.0.0",
+  "description": "一裙又一裙 CloudBase HTTP 后端：login + 排行榜 + 游戏圈",
+  "main": "index.js",
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.5.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

@@ -1,0 +1,20 @@
+Mobile game UI sprite sheet for a leaderboard, items arranged in a clean grid with wide empty slate gaps between every item. Front view, flat 2D.
+
+Shared style for every item: hand-drawn cel style like the reference image, thin even black ink outline, flat colors with one soft shadow band along the bottom edge. Palette: vanilla custard cream like the reference cream capsule, sea-glass teal like the reference teal capsule, ripe apricot peach like the reference peach capsule.
+
+Top row, three award rosettes side by side, same size: each is a round pleated rosette badge with two short ribbon tails hanging below.
+ - left rosette: shiny fresh gold coin yellow center disc, sea-glass teal ribbon tails.
+ - middle rosette: bright new silver spoon gray center disc, sea-glass teal ribbon tails.
+ - right rosette: warm new copper penny bronze center disc, sea-glass teal ribbon tails.
+ Each center disc is plain and smooth.
+
+Second row, two round items side by side:
+ - left: a small round number plate, vanilla custard cream disc with a thin black ink outline, plain empty face.
+ - right: a round portrait frame ring, a thick vanilla custard cream ring with black ink outlines on both edges and a tiny ripe apricot peach bow at the bottom; the hole in the middle shows the flat slate background.
+
+Third row: a long horizontal list row plate spanning most of the width, vanilla custard cream, rounded corners, about 6 times wider than tall, thin black ink outline, plain empty face.
+
+Fourth row: the same long horizontal list row plate, filled with soft ripe apricot peach, a slightly darker peach shadow band along its bottom edge, plain empty face.
+
+Background: flat solid slate blue-gray, the color of a school chalkboard, everywhere between the items.
+NO TEXT.

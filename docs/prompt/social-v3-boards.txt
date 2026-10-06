@@ -1,0 +1,14 @@
+Flat 2D mobile game UI sprite sheet, square canvas, exactly 3 columns and 2 rows. Each item sits alone in the center of its cell, with wide flat slate blue-gray gaps around it, the color of a school chalkboard.
+
+Shared look: flat matte print style like the popup windows of a cozy casual game, a crisp thin cocoa brown outline, flat color fills, a faint tone-on-tone pattern, a flat darker band along the bottom edge for a hint of thickness. Soft muted pastel colors, even matte paper finish.
+
+Row 1 holds three portrait popup boards of the same shape, each about three quarters as wide as it is tall, with softly rounded corners. Each board has a wide colored frame around a large inner vanilla custard cream panel with rounded corners and a thin dashed stitch line just inside the frame edge. The inner panel is empty.
+Row 1 left: the frame is pistachio mint with a faint tonal gingham check, deeper sage green bottom band.
+Row 1 middle: the frame is forget-me-not sky blue with faint tonal polka dots, deeper denim blue bottom band.
+Row 1 right: the frame is soft lavender purple with faint tonal tiny stars, deeper grape bottom band.
+
+Row 2 holds three matching wide title ribbon banners, each about three times as wide as it is tall, a flat straight band with folded swallowtail ends tucked behind, the face empty:
+Row 2 left: raspberry jam red ribbon with a deeper wine fold.
+Row 2 middle: honey apricot ribbon with a deeper apricot fold.
+Row 2 right: strawberry milk pink ribbon with a deeper rose fold.
+NO TEXT.

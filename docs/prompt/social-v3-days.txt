@@ -1,0 +1,12 @@
+Flat 2D mobile game UI sprite sheet, square canvas, exactly 3 rows. Each item sits alone and centered in its place, with wide flat slate blue-gray gaps around it, the color of a school chalkboard.
+
+Shared look: flat matte print style like the reward cards of a cozy casual game, a crisp thin cocoa brown outline, flat color fills, a faint tone-on-tone pattern inside each face, a flat darker band along the bottom edge for a hint of thickness. Soft muted pastel colors, even matte paper finish.
+
+Row 1 holds three square reward cards with softly rounded corners, slightly taller than wide, each with a narrow flat header strip across the top:
+Row 1 left: vanilla custard cream face with a faint quilted diamond pattern, pistachio mint header strip, biscuit beige bottom band. The face is empty.
+Row 1 middle: honey apricot face with faint tonal tiny dots, raspberry jam red header strip, deeper apricot bottom band. The face is empty.
+Row 1 right: dusty lilac gray face with a faint quilted diamond pattern, grayish mauve header strip, grayish mauve bottom band. The face is empty.
+
+Row 2: one long wide reward bar spanning most of the canvas width, about five times as wide as it is tall, softly rounded corners, vanilla custard cream face with a faint quilted diamond pattern, biscuit beige bottom band. The face is empty.
+Row 3: the same long wide reward bar in its highlighted state, honey apricot face with faint tonal tiny dots, a thick raspberry jam red rim, deeper apricot bottom band. The face is empty.
+NO TEXT.

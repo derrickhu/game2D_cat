@@ -78,7 +78,22 @@ namespace DressSort
 
         void OnSide(string id, string title)
         {
-            Toast(title + " 即将开放");
+            RectTransform layer = root.parent as RectTransform ?? root;
+            switch (id)
+            {
+                case "checkin":
+                    PopupView.Open<CheckInPopup>("CheckInPopup", layer, app, OnShow);
+                    break;
+                case "rank":
+                    PopupView.Open<RankPopup>("RankPopup", layer, app, OnShow);
+                    break;
+                case "circle":
+                    PopupView.Open<ClubPopup>("ClubPopup", layer, app, OnShow);
+                    break;
+                default:
+                    Toast(title + " 即将开放");
+                    break;
+            }
         }
 
         void Toast(string message)

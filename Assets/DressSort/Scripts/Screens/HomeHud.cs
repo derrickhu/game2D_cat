@@ -29,10 +29,10 @@ namespace DressSort
         static readonly string[] LeftNames = { "游戏圈", "排行榜", "签到" };
         static readonly string[] RightIds = { "workshop", "quest", "event" };
         static readonly string[] RightNames = { "工坊", "任务", "活动" };
-        static readonly float[] SideYs = { 318f, 122f, -74f };
+        // 图标 168，缎带垂到中心下方约 120。间距 268 时，上一条缎带和下一个圆钮之间留出大约 60。
+        static readonly float[] SideYs = { 390f, 122f, -146f };
         static readonly Color CaptionInk = Palette.Ink;
-        static readonly Color CaptionPlate = Palette.Cream;
-        static readonly Color CaptionStroke = new Color32(0xFF, 0xF4, 0xE6, 0xFF);
+        static readonly Color TagInk = new Color32(0x4A, 0x26, 0x2C, 0xFF);
         const float StagePodiumY = 0.258f;
         const float DollHeightFrac = 0.42f;
         const float PortraitAspect = 864f / 1084f;
@@ -67,9 +67,9 @@ namespace DressSort
             sideButtons = sides.ToArray();
 
             startButton = MakeCta("开始游戏", db != null ? db.btnHomeStart : UiKit.SpriteOf(Chip.Teal),
-                new Vector2(0.5f, 0f), new Vector2(0f, 300f), new Vector2(460f, 184f), 40);
+                new Vector2(0.5f, 0f), new Vector2(0f, 300f), new Vector2(520f, 134f), 44);
             dressButton = MakeCta("装扮", db != null ? db.btnHomeDress : UiKit.SpriteOf(Chip.Pink),
-                new Vector2(0.5f, 0f), new Vector2(0f, 126f), new Vector2(348f, 140f), 32);
+                new Vector2(0.5f, 0f), new Vector2(0f, 140f), new Vector2(380f, 139f), 36);
 
             progressLabel = UiKit.Label(transform, "Progress", "", new Vector2(0.5f, 0f),
                 new Vector2(0f, 36f), new Vector2(360f, 32f), 24, Palette.Ink);
@@ -91,11 +91,14 @@ namespace DressSort
             EnsureEnergyBar(UiKit.Skin);
 
             Place(startButton != null ? startButton.transform as RectTransform : null,
-                new Vector2(0.5f, 0f), new Vector2(0f, 300f), new Vector2(460f, 184f));
+                new Vector2(0.5f, 0f), new Vector2(0f, 300f), new Vector2(520f, 134f));
             Place(dressButton != null ? dressButton.transform as RectTransform : null,
-                new Vector2(0.5f, 0f), new Vector2(0f, 126f), new Vector2(348f, 140f));
+                new Vector2(0.5f, 0f), new Vector2(0f, 140f), new Vector2(380f, 139f));
             SetCtaAspect(startButton);
             SetCtaAspect(dressButton);
+            // 图标占左侧，字放在右侧空面上，并略微上移，躲开底部的深色底边。
+            StyleCtaLabel(startButton, 0.16f);
+            StyleCtaLabel(dressButton, 0.14f);
             if (sideButtons == null) return;
             for (int i = 0; i < sideButtons.Length; i++)
             {
@@ -114,6 +117,26 @@ namespace DressSort
             }
         }
 
+        static void StyleCtaLabel(Button button, float shift)
+        {
+            if (button == null) return;
+            var label = button.GetComponentInChildren<Text>();
+            if (label == null) return;
+            var host = (RectTransform)button.transform;
+            float w = host.sizeDelta.x;
+            float h = host.sizeDelta.y;
+            var rect = label.rectTransform;
+            rect.anchoredPosition = new Vector2(w * shift, h * 0.05f);
+            rect.sizeDelta = new Vector2(w * 0.56f, h * 0.6f);
+            label.color = TagInk;
+            label.fontStyle = FontStyle.Normal;
+            label.alignment = TextAnchor.MiddleCenter;
+            var shadow = label.GetComponent<Shadow>();
+            if (shadow == null)
+                shadow = label.gameObject.AddComponent<Shadow>();
+            shadow.enabled = false;
+        }
+
         static void SetCtaAspect(Button button)
         {
             if (button == null) return;
@@ -125,48 +148,72 @@ namespace DressSort
         void OverlaySideLabel(HomeSideEntry entry)
         {
             if (entry == null || entry.button == null || entry.label == null) return;
-            Image plate = EnsureCaptionPlate(entry.button.transform);
-            Place(plate.rectTransform, new Vector2(0.5f, 0f),
-                new Vector2(0f, -8f), new Vector2(152f, 36f));
-            entry.label.transform.SetParent(plate.transform, false);
-            Place(entry.label.rectTransform, new Vector2(0.5f, 0.5f),
-                Vector2.zero, new Vector2(148f, 34f));
-            StyleSideLabel(entry.label);
-        }
-
-        static Image EnsureCaptionPlate(Transform host)
-        {
-            Transform plateT = host.Find("Plate");
-            Image plate = plateT != null ? plateT.GetComponent<Image>() : null;
-            if (plate == null)
+            Sprite tagSprite = LabelOf(UiKit.Skin, entry.id);
+            Transform tagT = entry.button.transform.Find("Tag");
+            if (tagSprite != null)
             {
-                plate = UiKit.Slice(host, "Plate", UiKit.SoftRect, new Vector2(0.5f, 0f),
-                    new Vector2(0f, -8f), new Vector2(152f, 36f), CaptionPlate);
+                Image tag = tagT != null ? tagT.GetComponent<Image>() : null;
+                if (tag == null)
+                {
+                    tag = UiKit.Icon(entry.button.transform, "Tag", tagSprite, new Vector2(0.5f, 0.5f),
+                        Vector2.zero, Vector2.one);
+                    tag.raycastTarget = false;
+                }
+                tag.sprite = tagSprite;
+                tag.preserveAspect = true;
+                tag.gameObject.SetActive(true);
+                tag.transform.SetAsLastSibling();
+                Place(tag.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -82f), new Vector2(156f, 64f));
+                entry.label.transform.SetParent(tag.transform, false);
+                Place(entry.label.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 4f), new Vector2(156f, 52f));
+                entry.label.text = entry.Caption;
+                entry.label.gameObject.SetActive(true);
+                StyleSideLabel(entry.label);
+                entry.label.fontSize = 28;
+                entry.label.color = TagInk;
+                Transform labelHost = entry.button.transform.Find("Plate");
+                if (labelHost != null)
+                    labelHost.gameObject.SetActive(false);
+                return;
             }
-            plate.gameObject.SetActive(true);
-            plate.sprite = UiKit.SoftRect;
-            plate.type = Image.Type.Sliced;
-            plate.color = CaptionPlate;
-            plate.raycastTarget = false;
-            return plate;
+            if (tagT != null) tagT.gameObject.SetActive(false);
+            Transform plateT = entry.button.transform.Find("Plate");
+            if (plateT != null)
+            {
+                plateT.gameObject.SetActive(true);
+                var plateImg = plateT.GetComponent<Image>();
+                if (plateImg != null)
+                {
+                    plateImg.enabled = false;
+                    plateImg.raycastTarget = false;
+                }
+                Place((RectTransform)plateT, new Vector2(0.5f, 0f),
+                    new Vector2(0f, -36f), new Vector2(168f, 36f));
+                Place(entry.label.rectTransform, new Vector2(0.5f, 0.5f),
+                    Vector2.zero, new Vector2(168f, 36f));
+            }
+            else
+            {
+                Place(entry.label.rectTransform, new Vector2(0.5f, 0f),
+                    new Vector2(0f, -36f), new Vector2(168f, 36f));
+            }
+            StyleSideLabel(entry.label);
         }
 
         static void StyleSideLabel(Text label)
         {
             if (label == null) return;
-            label.fontSize = 30;
-            label.fontStyle = FontStyle.Bold;
+            label.fontSize = 26;
+            // 字体文件已经是 700 字重，再开 Bold 会错位叠一层，边缘发虚。
+            label.fontStyle = FontStyle.Normal;
             label.color = CaptionInk;
             label.alignment = TextAnchor.MiddleCenter;
             label.horizontalOverflow = HorizontalWrapMode.Overflow;
             label.verticalOverflow = VerticalWrapMode.Overflow;
             label.resizeTextForBestFit = false;
             var outline = label.GetComponent<Outline>();
-            if (outline == null)
-                outline = label.gameObject.AddComponent<Outline>();
-            outline.effectColor = CaptionStroke;
-            outline.effectDistance = new Vector2(1.6f, -1.6f);
-            outline.enabled = true;
+            if (outline != null)
+                outline.enabled = false;
             var shadow = label.GetComponent<Shadow>();
             if (shadow != null)
                 shadow.enabled = false;
@@ -189,9 +236,8 @@ namespace DressSort
                 Vector2.zero, new Vector2(168f, 168f));
             icon.raycastTarget = true;
 
-            Image plate = EnsureCaptionPlate(rect);
-            Text label = UiKit.Label(plate.transform, "Label", caption, new Vector2(0.5f, 0.5f),
-                Vector2.zero, new Vector2(148f, 34f), 30, CaptionInk);
+            Text label = UiKit.Label(rect, "Label", caption, new Vector2(0.5f, 0f),
+                new Vector2(0f, -36f), new Vector2(168f, 36f), 26, CaptionInk);
             StyleSideLabel(label);
 
             var button = rect.gameObject.AddComponent<Button>();
@@ -279,6 +325,21 @@ namespace DressSort
                 case "workshop": return db.iconHomeWorkshop;
                 case "quest": return db.iconHomeQuest;
                 case "event": return db.iconHomeEvent;
+                default: return null;
+            }
+        }
+
+        static Sprite LabelOf(GameDatabase db, string id)
+        {
+            if (db == null) return null;
+            switch (id)
+            {
+                case "circle": return db.labelHomeCircle;
+                case "rank": return db.labelHomeRank;
+                case "checkin": return db.labelHomeCheckin;
+                case "workshop": return db.labelHomeWorkshop;
+                case "quest": return db.labelHomeQuest;
+                case "event": return db.labelHomeEvent;
                 default: return null;
             }
         }

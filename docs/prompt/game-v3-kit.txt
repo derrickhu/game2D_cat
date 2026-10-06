@@ -1,0 +1,15 @@
+Flat 2D mobile game UI sprite sheet, square canvas, exactly 3 columns and 3 rows. Each item sits alone in the center of its cell, with wide flat slate blue-gray gaps around it, the color of a school chalkboard.
+
+Shared look: flat matte print style like the inventory buttons of a cozy casual game, a crisp thin cocoa brown outline, flat color fills, a faint tone-on-tone pattern inside each face, and a flat darker band along the bottom edge for a hint of thickness. Even colors, matte paper finish.
+
+Row 1 holds three matching square action buttons with softly rounded corners. Each face is honey apricot like apricot jam with faint tonal tiny dots. The lower quarter of each button is a flat deep cocoa plum band that stays empty. A chunky vanilla cream icon with a cocoa brown outline sits in the upper part of each face:
+Row 1 left: two curved arrows chasing each other in a circle, one pointing up on the right side and one pointing down on the left side, the swap symbol.
+Row 1 middle: one thick curved arrow bending back to the left, the undo symbol.
+Row 1 right: two crossing arrows both pointing right, the shuffle symbol.
+
+Row 2 left: a round flat settings button: vanilla cream disc, faint tonal dots, biscuit beige bottom band, a chunky cocoa brown gear in the middle.
+Row 2 middle: a portrait popup board with softly rounded corners, about three quarters as wide as it is tall: vanilla custard cream face with a faint quilted diamond pattern, a raspberry jam red ribbon band across the top edge, warm biscuit beige bottom band. The face is empty.
+Row 2 right: a small round counter badge, deep cocoa plum disc with a thin vanilla cream ring. The face is empty.
+
+Row 3: one long horizontal wooden clothes rod spanning almost the full width of the canvas, a honey maple wooden pole with a soft lighter stripe along its top, a round wooden knob cap at each end.
+NO TEXT.

@@ -1,0 +1,12 @@
+Flat 2D mobile game UI sprite sheet, square canvas, exactly 3 columns and 2 rows, six separate items. Each item sits alone in the center of its cell, with wide flat slate blue-gray gaps around it, the color of a school chalkboard.
+
+Shared look: flat matte print style like the inventory cards of a cozy casual game, a crisp thin cocoa brown outline, flat color fills, a faint tone-on-tone pattern inside each face, and a flat darker band along the bottom edge for a hint of thickness. Even colors, matte paper finish.
+
+Row 1 left: a square item card with softly rounded corners. Vanilla custard cream face with a faint quilted diamond pattern in a slightly deeper cream, warm biscuit beige bottom band. The face is empty.
+Row 1 middle: the same square card in its selected state: the same cream face and diamond pattern, wrapped in a thick raspberry jam red rim, and a small raspberry red round badge with a white check mark overlapping the top right corner. The face is empty.
+Row 1 right: the same square card in its locked state: dusty lilac gray face with the same faint diamond pattern, grayish mauve bottom band, and a small chunky cocoa brown padlock in the center.
+
+Row 2 left: a round flat back button: vanilla cream disc, thin cocoa brown outline, flat biscuit beige bottom band, a chunky cocoa brown chevron pointing left in the middle.
+Row 2 middle: a flat counter chip shaped like a capsule about three times as wide as it is tall, deep cocoa plum fill, a gold coin yellow star sitting on its left end, the rest of the chip empty.
+Row 2 right: a small round badge, raspberry red disc with a white check mark, thin cocoa outline.
+NO TEXT.

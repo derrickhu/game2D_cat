@@ -1,0 +1,11 @@
+Flat 2D mobile game UI sprite sheet, square canvas, exactly 3 rows. Each item sits alone and centered in its place, with wide flat slate blue-gray gaps around it, the color of a school chalkboard.
+
+Shared look: flat matte print style like the leaderboard of a cozy casual game, a crisp thin cocoa brown outline, flat color fills, a faint tone-on-tone pattern inside each face, a flat darker band along the bottom edge for a hint of thickness. Soft muted pastel colors, even matte paper finish.
+
+Row 1: one long list row bar spanning most of the canvas width, about six times as wide as it is tall, softly rounded corners, vanilla custard cream face with faint tonal tiny dots, biscuit beige bottom band. The face is empty.
+Row 2: the same long list row bar in a highlighted color, peach sorbet face with faint tonal small hearts, a raspberry jam red rim, deeper peach bottom band. The face is empty.
+Row 3 holds three round ribbon medals side by side, each a flat round medal disc hanging from a short folded ribbon, a small star embossed in the middle of each disc:
+Row 3 left: gold coin yellow medal on a raspberry red ribbon.
+Row 3 middle: silver spoon gray medal on a sky blue ribbon.
+Row 3 right: new copper coin bronze medal on a pistachio mint ribbon.
+NO TEXT.

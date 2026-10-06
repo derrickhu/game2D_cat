@@ -1,0 +1,9 @@
+Mobile game UI asset, one single popup board, front view, centered, filling about 80% of the canvas height.
+
+The board is a tall portrait rounded rectangle made of vanilla custard cream enamel, the same cream and the same construction as the cream capsule button in the reference image: one smooth thick black ink outline around the whole shape, a flat cream face, and one soft warm-beige shadow band along the bottom edge inside the outline.
+The face is completely plain flat cream, one single continuous color from edge to edge, ready for content.
+Corners are generously rounded and all four corners are identical. The left and right edges are straight and parallel, the top and bottom edges are straight and parallel.
+
+Background: flat solid slate blue-gray, the color of a school chalkboard, with a wide even margin around the board.
+Style reference image: only for line weight, cream color, and cel shading.
+NO TEXT.

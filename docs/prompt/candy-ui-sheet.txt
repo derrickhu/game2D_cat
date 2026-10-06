@@ -1,0 +1,25 @@
+Mobile casual game UI sprite sheet, portrait 3:4, exactly 2 columns and 5 rows, ten separate items. Each item sits alone in the center of its own cell, with a wide margin of flat slate on every side. Front view, flat 2D.
+
+Shared material for every item, matching the style reference: glossy candy casual mobile game UI. One thick even dark plum ink outline. A bright white gloss streak along the upper part. A deeper shade of the same color along the bottom. A thicker darker base lip under the bottom edge, like a chunky toy button. Cel shading, saturated sweet colors, rounded and chubby.
+
+The style reference image shows only the gloss, the plum outline weight, and the thick base lip. Each item below uses its own color and its own symbol.
+
+Row 1 left: a wide candy capsule about two and a half times as wide as it is tall. Fill is pistachio mint ice cream green, deeper forest green base lip. On the left end, a vanilla custard cream circle holding a white play triangle. The right two thirds of the capsule is a plain empty mint face.
+Row 1 right: a wide candy capsule of the same proportion. Fill is strawberry milk pink, deeper raspberry base lip. On the left end, a vanilla custard cream circle holding a wooden clothes hanger. The right two thirds is a plain empty pink face.
+
+Row 2 left: a wide candy capsule about three times as wide as it is tall. Fill is raspberry jam red, deeper wine base lip. The whole face is plain and empty.
+Row 2 right: a wide candy capsule about two and a half times as wide as it is tall. Fill is pistachio mint ice cream green, deeper forest green base lip. The whole face is plain and empty.
+
+Row 3 left: a wide candy capsule about two and a half times as wide as it is tall. Fill is vanilla custard cream, a warm honey shadow along the bottom lip. The whole face is plain and empty.
+Row 3 right: a wide candy capsule of the same proportion. Fill is ripe peach flesh, the orange-pink of a cut peach, deeper apricot base lip. The whole face is plain and empty.
+
+Row 4 left: a round glossy candy button the same family as a sweets-shop icon, sky soda blue disc, thick white rim, big white gloss crescent, deeper blue base lip. The symbol is a chunky cream undo arrow curling to the left. Under the disc, a short sky-blue satin ribbon tag with a tiny folded notch on each side. On the ribbon, centered, the white characters 撤回 with a thick dark plum outline.
+Row 4 right: the same round button in tangerine orange. The symbol is two chunky cream arrows crossing, one pointing each way. Under it, a tangerine ribbon with the white characters 随机 and a thick dark plum outline.
+
+Row 5 left: the same round button in strawberry milk pink. The symbol is a chunky cream chevron pointing left. Under it, a pink ribbon with the white characters 返回 and a thick dark plum outline.
+Row 5 right: a round glossy candy button in lavender taro purple, thick white rim, gloss crescent, deeper grape base lip. The symbol is a chunky cream gear. This button has the disc only, the same size as the discs above.
+
+The left and right ends of every wide capsule are matching rounded ends, top and bottom edges straight and parallel. Round buttons are centered in their wide cells, with slate filling the sides.
+
+Background: flat solid slate blue-gray, the color of a school chalkboard, filling every gap and the whole canvas.
+Characters appear only on the three ribbons, exactly 撤回, 随机, and 返回.

@@ -54,6 +54,12 @@ namespace DressSort
         public Sprite iconHomeQuest;
         public Sprite iconHomeEvent;
         public Sprite iconHomeEnergy;
+        public Sprite labelHomeCircle;
+        public Sprite labelHomeRank;
+        public Sprite labelHomeCheckin;
+        public Sprite labelHomeWorkshop;
+        public Sprite labelHomeQuest;
+        public Sprite labelHomeEvent;
 
         [Header("对局")]
         public Sprite btnGameUndo;
@@ -61,6 +67,10 @@ namespace DressSort
         public Sprite btnGameBack;
         public Sprite btnGameSteps;
         public Sprite btnGameGear;
+        public Sprite btnGameSwap;
+        public Sprite gameBadge;
+        public Sprite gameRod;
+        public Sprite gamePauseBoard;
         public List<Sprite> boardBgs = new List<Sprite>();
         public List<Sprite> boardHangers = new List<Sprite>();
         public Sprite boardLaneSolved;
@@ -86,6 +96,10 @@ namespace DressSort
         public Sprite dressupTabHairOff;
         public Sprite dressupTabWingsOn;
         public Sprite dressupTabWingsOff;
+        public Sprite dressupPanel;
+        public Sprite dressupTabTrack;
+        public Sprite dressupTabOn;
+        public Sprite dressupStarChip;
 
         /// <summary>第 1–10 关第一张，11–20 第二张，以后每 10 关加一张。</summary>
         public Sprite BoardBgFor(int levelIndex) => PickByBand(boardBgs, levelIndex, ActiveBg);

@@ -10,12 +10,6 @@ namespace DressSort.EditorTools
         const string ResourcePrefab = "Assets/DressSort/Resources/Prefabs/DressUpScreen.prefab";
         const string DatabasePath = "Assets/DressSort/Data/GameDatabase.asset";
 
-        [InitializeOnLoadMethod]
-        static void AutoRebuildWhenArtArrives()
-        {
-            // 装扮页已回到秀台芯片布局，不再自动拼花园货架预制。
-        }
-
         [MenuItem("叠叠裙/重建装扮预制", priority = 7)]
         public static void Rebuild()
         {
@@ -41,7 +35,11 @@ namespace DressSort.EditorTools
         public static void BindSprites(GameDatabase database)
         {
             if (database == null) return;
-            database.dressupBg = LoadJpg("Ui/DressUp/bg_dressup");
+            database.dressupBg = LoadJpg("Ui/DressUp/bg_fitting");
+            database.dressupPanel = Load("Ui/DressUp/wardrobe_panel");
+            database.dressupTabTrack = Load("Ui/DressUp/tab_track");
+            database.dressupTabOn = Load("Ui/DressUp/tab_on");
+            database.dressupStarChip = Load("Ui/DressUp/star_chip");
             database.dressupTitle = Load("Ui/DressUp/title");
             database.dressupBack = Load("Ui/DressUp/btn_back");
             database.dressupSave = Load("Ui/DressUp/btn_save");

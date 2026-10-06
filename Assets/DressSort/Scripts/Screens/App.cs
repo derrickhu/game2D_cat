@@ -156,6 +156,15 @@ namespace DressSort
                 }
                 if (db.iconHomeEnergy == null)
                     db.iconHomeEnergy = LoadUiSprite(home + "icon_home_energy");
+                if (db.labelHomeCircle == null)
+                {
+                    db.labelHomeCircle = LoadUiSprite(home + "label_home_circle");
+                    db.labelHomeRank = LoadUiSprite(home + "label_home_rank");
+                    db.labelHomeCheckin = LoadUiSprite(home + "label_home_checkin");
+                    db.labelHomeWorkshop = LoadUiSprite(home + "label_home_workshop");
+                    db.labelHomeQuest = LoadUiSprite(home + "label_home_quest");
+                    db.labelHomeEvent = LoadUiSprite(home + "label_home_event");
+                }
             }
 
             if (db.btnGameUndo == null || db.btnGameGear == null)
@@ -163,15 +172,21 @@ namespace DressSort
                 db.btnGameUndo = LoadUiSprite(ui + "Game/btn_undo");
                 db.btnGameShuffle = LoadUiSprite(ui + "Game/btn_shuffle");
                 db.btnGameBack = LoadUiSprite(ui + "Game/btn_back");
-                db.btnGameSteps = LoadUiSprite(ui + "Game/btn_steps");
+                db.btnGameSteps = LoadUiSprite(ui + "DressUp/tab_track");
                 db.btnGameGear = LoadUiSprite(ui + "Game/btn_gear");
             }
-            if (db.boardBgs == null || db.boardBgs.Count < 2 || db.boardHangers == null || db.boardHangers.Count < 1)
+            if (db.btnGameSwap == null)
+            {
+                db.btnGameSwap = LoadUiSprite(ui + "Game/btn_swap");
+                db.gameBadge = LoadUiSprite(ui + "Game/badge");
+                db.gameRod = LoadUiSprite(ui + "Game/rod");
+                db.gamePauseBoard = LoadUiSprite(ui + "Game/pause_board");
+            }
+            if (db.boardBgs == null || db.boardBgs.Count < 1 || db.boardHangers == null || db.boardHangers.Count < 1)
             {
                 db.boardBgs = new List<Sprite>
                 {
-                    LoadUiSprite(ui + "Bgs/bg_closet"),
-                    LoadUiSprite(ui + "Bgs/bg_runway"),
+                    LoadUiSprite(ui + "Bgs/bg_shop"),
                 };
                 db.boardHangers = new List<Sprite>
                 {

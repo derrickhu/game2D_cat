@@ -1,0 +1,10 @@
+Flat 2D mobile game UI sprite sheet, portrait 3:4 canvas, exactly 1 column and 5 rows, five separate wide horizontal buttons stacked top to bottom, each alone and centered in its row, with wide flat slate blue-gray gaps around them, the color of a school chalkboard.
+
+Shared look: flat matte print style like the menu buttons of a cozy casual game, a crisp thin cocoa brown outline, flat color fills, a faint tone-on-tone pattern inside, a flat darker band along the bottom edge for a hint of thickness. Soft muted pastel colors, even matte paper finish. Every button has matching fully rounded left and right ends and straight parallel top and bottom edges.
+
+Row 1: a big start button about two and a half times as wide as it is tall, pistachio mint fill with faint tonal tiny dots, deeper sage green bottom band. Near its left end sits a vanilla cream round disc with a cocoa outline holding a chunky pistachio green play triangle. The rest of the face is empty.
+Row 2: a smaller button about two and a half times as wide as it is tall, strawberry milk pink fill with faint tonal small hearts, deeper rose bottom band. Near its left end sits a vanilla cream round disc with a cocoa outline holding a small cocoa brown clothes hanger. The rest of the face is empty.
+Row 3: a plain capsule button about three times as wide as it is tall, pistachio mint fill with faint tonal tiny dots, deeper sage green bottom band. The face is empty.
+Row 4: a plain capsule button about three times as wide as it is tall, honey apricot fill like apricot jam with faint tonal tiny dots, deeper apricot bottom band. The face is empty.
+Row 5: a plain capsule button about three times as wide as it is tall, dusty lilac gray fill with faint tonal tiny dots, grayish mauve bottom band. The face is empty.
+NO TEXT.

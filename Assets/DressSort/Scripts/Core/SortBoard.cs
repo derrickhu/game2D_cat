@@ -25,8 +25,21 @@ namespace DressSort
         }
         public const int Empty = -1;
 
+        /// <summary>一步记录。Row 为 -1 是普通插列，否则是「交换」换走的那一格。</summary>
+        readonly struct Move
+        {
+            public readonly int Column;
+            public readonly int Row;
+
+            public Move(int column, int row)
+            {
+                Column = column;
+                Row = row;
+            }
+        }
+
         readonly List<int>[] columns;
-        readonly Stack<int> history = new Stack<int>();
+        readonly Stack<Move> history = new Stack<Move>();
         readonly Stack<Settle[]> settleHistory = new Stack<Settle[]>();
 
         static readonly Settle[] NoSettles = Array.Empty<Settle>();
@@ -186,20 +199,50 @@ namespace DressSort
 
             Held = outgoing;
             Steps++;
-            history.Push(column);
+            history.Push(new Move(column, -1));
             settleHistory.Push(SettleReady());
             return outgoing;
         }
 
+        public bool CanSwap(int column, int row) =>
+            column >= 0 && column < ColumnCount
+            && row >= 0 && row < columns[column].Count
+            && Held != Empty
+            && columns[column][row] != Held;
+
+        /// <summary>「交换」道具：手里那件和架上任意一格直接对调，不算步数。</summary>
+        public int Swap(int column, int row)
+        {
+            List<int> list = columns[column];
+            int taken = list[row];
+            list[row] = Held;
+            Held = taken;
+            history.Push(new Move(column, row));
+            settleHistory.Push(SettleReady());
+            return taken;
+        }
+
+        /// <summary>最近一次撤回的是不是「交换」，面板据此退还道具次数。</summary>
+        public bool LastUndoWasSwap { get; private set; }
+
         public int Undo()
         {
             if (history.Count == 0) return Empty;
-            int column = history.Pop();
+            Move move = history.Pop();
             Settle[] settles = settleHistory.Count > 0 ? settleHistory.Pop() : NoSettles;
             for (int i = settles.Length - 1; i >= 0; i--)
                 MoveBottomTo(columns[settles[i].Column], settles[i].FromIndex);
-            int outgoing = ReverseMove(column);
             LastSettles = NoSettles;
+            LastUndoWasSwap = move.Row >= 0;
+            if (LastUndoWasSwap)
+            {
+                List<int> list = columns[move.Column];
+                int back = list[move.Row];
+                list[move.Row] = Held;
+                Held = back;
+                return back;
+            }
+            int outgoing = ReverseMove(move.Column);
             if (Steps > 0) Steps--;
             return outgoing;
         }

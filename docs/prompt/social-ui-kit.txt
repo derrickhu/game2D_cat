@@ -1,0 +1,15 @@
+Mobile game UI sprite sheet, six separate items arranged in a clean 2-column by 3-row grid, every item floating alone with wide empty slate gaps between items. Front view, flat 2D.
+
+Shared style for every item: hand-drawn cel style like the reference image, thin even black ink outline, flat colors with one soft shadow band along the bottom edge. Palette: vanilla custard cream like the reference cream capsule, sea-glass teal like the reference teal capsule, ripe apricot peach like the reference peach capsule.
+
+Row 1 left: an empty hanging wooden-sign title plaque, a wide horizontal capsule of vanilla custard cream, about 3.5 times wider than tall, with two short beige twine loops on top holding it up, each loop ending in a small brass rivet on the plaque. The plaque face is plain and empty.
+Row 1 right: a round close button, a vanilla custard cream disc with a thick sea-glass teal X mark in the middle, the X has rounded ends and a thin black ink outline, same look as the round back button in the reference.
+
+Row 2 left: a small square calendar day card, vanilla custard cream, rounded corners, thin black ink outline, plain empty face.
+Row 2 right: the same square day card, with a thick ripe apricot peach border band inside the black outline, like the peach-bordered card in the reference, plain white face.
+
+Row 3 left: a round rubber seal stamp, sea-glass teal disc with a thin cream ring inside the edge and a bold cream check mark in the center, slightly tilted, like a happy approval stamp.
+Row 3 right: a wide horizontal ticket card, vanilla custard cream, rounded corners, about 3 times wider than tall, thick ripe apricot peach border band inside the black outline, plain empty face.
+
+Background: flat solid slate blue-gray, the color of a school chalkboard, everywhere between the items.
+NO TEXT.

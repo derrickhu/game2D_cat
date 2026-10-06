@@ -12,6 +12,7 @@ namespace DressSort
         LevelDef level;
 
         int shufflesLeft;
+        int swapsLeft;
         bool finished;
 
         protected override void Build()
@@ -35,17 +36,27 @@ namespace DressSort
             }
 
             Stretch(hud.transform as RectTransform);
+            hud.transform.SetAsFirstSibling();
+            if (hud.topBar != null)
+                hud.topBar.SetParent(root, false);
+            if (hud.pauseLayer != null)
+                hud.pauseLayer.SetParent(transform, false);
             if (app.Database != null)
             {
                 hud.laneSolved = app.Database.boardLaneSolved;
                 hud.checkSolved = app.Database.boardCheckSolved;
             }
-            hud.Wire(OnUndo, OnShuffle, () => app.Show(ScreenId.LevelMap));
+            hud.Wire(OnSwap, OnUndo, OnShuffle,
+                () => { CancelSwap(); hud.ShowPause(true); },
+                () => hud.ShowPause(false),
+                OnRestart,
+                () => { hud.ShowPause(false); app.Show(ScreenId.LevelMap); });
 
             board = BoardView.Create(hud.boardRoot != null ? hud.boardRoot : root,
                 new BoardView.Layout { overlap = 0.70f });
             board.AttachHud(hud);
             board.OnColumnClicked = OnColumnClicked;
+            board.OnItemClicked = OnSwapPick;
         }
 
         static void Stretch(RectTransform rect)
@@ -89,6 +100,14 @@ namespace DressSort
         {
             finished = false;
             shufflesLeft = level.shuffles;
+            swapsLeft = level.swaps;
+            if (board != null)
+                board.PickMode = false;
+            if (hud != null)
+            {
+                hud.SetSwapArmed(false);
+                hud.ShowPause(false);
+            }
 
             logic = new SortBoard(level.columns, level.columnHeight, level.columns, level.moveLimit);
             logic.Deal(level.scrambleMoves, seed);
@@ -153,6 +172,7 @@ namespace DressSort
             int stars = 1 + Mathf.Clamp(spare / Mathf.Max(1, level.moveLimit / 3), 0, 2);
 
             app.Wardrobe.ReportCleared(level.index, stars);
+            RankService.Submit(app.Wardrobe.LevelsCleared);
             app.PendingLevel = level;
             app.Show(level.reward != null ? ScreenId.Reward : ScreenId.Home);
         }
@@ -165,7 +185,10 @@ namespace DressSort
                 hud.ShowToast("没有可撤回的步骤");
                 return;
             }
+            CancelSwap();
             logic.Undo();
+            if (logic.LastUndoWasSwap)
+                swapsLeft = Mathf.Min(level.swaps, swapsLeft + 1);
             board.Refresh();
             finished = false;
             UpdateHud();
@@ -182,19 +205,84 @@ namespace DressSort
             }
 
             int keep = finished ? level.shuffles : shufflesLeft - 1;
+            int swaps = swapsLeft;
             Deal(Random.Range(1, 999999));
             shufflesLeft = keep;
+            swapsLeft = swaps;
             UpdateHud();
             hud.ShowToast("重新洗牌");
+        }
+
+        void OnSwap()
+        {
+            if (board.Busy || finished) return;
+            if (board.PickMode)
+            {
+                CancelSwap();
+                hud.ShowToast("");
+                return;
+            }
+            if (swapsLeft <= 0)
+            {
+                hud.ShowToast("交换次数用完了");
+                return;
+            }
+            board.PickMode = true;
+            hud.SetSwapArmed(true);
+            hud.ShowToast("点架上任意一件，和手里这件交换");
+        }
+
+        void CancelSwap()
+        {
+            if (board != null)
+                board.PickMode = false;
+            if (hud != null)
+                hud.SetSwapArmed(false);
+        }
+
+        void OnSwapPick(int column, int row)
+        {
+            if (board.Busy || finished) return;
+            if (!logic.CanSwap(column, row))
+            {
+                hud.ShowToast(row < 0 ? "这列是空的" : "两件一样，换了没变化");
+                return;
+            }
+            CancelSwap();
+            swapsLeft--;
+            StartCoroutine(SwapRoutine(column, row));
+        }
+
+        IEnumerator SwapRoutine(int column, int row)
+        {
+            yield return board.PlaySwap(column, row);
+            UpdateHud();
+            hud.ShowToast("交换成功");
+            if (logic.IsWin())
+            {
+                finished = true;
+                hud.ShowToast("整理完成！");
+                yield return new WaitForSeconds(0.45f);
+                Complete();
+            }
+        }
+
+        void OnRestart()
+        {
+            if (board.Busy) return;
+            hud.ShowPause(false);
+            Deal(Random.Range(1, 999999));
+            hud.ShowToast("重新开始");
         }
 
         void UpdateHud()
         {
             if (hud == null || level == null) return;
             if (hud.levelLabel != null)
-                hud.levelLabel.text = "第" + level.index + "关";
+                hud.levelLabel.text = "第 " + level.index + " 关";
             if (hud.movesLabel != null)
-                hud.movesLabel.text = "剩余" + Mathf.Max(0, level.moveLimit - logic.Steps) + "步";
+                hud.movesLabel.text = "剩余 " + Mathf.Max(0, level.moveLimit - logic.Steps) + " 步";
+            hud.SetCounts(swapsLeft, shufflesLeft);
         }
     }
 }
