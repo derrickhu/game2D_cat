@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b087983e010c9483cb7da0ebf73a9ba9, type: 3}
+  m_Name: mint_bow
+  m_EditorClassIdentifier: 
+  id: mint_bow
+  displayName: "\u8584\u8377\u8774\u8776\u7ED3\u88D9"
+  slot: 0
+  icon: {fileID: 21300000, guid: 7042b80ef198843c7943680ef938fa91, type: 3}
+  worn: {fileID: 21300000, guid: f52f789041f38463eb796a653dfab336, type: 3}
+  wornBack: {fileID: 0}
+  boardEligible: 1
+  accent: {r: 1, g: 0.24, b: 0.55, a: 1}
+  unlockedFromStart: 0
+  layeredWithHair: 1

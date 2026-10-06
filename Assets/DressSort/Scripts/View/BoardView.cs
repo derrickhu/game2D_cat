@@ -53,6 +53,8 @@ namespace DressSort
         readonly List<List<Image>> laneItems = new List<List<Image>>();
         readonly List<Image> laneWashes = new List<Image>();
         readonly List<Image> laneChecks = new List<Image>();
+        readonly List<List<Image>> laneSparkles = new List<List<Image>>();
+        float sparkleClock;
         Image heldItem;
 
         readonly List<Image> laneBacks = new List<Image>();
@@ -71,6 +73,7 @@ namespace DressSort
         static readonly Color AlarmFallback = new Color32(0xF0, 0x5A, 0x5E, 0xFF);
         static readonly Color AlarmUrgent = new Color32(0xE8, 0x2E, 0x3A, 0xFF);
 
+        static readonly Color SolvedWash = new Color(1f, 1f, 1f, 0.34f);
         static readonly Color LaneIdle = new Color(1f, 1f, 1f, 0.34f);
         static readonly Color LanePick = new Color(1f, 0.82f, 0.86f, 0.78f);
 
@@ -189,6 +192,7 @@ namespace DressSort
             laneItems.Clear();
             laneWashes.Clear();
             laneChecks.Clear();
+            laneSparkles.Clear();
             laneBacks.Clear();
             laneTaps.Clear();
             coverViews.Clear();
@@ -241,6 +245,7 @@ namespace DressSort
                 }
                 else
                     laneChecks.Add(null);
+                laneSparkles.Add(new List<Image>());
 
                 int index = c;
                 Button hit = UiKit.HitArea(root, "Lane_" + c, new Vector2(0.5f, 1f),
@@ -686,6 +691,7 @@ namespace DressSort
         {
             for (int c = 0; c < board.ColumnCount; c++)
             {
+                HideSparkles(c);
                 List<Image> views = laneItems[c];
                 for (int i = views.Count - 1; i >= 0; i--)
                     UiKit.Discard(views[i]);
@@ -744,15 +750,69 @@ namespace DressSort
                 laneChecks[column].transform.SetAsLastSibling();
         }
 
+        void ShowSparkles(int column)
+        {
+            if (column < 0 || column >= laneSparkles.Count) return;
+            if (laneSparkles[column].Count > 0) return;
+            Sprite sprite = hud != null ? hud.sparkleSprite : null;
+            if (sprite == null || column >= laneItems.Count) return;
+            List<Image> views = laneItems[column];
+            if (views.Count == 0) return;
+
+            int count = Mathf.Min(4, views.Count);
+            for (int i = 0; i < count; i++)
+            {
+                Image host = views[Mathf.Min(views.Count - 1, i * views.Count / count)];
+                float size = Random.Range(34f, 56f);
+                Image spark = UiKit.Icon(host.transform, "Twinkle", sprite, new Vector2(0.5f, 0.5f),
+                    new Vector2(Random.Range(-26f, 26f), Random.Range(-34f, 30f)),
+                    new Vector2(size, size));
+                spark.raycastTarget = false;
+                spark.color = new Color(1f, 1f, 1f, 0f);
+                laneSparkles[column].Add(spark);
+            }
+        }
+
+        void HideSparkles(int column)
+        {
+            if (column < 0 || column >= laneSparkles.Count) return;
+            List<Image> list = laneSparkles[column];
+            for (int i = list.Count - 1; i >= 0; i--)
+                UiKit.Discard(list[i]);
+            list.Clear();
+        }
+
+        void Update()
+        {
+            if (laneSparkles.Count == 0) return;
+            sparkleClock += Time.deltaTime;
+            for (int c = 0; c < laneSparkles.Count; c++)
+            {
+                List<Image> list = laneSparkles[c];
+                for (int i = 0; i < list.Count; i++)
+                {
+                    Image spark = list[i];
+                    if (spark == null) continue;
+                    float wave = Mathf.Sin(sparkleClock * 2.6f + i * 1.8f + c * 0.7f);
+                    float glow = wave > 0f ? wave * wave : 0f;
+                    spark.color = new Color(1f, 1f, 1f, glow);
+                    spark.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.35f, 1.15f, glow);
+                    spark.rectTransform.localRotation = Quaternion.Euler(0f, 0f, sparkleClock * 50f + i * 40f);
+                }
+            }
+        }
+
         void SnapSolvedChrome()
         {
             for (int c = 0; c < board.ColumnCount; c++)
             {
                 bool on = board.IsColumnSolved(c);
                 if (c < laneWashes.Count && laneWashes[c] != null)
-                    laneWashes[c].color = on
-                        ? Color.white
-                        : new Color(1f, 1f, 1f, 0f);
+                    laneWashes[c].color = on ? SolvedWash : new Color(1f, 1f, 1f, 0f);
+                if (on)
+                    ShowSparkles(c);
+                else
+                    HideSparkles(c);
                 if (c < laneChecks.Count && laneChecks[c] != null)
                     laneChecks[c].transform.localScale = on ? Vector3.one : Vector3.zero;
                 Image hanger = hud != null ? hud.Hanger(c) : null;
@@ -1055,7 +1115,7 @@ namespace DressSort
                 float k = Mathf.Clamp01(t / duration);
                 float ease = 1f - Mathf.Pow(1f - k, 3f);
                 if (wash != null)
-                    wash.color = new Color(1f, 1f, 1f, ease);
+                    wash.color = new Color(1f, 1f, 1f, Mathf.Lerp(0f, SolvedWash.a, ease));
                 if (check != null)
                 {
                     float pop = k < 0.6f
@@ -1073,7 +1133,7 @@ namespace DressSort
             }
 
             if (wash != null)
-                wash.color = Color.white;
+                wash.color = SolvedWash;
             if (check != null)
                 check.transform.localScale = Vector3.one;
             for (int i = 0; i < views.Count; i++)

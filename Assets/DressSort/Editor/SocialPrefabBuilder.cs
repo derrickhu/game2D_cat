@@ -36,6 +36,8 @@ namespace DressSort.EditorTools
             Save(BuildCheckIn(), "CheckInPopup");
             Save(BuildClub(), "ClubPopup");
             Save(BuildRank(), "RankPopup");
+            Save(BuildQuest(), "QuestPopup");
+            Save(BuildEnergy(), "EnergyAdPopup");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("[叠叠裙] 签到 / 排行榜 / 游戏圈预制已写入 Resources/Prefabs");
@@ -314,6 +316,70 @@ namespace DressSort.EditorTools
             view.countLabel = Txt(r, "Count", "0 关", new Vector2(RowW * 0.5f - 110f, 6f), new Vector2(160f, 56f), 36,
                 Berry, TextAnchor.MiddleRight);
             return view;
+        }
+
+        static GameObject BuildQuest()
+        {
+            var size = new Vector2(940f, 1440f);
+            RectTransform b = Frame<QuestPopup>("QuestPopup", boardRank, ribbonRank, "过关有礼", size, -40f, out var view);
+            float top = size.y * 0.5f;
+            float bottom = -top;
+
+            Txt(b, "Sub", "通关后在这里领礼物", new Vector2(0f, top - 168f), new Vector2(700f, 40f), 28, Sub);
+
+            Image chip = Img(b, "Progress", rowMine, new Vector2(0f, top - 230f), new Vector2(460f, 84f), true);
+            view.progressLabel = Txt(chip.rectTransform, "Text", "已通关 0 关", new Vector2(0f, 4f),
+                new Vector2(400f, 60f), 30, Ink);
+
+            float listTop = top - 290f;
+            float listBottom = bottom + 150f;
+            var vpGo = new GameObject("List", typeof(RectTransform), typeof(Image), typeof(RectMask2D), typeof(ScrollRect));
+            vpGo.transform.SetParent(b, false);
+            var vp = (RectTransform)vpGo.transform;
+            vp.pivot = new Vector2(0.5f, 0.5f);
+            vp.anchorMin = new Vector2(0f, 0f);
+            vp.anchorMax = new Vector2(1f, 1f);
+            vp.offsetMin = new Vector2(70f, listBottom + top);
+            vp.offsetMax = new Vector2(-70f, listTop - top);
+            vpGo.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0f);
+
+            var content = UiKit.Rect(vp, "Rows", new Vector2(0.5f, 1f), Vector2.zero, new Vector2(780f, 0f));
+            content.pivot = new Vector2(0.5f, 1f);
+            content.anchorMin = new Vector2(0.5f, 1f);
+            content.anchorMax = new Vector2(0.5f, 1f);
+            content.anchoredPosition = Vector2.zero;
+
+            var scroll = vpGo.GetComponent<ScrollRect>();
+            scroll.content = content;
+            scroll.viewport = vp;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 30f;
+
+            Image foot = Img(b, "Footer", rowMine, new Vector2(0f, bottom + 86f), new Vector2(760f, 96f), true);
+            view.footerLabel = Txt(foot.rectTransform, "Text", "距离下一份还差 2 关", new Vector2(0f, 12f),
+                new Vector2(700f, 64f), 34, Ink);
+
+            view.content = content;
+            view.scroll = scroll;
+            view.rowSprite = row;
+            view.badgeSprite = badge;
+            view.claimSprite = btnGreen;
+            view.doneSprite = btnPurple;
+            return view.gameObject;
+        }
+
+        static GameObject BuildEnergy()
+        {
+            var size = new Vector2(860f, 760f);
+            RectTransform b = Frame<EnergyAdPopup>("EnergyAdPopup", boardClub, ribbonClub, "体力不够", size, 0f,
+                out var view);
+            Img(b, "Heart", energy, new Vector2(0f, 90f), new Vector2(120f, 188f));
+            Txt(b, "Body", "看完一条广告，恢复 1 点体力", new Vector2(0f, -70f), new Vector2(640f, 56f), 32, Ink);
+            view.watchButton = Capsule(b, "Watch", "看广告", new Vector2(0f, -210f), new Vector2(420f, 130f), btnOrange,
+                out _);
+            return view.gameObject;
         }
 
         // ------------------------------------------------------------ 小件

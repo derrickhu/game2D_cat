@@ -1,0 +1,9 @@
+Vertical game background, same layout, camera, and pastel cel drawing style as the attached shop interior.
+
+A cozy sewing atelier for a little dress maker. Calm wall in the upper two thirds: soft butter-cream wallpaper with tiny strawberry-pink thread-spool dots, a scalloped mint awning trim along the top edge. A wooden rail at about 68 percent height. A warm honey wood floor in the bottom quarter with a round lilac rug centered at about 80 percent height.
+
+Small props only in the corners: in the lower left a white dress form with a measuring tape around its neck, in the lower right a small cream sewing machine on a little table, a short shelf of rainbow thread spools high in the upper left corner, a pair of pink scissors and a pincushion on the shelf in the upper right corner.
+
+The center of the picture stays open and calm for game UI.
+
+NO TEXT, no labels, no captions, no writing anywhere in the image

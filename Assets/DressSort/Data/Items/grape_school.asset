@@ -16,9 +16,9 @@ MonoBehaviour:
   displayName: "\u8461\u8404\u6821\u670D"
   slot: 0
   icon: {fileID: 21300000, guid: 16aba59ba48004159929fb27a9d5b803, type: 3}
-  worn: {fileID: 21300000, guid: d81ba676296e841e2b9b72191390af5b, type: 3}
+  worn: {fileID: 21300000, guid: f806ed2dfa9414d0e8bb1dc6c25267ca, type: 3}
   wornBack: {fileID: 0}
   boardEligible: 1
   accent: {r: 0.7254902, g: 0.54901963, b: 0.9098039, a: 1}
   unlockedFromStart: 0
-  layeredWithHair: 0
+  layeredWithHair: 1

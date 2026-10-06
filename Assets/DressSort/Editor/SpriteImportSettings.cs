@@ -35,6 +35,8 @@ namespace DressSort.EditorTools
             bool portrait = assetPath.Contains("/Portraits/");
             bool chrome = assetPath.Contains("/Art/Ui/");
             bool sceneBg = assetPath.Contains("/Art/Ui/Bgs/")
+                || assetPath.Contains("/Art/Ui/Workshop/bg_")
+                || assetPath.Contains("/Art/Ui/Reward/bg_")
                 || assetPath.Contains("/Art/Loading/")
                 || assetPath.EndsWith("/bg.png");
             importer.maxTextureSize = sceneBg ? 2048
@@ -75,6 +77,12 @@ namespace DressSort.EditorTools
                 importer.spriteBorder = new Vector4(88f, 88f, 88f, 88f);
             else if (assetPath.EndsWith("/DressUp/btn_save.png"))
                 importer.spriteBorder = new Vector4(92f, 92f, 92f, 92f);
+            else if (assetPath.EndsWith("/Reward/btn_gold.png") || assetPath.EndsWith("/Workshop/btn_mint.png"))
+                importer.spriteBorder = new Vector4(130f, 120f, 130f, 120f);
+            else if (assetPath.EndsWith("/Reward/plate.png"))
+                importer.spriteBorder = new Vector4(120f, 115f, 120f, 115f);
+            else if (assetPath.EndsWith("/DressUp/btn_peach.png") || assetPath.EndsWith("/DressUp/btn_cream.png"))
+                importer.spriteBorder = new Vector4(165f, 150f, 165f, 150f);
             else if (assetPath.EndsWith("/DressUp/star_chip.png"))
                 importer.spriteBorder = new Vector4(140f, 72f, 72f, 72f);
         }

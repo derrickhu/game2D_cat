@@ -11,7 +11,7 @@ namespace DressSort
     public class DressUpHud : MonoBehaviour
     {
         public const int Columns = 4;
-        public const int MaxSlots = 12;
+        public const int MaxSlots = 48;
         public const float CardW = 196f;
         public const float CardH = 211f;
         public const float GapX = 24f;
@@ -41,6 +41,7 @@ namespace DressSort
         public Image[] selected = new Image[MaxSlots];
         public Image[] icons = new Image[MaxSlots];
         public Button[] cardButtons = new Button[MaxSlots];
+        UnityAction<int> cardHandler;
         public Button saveButton;
 
         public Sprite cardSprite;
@@ -67,8 +68,9 @@ namespace DressSort
             backdrop.preserveAspect = false;
             backdrop.raycastTarget = false;
 
+            // 鞋底停在蕾丝边上方，长裙的脚才不会被衣柜面板挡住。
             dollSlot = UiKit.Rect(transform, "DollSlot", new Vector2(0.5f, 0f),
-                new Vector2(0f, 830f + 389f), new Vector2(620f, 778f));
+                new Vector2(0f, 930f + 389f), new Vector2(620f, 778f));
 
             panel = UiKit.Icon(transform, "Panel", db != null ? db.dressupPanel : null,
                 new Vector2(0.5f, 0f), new Vector2(0f, panelH * 0.5f), new Vector2(1080f, panelH));
@@ -131,40 +133,17 @@ namespace DressSort
 
             cardSprite = db != null ? db.dressupCard : null;
             cardLockSprite = db != null ? db.dressupCardLock : null;
+            faces = new Image[0];
+            selected = new Image[0];
+            icons = new Image[0];
+            cardButtons = new Button[0];
             Sprite onSprite = db != null ? db.dressupCardOn : null;
-            faces = new Image[MaxSlots];
-            selected = new Image[MaxSlots];
-            icons = new Image[MaxSlots];
-            cardButtons = new Button[MaxSlots];
-            for (int i = 0; i < MaxSlots; i++)
+            EnsureCards(12);
+            if (onSprite != null)
             {
-                int col = i % Columns;
-                int row = i / Columns;
-                float x = (col - (Columns - 1) * 0.5f) * (CardW + GapX);
-                float y = -10f - CardH * 0.5f - row * (CardH + GapY);
-                RectTransform cell = UiKit.Rect(content, "Card_" + i, new Vector2(0.5f, 1f),
-                    new Vector2(x, y), new Vector2(CardW, CardH));
-                var hit = cell.gameObject.AddComponent<Image>();
-                hit.color = new Color(1f, 1f, 1f, 0f);
-
-                faces[i] = UiKit.Icon(cell, "Face", cardSprite, new Vector2(0.5f, 0.5f), Vector2.zero,
-                    new Vector2(CardW, CardH));
-                faces[i].preserveAspect = false;
-                faces[i].raycastTarget = false;
-
-                // card_on 多出右上角的勾，按卡身对齐：卡身宽 317/340，中心相对图片中心偏左下。
-                float s = CardW / 317f;
-                selected[i] = UiKit.Icon(cell, "Selected", onSprite, new Vector2(0.5f, 0.5f),
-                    new Vector2(12f * s, 10.5f * s), new Vector2(340f * s, 363f * s));
-                selected[i].preserveAspect = false;
-                selected[i].raycastTarget = false;
-                selected[i].gameObject.SetActive(false);
-
-                icons[i] = UiKit.Icon(cell, "Icon", null, new Vector2(0.5f, 0.5f), new Vector2(0f, 6f),
-                    new Vector2(CardW - 40f, CardH - 46f));
-                icons[i].preserveAspect = true;
-                icons[i].raycastTarget = false;
-                cardButtons[i] = MakeHit(hit);
+                for (int i = 0; i < selected.Length; i++)
+                    if (selected[i] != null && selected[i].sprite == null)
+                        selected[i].sprite = onSprite;
             }
             LayoutCards(8);
 
@@ -193,13 +172,63 @@ namespace DressSort
             ShowTab(ItemSlot.Dress);
         }
 
-        /// <summary>按当前页签的件数撑开滚动内容，超过两行才能滑。</summary>
+        public int SlotCount => faces == null ? 0 : faces.Length;
+
+        /// <summary>按当前页签的件数撑开滚动内容，超过两行才能滑。预制里的格子不够就补。</summary>
         public void LayoutCards(int count)
         {
             if (content == null) return;
+            EnsureCards(count);
             int rows = Mathf.Max(1, Mathf.CeilToInt(count / (float)Columns));
             content.sizeDelta = new Vector2(content.sizeDelta.x, 20f + rows * CardH + (rows - 1) * GapY);
             content.anchoredPosition = Vector2.zero;
+        }
+
+        void EnsureCards(int count)
+        {
+            count = Mathf.Clamp(count, 0, MaxSlots);
+            if (faces != null && count <= faces.Length) return;
+            int old = faces == null ? 0 : faces.Length;
+            Sprite onSprite = old > 0 && selected[0] != null ? selected[0].sprite : null;
+            System.Array.Resize(ref faces, count);
+            System.Array.Resize(ref selected, count);
+            System.Array.Resize(ref icons, count);
+            System.Array.Resize(ref cardButtons, count);
+            for (int i = old; i < count; i++)
+                CreateCard(i, onSprite);
+            if (cardHandler != null)
+                BindCards();
+        }
+
+        void CreateCard(int i, Sprite onSprite)
+        {
+            int col = i % Columns;
+            int row = i / Columns;
+            float x = (col - (Columns - 1) * 0.5f) * (CardW + GapX);
+            float y = -10f - CardH * 0.5f - row * (CardH + GapY);
+            RectTransform cell = UiKit.Rect(content, "Card_" + i, new Vector2(0.5f, 1f),
+                new Vector2(x, y), new Vector2(CardW, CardH));
+            var hit = cell.gameObject.AddComponent<Image>();
+            hit.color = new Color(1f, 1f, 1f, 0f);
+
+            faces[i] = UiKit.Icon(cell, "Face", cardSprite, new Vector2(0.5f, 0.5f), Vector2.zero,
+                new Vector2(CardW, CardH));
+            faces[i].preserveAspect = false;
+            faces[i].raycastTarget = false;
+
+            // card_on 多出右上角的勾，按卡身对齐：卡身宽 317/340，中心相对图片中心偏左下。
+            float s = CardW / 317f;
+            selected[i] = UiKit.Icon(cell, "Selected", onSprite, new Vector2(0.5f, 0.5f),
+                new Vector2(12f * s, 10.5f * s), new Vector2(340f * s, 363f * s));
+            selected[i].preserveAspect = false;
+            selected[i].raycastTarget = false;
+            selected[i].gameObject.SetActive(false);
+
+            icons[i] = UiKit.Icon(cell, "Icon", null, new Vector2(0.5f, 0.5f), new Vector2(0f, 6f),
+                new Vector2(CardW - 40f, CardH - 46f));
+            icons[i].preserveAspect = true;
+            icons[i].raycastTarget = false;
+            cardButtons[i] = MakeHit(hit);
         }
 
         public void ShowTab(ItemSlot slot)
@@ -216,7 +245,7 @@ namespace DressSort
 
         public void PaintCard(int index, Sprite icon, bool unlocked, bool equipped, bool empty)
         {
-            if (index < 0 || index >= MaxSlots || faces[index] == null) return;
+            if (faces == null || index < 0 || index >= faces.Length || faces[index] == null) return;
             GameObject cell = faces[index].transform.parent.gameObject;
             if (empty)
             {
@@ -243,10 +272,16 @@ namespace DressSort
                 ItemSlot slot = TabOrder[i];
                 Bind(tabButtons[i], () => onTab?.Invoke(slot));
             }
+            cardHandler = onCard;
+            BindCards();
+        }
+
+        void BindCards()
+        {
             for (int i = 0; i < cardButtons.Length; i++)
             {
                 int index = i;
-                Bind(cardButtons[i], () => onCard?.Invoke(index));
+                Bind(cardButtons[i], () => cardHandler?.Invoke(index));
             }
         }
 

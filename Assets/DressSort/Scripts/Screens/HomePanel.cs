@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -54,6 +55,11 @@ namespace DressSort
                 Toast(app.Notice);
                 app.Notice = null;
             }
+            if (app.OfferEnergyAd)
+            {
+                app.OfferEnergyAd = false;
+                OpenEnergy(null);
+            }
         }
 
         void OnStart()
@@ -64,13 +70,26 @@ namespace DressSort
                 Toast("全部 " + app.LevelCount + " 关都通关啦");
                 return;
             }
+            if (app.Wardrobe.RecoverEnergy() < WardrobeService.EnergyPerLevel)
+            {
+                OpenEnergy(() => app.StartLevel(next));
+                return;
+            }
             if (!app.StartLevel(next))
-                Toast("体力不足，过一会儿再来");
+                OpenEnergy(() => app.StartLevel(next));
         }
 
         void OnEnergyPlus()
         {
-            Toast("体力补充即将开放");
+            OpenEnergy(null);
+        }
+
+        void OpenEnergy(Action follow)
+        {
+            RectTransform layer = root.parent as RectTransform ?? root;
+            EnergyAdPopup popup = PopupView.Open<EnergyAdPopup>("EnergyAdPopup", layer, app, OnShow);
+            if (popup != null)
+                popup.Follow = follow;
         }
 
         void OnWipe()
@@ -95,6 +114,15 @@ namespace DressSort
                     break;
                 case "event":
                     app.Show(ScreenId.Pack);
+                    break;
+                case "workshop":
+                    if (app.Wardrobe.WorkshopOpen)
+                        app.Show(ScreenId.Workshop);
+                    else
+                        Toast("通关第 " + CraftCatalog.WorkshopLevel + " 关后开放工坊");
+                    break;
+                case "quest":
+                    PopupView.Open<QuestPopup>("QuestPopup", layer, app, OnShow);
                     break;
                 default:
                     Toast(title + " 即将开放");

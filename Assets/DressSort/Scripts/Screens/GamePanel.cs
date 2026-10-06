@@ -45,6 +45,7 @@ namespace DressSort
             {
                 hud.laneSolved = app.Database.boardLaneSolved;
                 hud.checkSolved = app.Database.boardCheckSolved;
+                hud.sparkleSprite = app.Database.rewardSparkle;
                 hud.BindMechanics(app.Database);
             }
             hud.Wire(OnSwap, OnUndo, OnShuffle,
@@ -198,33 +199,42 @@ namespace DressSort
             app.Wardrobe.ReportCleared(level.index, stars);
             RankService.Submit(app.Wardrobe.LevelsCleared);
             app.PendingLevel = level;
-            if (level.reward != null)
+            bool freshPrint = false;
+            if (level.blueprint != null)
+                freshPrint = app.Wardrobe.AddBlueprint(level.blueprint);
+            int[] mats = CraftCatalog.MaterialsFor(level.index, app.Wardrobe.Shortage());
+            app.Wardrobe.AddMaterials(mats);
+            app.PendingMaterials = mats;
+            if (level.reward != null || freshPrint)
             {
                 app.Show(ScreenId.Reward);
                 return;
             }
-            GoNext();
+            GoNext(mats);
         }
 
         /// <summary>过关直接接下一关，不回选关页。体力不够或全部通关就回首页。</summary>
-        void GoNext()
+        void GoNext(int[] gained)
         {
+            string got = CraftCatalog.Any(gained) ? "获得 " + CraftCatalog.Describe(gained) + "\n" : "";
             LevelDef next = app.NextLevel;
             if (next == null)
             {
-                app.Notice = "全部 " + app.LevelCount + " 关都通关啦";
+                app.Notice = got + "全部 " + app.LevelCount + " 关都通关啦";
                 app.Show(ScreenId.Home);
                 return;
             }
             if (!app.Wardrobe.SpendEnergy())
             {
-                app.Notice = "体力不足，休息一下再来第 " + next.index + " 关";
+                app.Notice = got + "体力不够了";
+                app.OfferEnergyAd = true;
                 app.Show(ScreenId.Home);
                 return;
             }
             app.CurrentLevel = next;
             level = next;
             Deal(level.seed);
+            CraftView.ShowGain(this, root, app.Database, gained);
         }
 
         void OnUndo()

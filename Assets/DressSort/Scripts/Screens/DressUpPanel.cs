@@ -59,9 +59,11 @@ namespace DressSort
             hud.ShowTab(slot);
 
             shown.Clear();
-            List<ItemDef> list = app.Database.ItemsInSlot(slot);
-            for (int i = 0; i < list.Count && i < DressUpHud.MaxSlots; i++)
-                shown.Add(list[i]);
+            foreach (ItemDef item in app.Database.ItemsInSlot(slot))
+            {
+                if (app.Wardrobe.IsUnlocked(item))
+                    shown.Add(item);
+            }
             hud.LayoutCards(shown.Count);
             PaintCards();
             Redraw();
@@ -69,7 +71,7 @@ namespace DressSort
 
         void PaintCards()
         {
-            for (int i = 0; i < DressUpHud.MaxSlots; i++)
+            for (int i = 0; i < hud.SlotCount; i++)
             {
                 ItemDef item = i < shown.Count ? shown[i] : null;
                 if (item == null)

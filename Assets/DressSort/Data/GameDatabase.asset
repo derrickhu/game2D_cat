@@ -30,9 +30,24 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 14a1b2c3d4e5f60718293a4b5c6d7e83, type: 2}
   - {fileID: 11400000, guid: 15a1b2c3d4e5f60718293a4b5c6d7e84, type: 2}
   - {fileID: 11400000, guid: fc2e4756980ef4585b3a404a32835bda, type: 2}
+  - {fileID: 11400000, guid: 7f7056006b34c480cabce1c37f2fe21c, type: 2}
+  - {fileID: 11400000, guid: 3c656dc2232964b7bbeec464e93e4ca0, type: 2}
+  - {fileID: 11400000, guid: b3e438d25e25d474bbfcc82f4966f286, type: 2}
+  - {fileID: 11400000, guid: dcafc1c9d765c4f28b9c44e8757b8530, type: 2}
+  - {fileID: 11400000, guid: 22cd07f700cff45038e46ea56f383122, type: 2}
+  - {fileID: 11400000, guid: e4150345d42ae4abbb0d58c1f6c2215c, type: 2}
+  - {fileID: 11400000, guid: 4efeaa7a29a234a7b987f8ff438bf46a, type: 2}
+  - {fileID: 11400000, guid: c36e6ab30f8334228989bcfcfffa4ff3, type: 2}
+  - {fileID: 11400000, guid: a1c03eb41275e446891ad09c8031a781, type: 2}
+  - {fileID: 11400000, guid: 3ad24330507244158aa49c3a77d8d05b, type: 2}
+  - {fileID: 11400000, guid: 5750ef505c94640aab01b4c7f9dd5feb, type: 2}
+  - {fileID: 11400000, guid: b3aac4d5d23e9447fad75ba40569cc8e, type: 2}
+  - {fileID: 11400000, guid: 758028ff2649d4e43bec5ecc17f3d62d, type: 2}
+  - {fileID: 11400000, guid: cfc594c67723541139d456ee55e3cf48, type: 2}
+  - {fileID: 11400000, guid: 9f862270a1acb41ebba7dd00fca3b241, type: 2}
   mysteryItem: {fileID: 11400000, guid: 72f31f3fc3411456a8f71ebbb6b856c2, type: 2}
   defaultDress: {fileID: 11400000, guid: 128f9e0cd8ec84dd3b424ff548380195, type: 2}
-  defaultHair: {fileID: 11400000, guid: fc2e4756980ef4585b3a404a32835bda, type: 2}
+  defaultHair: {fileID: 11400000, guid: 11a1b2c3d4e5f60718293a4b5c6d7e80, type: 2}
   uiBg: {fileID: 21300000, guid: be50326f81a3b4e5f79146d57890123c, type: 3}
   uiBgs:
   - {fileID: 21300000, guid: 7a1c9e2b4d6f80a1b3c5d7e9f0123456, type: 3}
@@ -119,6 +134,39 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 75494dc5622d64eaea08c85cdef5e1d0, type: 3}
   - {fileID: 21300000, guid: d7856182c3ad84e0fb4e5ef51d22edb0, type: 3}
   - {fileID: 21300000, guid: 980d54783012e40f38db9c9568a9db58, type: 3}
+  craftMats:
+  - {fileID: 21300000, guid: ecf66398895604aaa914312837da3722, type: 3}
+  - {fileID: 21300000, guid: 361e61b4f2d104495a81fe5e15e82172, type: 3}
+  - {fileID: 21300000, guid: f593517a8c4d8465ba0d6b6143c09ad0, type: 3}
+  - {fileID: 21300000, guid: d2c167a59060b49fe8235c56b80208b4, type: 3}
+  - {fileID: 21300000, guid: 4e73c0c29f04148239a28e59452bab6c, type: 3}
+  - {fileID: 21300000, guid: f0bafdbf599344e2d854928ef0133dab, type: 3}
+  - {fileID: 21300000, guid: c83c768ce9f8c47b2974a68b3758b132, type: 3}
+  - {fileID: 21300000, guid: 8eef0af3a0deb41e6960e606bbd040e0, type: 3}
+  craftCard: {fileID: 21300000, guid: 7c3a0db05f1944d33b41e7afc8aac000, type: 3}
+  craftBg: {fileID: 21300000, guid: 7c46e77507c9c4ddda9d78e24a713c18, type: 3}
+  craftBtnMint: {fileID: 21300000, guid: 4ae473a40c7574dc0a99719b85d713fa, type: 3}
+  rewardBg: {fileID: 21300000, guid: 40e8152284b8e4142b79f42eb26069f5, type: 3}
+  rewardGiftClosed: {fileID: 21300000, guid: 1dbd471018d224c52bf0b1a1ce6620dd, type: 3}
+  rewardGiftBase: {fileID: 21300000, guid: 61a5d95efc8764ab0814b9fad4f1c370, type: 3}
+  rewardGiftLid: {fileID: 21300000, guid: 02e6b6b7d76234110899be331b7474a4, type: 3}
+  rewardRays: {fileID: 21300000, guid: ea265efbbcfc241b692b7e006f66607c, type: 3}
+  rewardBtn: {fileID: 21300000, guid: 9bc300bb08bbc43f3bad8e6d7f37cdf7, type: 3}
+  rewardRibbon: {fileID: 21300000, guid: bba08207e51244a9b9dee948c965ae07, type: 3}
+  rewardPlate: {fileID: 21300000, guid: f4c6b6cefdb9445c2beb1471aac6e694, type: 3}
+  rewardPopper: {fileID: 21300000, guid: 2bdf96549c35849ecb761b3d8d6f8ce1, type: 3}
+  rewardConfetti:
+  - {fileID: 21300000, guid: 9f3d339c8f20241c5bd81346641e44c5, type: 3}
+  - {fileID: 21300000, guid: fea364bb56c7b4653850d8531aeeceeb, type: 3}
+  - {fileID: 21300000, guid: 3db7abacbb49b4c8ea23845729d40285, type: 3}
+  - {fileID: 21300000, guid: fd56833bc26e84c0bbbf304e8502e2f4, type: 3}
+  - {fileID: 21300000, guid: b99a4364bdd6b406881300e5b6ca02c9, type: 3}
+  - {fileID: 21300000, guid: ed798664fe87744cf9a342f3a9437cf0, type: 3}
+  - {fileID: 21300000, guid: 4607aadf8e3474f6a823da9d37fac256, type: 3}
+  - {fileID: 21300000, guid: 5c4552d16d07140a69814e9303e3cca2, type: 3}
+  - {fileID: 21300000, guid: 0dc3530ba812047f390a9329b73e632f, type: 3}
+  - {fileID: 21300000, guid: 14c76df4d70a5483c9f2542eacde75eb, type: 3}
+  rewardSparkle: {fileID: 21300000, guid: aba5953f44d6646959498e2b847ab4d5, type: 3}
   boardLaneSolved: {fileID: 21300000, guid: 7c4e1b9a2d3f40c8a5e16f82b0d94c31, type: 3}
   boardCheckSolved: {fileID: 21300000, guid: 8d5f2c0b3e4a41d9b6f27a93c1e05d42, type: 3}
   boardBgBand: 20

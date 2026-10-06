@@ -12,6 +12,7 @@ namespace DressSort
         Reward,
         DressUp,
         Pack,
+        Workshop,
     }
 
     /// <summary>
@@ -49,8 +50,14 @@ namespace DressSort
 
         public LevelDef CurrentLevel { get; set; }
 
+        /// <summary>刚通关那一关掉的材料，奖励页要显示。</summary>
+        public int[] PendingMaterials { get; set; }
+
         /// <summary>回到首页时要提示的一句话，首页显示后清空。</summary>
         public string Notice { get; set; }
+
+        /// <summary>体力不够回到首页时，弹出看广告恢复体力。</summary>
+        public bool OfferEnergyAd { get; set; }
 
         readonly Dictionary<ScreenId, Panel> panels = new Dictionary<ScreenId, Panel>();
         readonly Dictionary<ScreenId, RectTransform> safeRoots = new Dictionary<ScreenId, RectTransform>();
@@ -232,12 +239,49 @@ namespace DressSort
                     db.iconHanger = LoadUiSprite(ui + "Game/hanger_closet");
             }
 
+            if (db.craftMats == null || db.craftMats.Count < CraftCatalog.MatCount || db.craftMats[0] == null)
+            {
+                db.craftMats = new List<Sprite>();
+                foreach (string key in CraftCatalog.MatKeys)
+                    db.craftMats.Add(LoadUiSprite(ui + "Workshop/mat_" + key));
+                db.craftCard = LoadUiSprite(ui + "Workshop/card");
+                db.craftBg = LoadUiSprite(ui + "Workshop/bg_workshop");
+            }
+            if (db.rewardGiftClosed == null || db.craftBtnMint == null)
+                BindRewardArt(db, ui);
+
             if (db.uiBtnTeal != null || db.uiBg != null)
                 UnityEditor.EditorUtility.SetDirty(db);
 #endif
         }
 
 #if UNITY_EDITOR
+        public static readonly string[] RewardConfettiNames =
+        {
+            "fx_strip_gold", "fx_strip_red", "fx_strip_mint", "fx_curl_gold", "fx_curl_pink",
+            "fx_curl_blue", "fx_dot", "fx_star", "fx_heart", "fx_square",
+        };
+
+        public static void BindRewardArt(GameDatabase db, string ui = "Assets/DressSort/Art/Ui/")
+        {
+            string reward = ui + "Reward/";
+            db.craftBtnMint = LoadUiSprite(ui + "Workshop/btn_mint");
+            db.rewardBg = LoadUiSprite(reward + "bg_reward");
+            db.rewardGiftClosed = LoadUiSprite(reward + "gift_closed");
+            db.rewardGiftBase = LoadUiSprite(reward + "gift_base");
+            db.rewardGiftLid = LoadUiSprite(reward + "gift_lid");
+            db.rewardRays = LoadUiSprite(reward + "rays");
+            db.rewardBtn = LoadUiSprite(reward + "btn_gold");
+            db.rewardRibbon = LoadUiSprite(reward + "ribbon");
+            db.rewardPlate = LoadUiSprite(reward + "plate");
+            db.rewardPopper = LoadUiSprite(reward + "fx_popper");
+            db.rewardSparkle = LoadUiSprite(reward + "fx_sparkle");
+            db.rewardConfetti = new List<Sprite>();
+            foreach (string name in RewardConfettiNames)
+                db.rewardConfetti.Add(LoadUiSprite(reward + name));
+            UnityEditor.EditorUtility.SetDirty(db);
+        }
+
         static Sprite LoadUiSprite(string pathNoExt)
         {
             var sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(pathNoExt + ".jpg");
@@ -309,6 +353,7 @@ namespace DressSort
             Add<RewardPanel>(ScreenId.Reward);
             Add<DressUpPanel>(ScreenId.DressUp);
             Add<PackPanel>(ScreenId.Pack);
+            Add<WorkshopPanel>(ScreenId.Workshop);
         }
 
         void Add<T>(ScreenId id) where T : Panel

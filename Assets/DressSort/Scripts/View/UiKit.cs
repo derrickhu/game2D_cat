@@ -356,6 +356,15 @@ namespace DressSort
             return button;
         }
 
+        /// <summary>胶囊切图按控件高度缩放九宫边，圆头不会被压扁。</summary>
+        public static void FitPill(Image image, Sprite sprite, float height)
+        {
+            if (image == null || sprite == null) return;
+            image.sprite = sprite;
+            image.type = Image.Type.Sliced;
+            image.pixelsPerUnitMultiplier = sprite.rect.height / Mathf.Max(1f, height);
+        }
+
         /// <summary>只负责接点击的透明按钮，用在整列热区、格子这些地方。</summary>
         public static Button HitArea(Transform parent, string name, Vector2 anchor, Vector2 offset,
             Vector2 size, UnityAction onClick)

@@ -44,8 +44,11 @@ namespace DressSort
         [Tooltip("过关时手里剩下的那件，也就是棋盘上的问号")]
         public ItemDef mystery;
 
-        [Tooltip("通关解锁的物品，留空表示不给奖励")]
+        [Tooltip("通关直接解锁的物品，只有前 20 关有")]
         public ItemDef reward;
+
+        [Tooltip("通关送的图纸，拿去工坊用材料做")]
+        public ItemDef blueprint;
 
         public bool IsValid => palette != null && palette.Count >= columns && mystery != null;
 

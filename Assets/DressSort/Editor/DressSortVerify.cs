@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -225,6 +226,112 @@ namespace DressSort.EditorTools
             }
             steps = board.Steps;
             return board.IsWin();
+        }
+
+        /// <summary>
+        /// 模拟一个玩家从第 1 关打到最后一关，材料够就立刻做。
+        /// 报每张图纸拿到后隔几关能做出来、每 100 关的产出，以及缺图的物品。
+        /// 只在内存里算，不碰存档。
+        /// </summary>
+        public static string RewardReport(GameDatabase db, int count = LevelCatalog.Count, bool padContent = false)
+        {
+            var sb = new StringBuilder();
+            var stock = new int[CraftCatalog.MatCount];
+            var owned = new HashSet<string>();
+            var waiting = new List<(string id, int got)>();
+            var waits = new Dictionary<CraftCatalog.Kind, List<int>>();
+            var missing = new HashSet<string>();
+            foreach (ItemDef item in db.items)
+            {
+                if (item != null && item.unlockedFromStart) owned.Add(item.id);
+            }
+
+            int gifts = 0, prints = 0, made = 0, packs = 0;
+            for (int index = 1; index <= count; index++)
+            {
+                CraftCatalog.LevelReward reward = CraftCatalog.RewardFor(index);
+                if (reward.itemId != null && db.Find(reward.itemId) == null)
+                    missing.Add(reward.itemId);
+                if (reward.bigPack)
+                {
+                    packs++;
+                    string[] pool = reward.kind == CraftCatalog.Kind.DressBlueprint
+                        ? db.items.Where(i => i != null && i.slot == ItemSlot.Dress && CraftCatalog.RecipeOf(i.id) != null)
+                            .Select(i => i.id).ToArray()
+                        : CraftCatalog.PoolOf(reward.kind);
+                    if (padContent && pool.Length > 0)
+                    {
+                        waiting.Add((pool[index % pool.Length] + "#" + index, index));
+                        prints++;
+                    }
+                }
+                if (reward.kind == CraftCatalog.Kind.Gift && reward.itemId != null)
+                {
+                    if (!owned.Add(reward.itemId))
+                        sb.AppendLine($"!! 第{index}关直送的 {reward.itemId} 已经有了");
+                    gifts++;
+                }
+                else if (reward.itemId != null)
+                {
+                    if (CraftCatalog.RecipeOf(reward.itemId) == null)
+                        sb.AppendLine($"!! {reward.itemId} 没有配方");
+                    else if (owned.Contains(reward.itemId))
+                        sb.AppendLine($"!! 第{index}关的图纸 {reward.itemId} 开局就有了");
+                    else
+                        waiting.Add((reward.itemId, index));
+                    prints++;
+                }
+
+                var shortage = new int[CraftCatalog.MatCount];
+                foreach (var (id, _) in waiting)
+                {
+                    int[] need = CraftCatalog.RecipeOf(BaseId(id));
+                    for (int m = 0; m < CraftCatalog.MatCount; m++) shortage[m] += need[m];
+                }
+                for (int m = 0; m < CraftCatalog.MatCount; m++) shortage[m] = Mathf.Max(0, shortage[m] - stock[m]);
+
+                int[] drop = CraftCatalog.MaterialsFor(index, shortage, padContent);
+                for (int m = 0; m < CraftCatalog.MatCount; m++) stock[m] += drop[m];
+
+                for (int w = 0; w < waiting.Count; w++)
+                {
+                    int[] need = CraftCatalog.RecipeOf(BaseId(waiting[w].id));
+                    bool ok = true;
+                    for (int m = 0; m < CraftCatalog.MatCount; m++) ok &= stock[m] >= need[m];
+                    if (!ok) continue;
+                    for (int m = 0; m < CraftCatalog.MatCount; m++) stock[m] -= need[m];
+                    owned.Add(waiting[w].id);
+                    CraftCatalog.Kind kind = CraftCatalog.RewardFor(waiting[w].got).kind;
+                    if (!waits.ContainsKey(kind)) waits[kind] = new List<int>();
+                    waits[kind].Add(index - waiting[w].got);
+                    if (!padContent || waiting[w].got <= 200)
+                        sb.AppendLine($"第{waiting[w].got}关拿到 {waiting[w].id}，第{index}关做出，等了 {index - waiting[w].got} 关");
+                    waiting.RemoveAt(w--);
+                    made++;
+                }
+
+                if (index % 100 == 0 || index == count)
+                {
+                    sb.AppendLine($"-- 到第{index}关：直送 {gifts}，图纸 {prints}，做出 {made}，材料大礼包 {packs}，库存 {CraftCatalog.Describe(stock)}");
+                }
+            }
+
+            foreach (var pair in waits)
+            {
+                pair.Value.Sort();
+                sb.AppendLine($"{pair.Key} 等待关数：最少 {pair.Value[0]}，中位 {pair.Value[pair.Value.Count / 2]}，最多 {pair.Value[pair.Value.Count - 1]}");
+            }
+            foreach (var (id, got) in waiting)
+                sb.AppendLine($"!! {id}（第{got}关拿到）到最后都没做出来");
+            foreach (string id in missing)
+                sb.AppendLine($"!! 物品表里找不到 {id}");
+            return sb.ToString();
+        }
+
+        static string BaseId(string id)
+        {
+            int cut = id.IndexOf('#');
+            return cut < 0 ? id : id.Substring(0, cut);
         }
 
         /// <summary>锁、钥匙、闹钟、专属列的规则单测。</summary>

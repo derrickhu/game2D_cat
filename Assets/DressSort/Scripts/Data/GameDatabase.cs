@@ -92,6 +92,24 @@ namespace DressSort
         public List<Sprite> boardBgs = new List<Sprite>();
         public List<Sprite> boardHangers = new List<Sprite>();
         public List<Sprite> boardRods = new List<Sprite>();
+        [Tooltip("工坊材料图标，顺序同 CraftMat")]
+        public List<Sprite> craftMats = new List<Sprite>();
+        public Sprite craftCard;
+        public Sprite craftBg;
+        public Sprite craftBtnMint;
+        [Header("过关领奖页")]
+        public Sprite rewardBg;
+        public Sprite rewardGiftClosed;
+        public Sprite rewardGiftBase;
+        public Sprite rewardGiftLid;
+        public Sprite rewardRays;
+        public Sprite rewardBtn;
+        public Sprite rewardRibbon;
+        public Sprite rewardPlate;
+        public Sprite rewardPopper;
+        [Tooltip("彩纸碎片，随机挑着撒")]
+        public List<Sprite> rewardConfetti = new List<Sprite>();
+        public Sprite rewardSparkle;
         public Sprite boardLaneSolved;
         public Sprite boardCheckSolved;
         public int boardBgBand = 20;

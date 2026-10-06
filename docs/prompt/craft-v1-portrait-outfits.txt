@@ -1,0 +1,14 @@
+mint_bow|a sleeveless A-line knee dress in mint ice-cream green with one big cream bow at the neck.
+sky_dot|a sleeveless A-line knee dress in summer-sky blue with a few printer-paper white polka dots and a white peter-pan collar.
+cherry_red|a sleeveless A-line knee dress in ripe cherry red with a printer-paper white peter-pan collar and three round white buttons.
+navy_stripe|a sleeveless A-line knee dress in navy school-uniform blue with two wide printer-paper white stripes across the skirt and a cream bow.
+peach_puff|a sleeveless A-line knee dress in ripe peach orange-pink with a cream peter-pan collar.
+lilac_lace|a sleeveless A-line knee dress in pale lilac like lilac blossoms with a white scalloped lace hem band and a white bow.
+matcha_pinafore|a sleeveless A-line knee pinafore dress in matcha latte green with a cream peter-pan collar and two round cream buttons.
+coral_sun|a sleeveless A-line knee dress in coral reef orange-red with a sunny lemon-yellow bow.
+cocoa_check|a sleeveless A-line knee dress with big milk-chocolate and caramel check squares and a cream bow.
+lavender_star|a sleeveless A-line knee dress in lavender field purple with three small lemon-yellow stars on the skirt and a white peter-pan collar.
+cream_cloud|a sleeveless A-line knee dress in fresh cream white with two small summer-sky blue clouds on the skirt and a sky blue bow.
+blueberry|a sleeveless A-line knee dress in ripe blueberry deep blue with a printer-paper white peter-pan collar.
+rose_velvet|a sleeveless A-line knee dress in deep rose velvet like a red rose petal with a white lace peter-pan collar.
+honey_bow|a sleeveless A-line knee dress in honey yellow like fresh honey with a cocoa brown bow.

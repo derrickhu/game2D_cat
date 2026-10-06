@@ -35,6 +35,7 @@ namespace DressSort
         public RectTransform holdSlot;
         public Sprite laneSolved;
         public Sprite checkSolved;
+        public Sprite sparkleSprite;
         public Sprite parcelSprite;
         public Sprite coverSprite;
         public Sprite tagSprite;
@@ -91,6 +92,7 @@ namespace DressSort
 
             laneSolved = db != null ? db.boardLaneSolved : null;
             checkSolved = db != null ? db.boardCheckSolved : null;
+            sparkleSprite = db != null ? db.rewardSparkle : null;
             parcelSprite = db != null ? db.gameParcel : null;
             coverSprite = db != null ? db.gameDustCover : null;
             tagSprite = db != null ? db.gameCoverTag : null;

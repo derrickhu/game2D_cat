@@ -23,10 +23,9 @@ namespace DressSort
             public int[] covers;
             public int[] locks;
             public int[] targets;
-            public string reward;
         }
 
-        static Plan P(int columns, int height, int scramble, int limit, string reward = null,
+        static Plan P(int columns, int height, int scramble, int limit,
             int parcels = 0, int[] covers = null, int[] locks = null, int[] targets = null, int alarms = 0)
         {
             return new Plan
@@ -35,7 +34,6 @@ namespace DressSort
                 height = height,
                 scramble = scramble,
                 limit = limit,
-                reward = reward,
                 parcels = parcels,
                 covers = covers,
                 locks = locks,
@@ -45,17 +43,17 @@ namespace DressSort
         }
 
         // 第 6 关包裹，第 11 关防尘罩，第 14 关专属列，第 19 关锁和钥匙，第 23 关限时闹钟。
-        // 新机制先单独出两关，再和大盘、别的机制混着来。前 8 关的奖励顺序保证十件都拿得到。
+        // 新机制先单独出两关，再和大盘、别的机制混着来。奖励见 CraftCatalog。
         static readonly Plan[] Authored =
         {
-            P(4, 4, 8, 24, "pink_gingham"),
-            P(5, 5, 14, 36, "lemon_print"),
-            P(4, 5, 16, 36, "orange_slice"),
-            P(5, 5, 20, 42, "ivory_lace"),
-            P(5, 6, 24, 50, "strawberry"),
-            P(5, 5, 20, 44, "grape_school", parcels: 4),
-            P(5, 6, 26, 54, "wing_aqua", parcels: 6),
-            P(6, 6, 30, 60, "wing_rose"),
+            P(4, 4, 8, 24),
+            P(5, 5, 14, 36),
+            P(4, 5, 16, 36),
+            P(5, 5, 20, 42),
+            P(5, 6, 24, 50),
+            P(5, 5, 20, 44, parcels: 4),
+            P(5, 6, 26, 54, parcels: 6),
+            P(6, 6, 30, 60),
             P(6, 6, 32, 62, parcels: 6),
             P(6, 6, 34, 66, parcels: 10),
             P(5, 5, 24, 52, covers: new[] { 0, 0, 1, 0, 0 }),
@@ -123,7 +121,10 @@ namespace DressSort
             for (int i = 0; i < plan.columns; i++)
                 level.palette.Add(db.Find(DressOrder[(start + i) % DressOrder.Length]));
             level.mystery = db.mysteryItem;
-            level.reward = plan.reward != null ? db.Find(plan.reward) : null;
+            CraftCatalog.LevelReward reward = CraftCatalog.RewardFor(index);
+            ItemDef item = reward.itemId != null ? db.Find(reward.itemId) : null;
+            level.reward = reward.kind == CraftCatalog.Kind.Gift ? item : null;
+            level.blueprint = reward.kind != CraftCatalog.Kind.Gift ? item : null;
             cache[index] = level;
             return level;
         }

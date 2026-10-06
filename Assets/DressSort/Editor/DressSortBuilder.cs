@@ -47,14 +47,31 @@ namespace DressSort.EditorTools
         static readonly DressInfo[] Dresses =
         {
             new DressInfo { id = "teal_sailor", label = "泳池水手裙", accent = new Color32(0x6F, 0xCF, 0xC8, 0xFF), fromStart = true },
-            new DressInfo { id = "black_ribbon", label = "黑裙白结", accent = new Color32(0x2C, 0x24, 0x33, 0xFF), fromStart = true },
-            new DressInfo { id = "pink_gingham", label = "粉格蛋糕裙", accent = new Color32(0xF3, 0xA7, 0xB8, 0xFF), fromStart = true },
+            new DressInfo { id = "black_ribbon", label = "黑裙白结", accent = new Color32(0x2C, 0x24, 0x33, 0xFF) },
+            new DressInfo { id = "pink_gingham", label = "粉格蛋糕裙", accent = new Color32(0xF3, 0xA7, 0xB8, 0xFF) },
             new DressInfo { id = "lemon_print", label = "柠檬衬衫裙", accent = new Color32(0xF0, 0xC8, 0x4A, 0xFF) },
             new DressInfo { id = "orange_slice", label = "橙子背心裙", accent = new Color32(0xFF, 0x8A, 0x3D, 0xFF) },
             new DressInfo { id = "ivory_lace", label = "象牙蕾丝裙", accent = new Color32(0xF2, 0xE3, 0xC0, 0xFF) },
             new DressInfo { id = "strawberry", label = "草莓开衫裙", accent = new Color32(0xE8, 0x6A, 0x8A, 0xFF) },
             new DressInfo { id = "grape_school", label = "葡萄校服", accent = new Color32(0xB9, 0x8C, 0xE8, 0xFF) },
+            new DressInfo { id = "mint_bow", label = "薄荷蝴蝶结裙", accent = new Color32(0x9F, 0xE0, 0xC0, 0xFF) },
+            new DressInfo { id = "sky_dot", label = "天空波点裙", accent = new Color32(0x8C, 0xC8, 0xF0, 0xFF) },
+            new DressInfo { id = "cherry_red", label = "樱桃红裙", accent = new Color32(0xD8, 0x30, 0x40, 0xFF) },
+            new DressInfo { id = "navy_stripe", label = "海军条纹裙", accent = new Color32(0x2E, 0x3F, 0x7A, 0xFF) },
+            new DressInfo { id = "peach_puff", label = "蜜桃泡泡裙", accent = new Color32(0xFF, 0xB0, 0x90, 0xFF) },
+            new DressInfo { id = "lilac_lace", label = "丁香蕾丝裙", accent = new Color32(0xD0, 0xB8, 0xEC, 0xFF) },
+            new DressInfo { id = "matcha_pinafore", label = "抹茶背带裙", accent = new Color32(0x9C, 0xB8, 0x64, 0xFF) },
+            new DressInfo { id = "coral_sun", label = "珊瑚太阳裙", accent = new Color32(0xFF, 0x70, 0x5A, 0xFF) },
+            new DressInfo { id = "cocoa_check", label = "可可格纹裙", accent = new Color32(0x8A, 0x5A, 0x3C, 0xFF) },
+            new DressInfo { id = "lavender_star", label = "薰衣草星星裙", accent = new Color32(0x9A, 0x7C, 0xD8, 0xFF) },
+            new DressInfo { id = "cream_cloud", label = "奶油云朵裙", accent = new Color32(0xF6, 0xEE, 0xD8, 0xFF) },
+            new DressInfo { id = "blueberry", label = "蓝莓背心裙", accent = new Color32(0x3A, 0x4E, 0xB8, 0xFF) },
+            new DressInfo { id = "rose_velvet", label = "玫瑰丝绒裙", accent = new Color32(0xB8, 0x2A, 0x50, 0xFF) },
+            new DressInfo { id = "honey_bow", label = "蜂蜜蝴蝶结裙", accent = new Color32(0xF2, 0xB8, 0x3A, 0xFF) },
         };
+
+        /// <summary>身上穿着的这一头。杏橙、紫藤、雾蓝改到任务里领。奶茶长发给图纸，粉红马尾留给活动。</summary>
+        static readonly string[] StartHairs = { "hair_milktea" };
 
         static readonly (string id, string label)[] Wings =
         {
@@ -71,6 +88,7 @@ namespace DressSort.EditorTools
             ("hair_caramel", "焦糖栗"),
             ("hair_baguette", "奶油金"),
             ("hair_denim", "雾蓝"),
+            ("hair_pink", "粉红马尾"),
         };
 
         [InitializeOnLoadMethod]
@@ -149,7 +167,7 @@ namespace DressSort.EditorTools
                 item.worn = LoadSprite("Wings/" + id);
                 item.accent = Palette.Aqua;
                 item.boardEligible = false;
-                item.unlockedFromStart = true;
+                item.unlockedFromStart = false;
                 EditorUtility.SetDirty(item);
                 items.Add(item);
                 byId[id] = item;
@@ -167,7 +185,7 @@ namespace DressSort.EditorTools
                 item.wornBack = TryLoadSprite("Portraits/hairback_" + key);
                 item.accent = Palette.Lemon;
                 item.boardEligible = false;
-                item.unlockedFromStart = true;
+                item.unlockedFromStart = IsStartHair(id);
                 EditorUtility.SetDirty(item);
                 items.Add(item);
                 byId[id] = item;
@@ -188,8 +206,8 @@ namespace DressSort.EditorTools
             database.items = items;
             database.mysteryItem = mystery;
             database.defaultDress = byId["teal_sailor"];
-            database.defaultHair = byId.ContainsKey("hair_milktea_long") && byId["hair_milktea_long"].worn != null
-                ? byId["hair_milktea_long"]
+            database.defaultHair = byId.ContainsKey("hair_milktea") && byId["hair_milktea"].worn != null
+                ? byId["hair_milktea"]
                 : byId["hair_apricot"];
             BindBackgroundList(database, forceDefault: true);
             database.uiBtnTeal = LoadSprite("Ui/btn_teal");
@@ -325,6 +343,7 @@ namespace DressSort.EditorTools
                 item.worn = body != null ? body : LoadSprite("Portraits/portrait_" + info.id);
                 item.layeredWithHair = body != null;
                 item.boardEligible = true;
+                item.unlockedFromStart = info.fromStart;
                 EditorUtility.SetDirty(item);
                 if (!database.items.Contains(item))
                     database.items.Add(item);
@@ -345,13 +364,13 @@ namespace DressSort.EditorTools
                 item.slot = ItemSlot.Wings;
                 item.icon = TryLoadSprite("Icons/ui_" + id);
                 item.worn = TryLoadSprite("Wings/" + id);
+                item.unlockedFromStart = false;
                 EditorUtility.SetDirty(item);
                 if (!database.items.Contains(item))
                     database.items.Add(item);
             }
 
             ItemDef apricot = null;
-            ItemDef milkteaLong = null;
             for (int i = 0; i < Hairs.Length; i++)
             {
                 (string id, string label) = Hairs[i];
@@ -365,25 +384,29 @@ namespace DressSort.EditorTools
                 item.wornBack = TryLoadSprite("Portraits/hairback_" + key);
                 item.accent = Palette.Lemon;
                 item.boardEligible = false;
-                item.unlockedFromStart = true;
+                item.unlockedFromStart = IsStartHair(id);
                 EditorUtility.SetDirty(item);
                 if (!database.items.Contains(item))
                     database.items.Add(item);
                 if (id == "hair_apricot")
                     apricot = item;
-                if (id == "hair_milktea_long")
-                    milkteaLong = item;
             }
 
-            database.defaultHair = milkteaLong != null && milkteaLong.worn != null
-                ? milkteaLong
-                : apricot;
+            ItemDef milktea = database.Find("hair_milktea");
+            database.defaultHair = milktea != null && milktea.worn != null ? milktea : apricot;
             if (database.defaultDress == null)
                 database.defaultDress = database.Find("teal_sailor");
 
             EditorUtility.SetDirty(database);
             AssetDatabase.SaveAssets();
             return true;
+        }
+
+        static bool IsStartHair(string id)
+        {
+            for (int i = 0; i < StartHairs.Length; i++)
+                if (StartHairs[i] == id) return true;
+            return false;
         }
 
         static string HairKey(string id) =>

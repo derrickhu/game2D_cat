@@ -20,5 +20,5 @@ MonoBehaviour:
   wornBack: {fileID: 0}
   boardEligible: 0
   accent: {r: 0.9411765, g: 0.78431374, b: 0.2901961, a: 1}
-  unlockedFromStart: 1
+  unlockedFromStart: 0
   layeredWithHair: 0
