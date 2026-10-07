@@ -125,14 +125,16 @@ namespace DressSort
 
         void OnClaim()
         {
-            if (app.Wardrobe.ClubClaimedToday) { Toast("今天已经领过了"); return; }
+            if (app.Wardrobe.ClubClaimedToday) { Sfx.Play(SfxId.Deny); Toast("今天已经领过了"); return; }
             if (posts <= 0)
             {
+                Sfx.Play(SfxId.Deny);
                 Toast(!string.IsNullOrEmpty(block) ? block : (asking ? "正在查询发帖记录…" : "先去游戏圈发一条帖子"));
                 if (!asking) Ask();
                 return;
             }
             if (!app.Wardrobe.ClaimClub()) return;
+            Sfx.Play(SfxId.Claim);
             Toast("已领取，体力 +" + WardrobeService.ClubReward);
             changed?.Invoke();
             Refresh();

@@ -83,6 +83,7 @@ namespace DressSort
         public Sprite packLane;
         public Sprite packLaneOn;
         public Sprite packLaneReady;
+        public Sprite packCarpet;
         public Sprite packBox;
         public Sprite packBtn;
         public Sprite packRefill;

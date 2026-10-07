@@ -346,6 +346,7 @@ namespace DressSort
 
             var button = rect.gameObject.AddComponent<Button>();
             button.targetGraphic = image;
+            button.onClick.AddListener(() => Sfx.Play(SfxId.Tap));
             button.onClick.AddListener(onClick);
 
             var colors = button.colors;

@@ -46,6 +46,7 @@ namespace DressSort
             if (view.toastPlate != null)
                 view.toastPlate.gameObject.SetActive(false);
             view.OnOpen();
+            Sfx.Play(SfxId.Popup);
             return view;
         }
 
@@ -55,6 +56,13 @@ namespace DressSort
 
         public virtual void Close()
         {
+            Close(true);
+        }
+
+        public void Close(bool sound)
+        {
+            if (sound)
+                Sfx.Play(SfxId.Tap);
             if (Application.isPlaying)
                 Destroy(gameObject);
             else

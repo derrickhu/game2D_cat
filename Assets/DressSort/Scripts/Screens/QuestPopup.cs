@@ -157,7 +157,12 @@ namespace DressSort
 
         void OnClaim(int index)
         {
-            if (!app.Wardrobe.ClaimTask(index)) return;
+            if (!app.Wardrobe.ClaimTask(index))
+            {
+                Sfx.Play(SfxId.Deny);
+                return;
+            }
+            Sfx.Play(SfxId.Claim);
             TaskCatalog.Reward reward = TaskCatalog.Track[index];
             if (reward.items != null)
             {

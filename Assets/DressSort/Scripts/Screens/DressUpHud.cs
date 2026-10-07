@@ -281,7 +281,7 @@ namespace DressSort
             for (int i = 0; i < cardButtons.Length; i++)
             {
                 int index = i;
-                Bind(cardButtons[i], () => cardHandler?.Invoke(index));
+                Sfx.BindSilent(cardButtons[i], () => cardHandler?.Invoke(index));
             }
         }
 
@@ -316,9 +316,7 @@ namespace DressSort
 
         static void Bind(Button button, UnityAction action)
         {
-            if (button == null || action == null) return;
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(action);
+            Sfx.BindClick(button, action);
         }
 
         static void Stretch(RectTransform rect)

@@ -393,6 +393,7 @@ namespace DressSort
         {
             int[] opened = board.LastUnlocked;
             if (opened == null || opened.Length == 0) yield break;
+            Sfx.Play(SfxId.Unlock);
             var images = new List<Image>();
             for (int i = 0; i < opened.Length; i++)
             {
@@ -537,6 +538,7 @@ namespace DressSort
         {
             int[] opened = board.LastOpened;
             if (opened == null || opened.Length == 0) yield break;
+            Sfx.Play(SfxId.Cover);
             var rects = new List<RectTransform>();
             var images = new List<Image>();
             var starts = new List<Vector2>();
@@ -838,6 +840,7 @@ namespace DressSort
                 Busy = false;
                 yield break;
             }
+            Sfx.Play(SfxId.Lift);
             heldItem = null;
 
             List<Image> views = laneItems[column];
@@ -911,6 +914,7 @@ namespace DressSort
             });
 
             yield return RunMotions(motions);
+            Sfx.Play(SfxId.Place);
 
             heldItem = outgoing;
             if (board.LastSettles != null && board.LastSettles.Length > 0)
@@ -949,6 +953,7 @@ namespace DressSort
             }
             Image outgoing = views[row];
             heldItem = null;
+            Sfx.Play(SfxId.Swap);
 
             board.Swap(column, row);
 
@@ -997,6 +1002,7 @@ namespace DressSort
                 },
             };
             yield return RunMotions(motions);
+            Sfx.Play(SfxId.Place);
 
             heldItem = outgoing;
             if (board.LastSettles != null && board.LastSettles.Length > 0)
@@ -1100,6 +1106,7 @@ namespace DressSort
 
         IEnumerator Celebrate(int column)
         {
+            Sfx.Play(SfxId.Clear);
             Image wash = column < laneWashes.Count ? laneWashes[column] : null;
             Image check = column < laneChecks.Count ? laneChecks[column] : null;
             List<Image> views = laneItems[column];

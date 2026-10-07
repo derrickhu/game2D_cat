@@ -19,19 +19,22 @@ namespace DressSort
 
         void OnWatch()
         {
+            Sfx.Play(SfxId.Tap);
             if (watchButton != null)
                 watchButton.interactable = false;
             WxBridge.ShowRewarded(() =>
             {
                 app.Wardrobe.GainEnergy(WardrobeService.EnergyPerLevel);
+                Sfx.Play(SfxId.Heart);
                 changed?.Invoke();
                 Action follow = Follow;
-                Close();
+                Close(false);
                 follow?.Invoke();
             }, () =>
             {
                 if (watchButton != null)
                     watchButton.interactable = true;
+                Sfx.Play(SfxId.Deny);
                 Toast("广告没看完");
             });
         }

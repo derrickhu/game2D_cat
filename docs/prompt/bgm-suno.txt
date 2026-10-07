@@ -1,0 +1,19 @@
+两首共用同一套乐器：八音盒、尼龙尤克里里、钢片琴、很轻的刷子鼓和小沙锤。无人声。都要能循环，不要淡入淡出，不要结束终止式。
+
+1. bgm_lobby.mp3  更衣室。首页、装扮、工坊。
+Style: cute kawaii casual mobile game, music box, nylon ukulele, glockenspiel, soft brush drums, light shaker, warm and cozy, instrumental, no vocals
+BPM 92, key F major, seamless loop
+[Loop A] eight bars of a gentle music-box melody over ukulele chords, start and end on F so it can repeat
+[Loop B] eight bars, same instruments, a little more glockenspiel sparkle, still soft, return to F
+[Loop A]
+No intro, no outro, no fade, no ending cadence, no voice, no lyrics.
+
+2. bgm_play.mp3  叠裙子。关卡和装箱。
+Style: cute kawaii casual puzzle game, music box, nylon ukulele, glockenspiel, soft marimba pulse, brush drums, playful but relaxed, instrumental, no vocals
+BPM 108, key C major, seamless loop
+[Loop A] eight bars, light marimba pulse with a simple music-box motif, start and end on C
+[Loop B] eight bars, a little busier ukulele, still cute and unhurried, return to C
+[Loop A]
+No tension, no drums bigger than brushes, no intro, no outro, no fade, no ending cadence, no voice, no lyrics.
+
+下载后改名放进 CdnArt/Audio/：bgm_lobby.mp3 首页，bgm_play.mp3 关卡，bgm_event.mp3 活动关卡。跑 python3 Tools/cdn_build.py，再把 Library/CdnOut/StreamingAssets 上传到云存储 dresssort/StreamingAssets。游戏在对应页面循环，没拉到就静音。

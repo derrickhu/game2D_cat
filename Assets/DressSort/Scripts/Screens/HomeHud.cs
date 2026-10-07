@@ -364,9 +364,16 @@ namespace DressSort
 
         static void Bind(Button button, UnityAction action)
         {
-            if (button == null || action == null) return;
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(action);
+            Sfx.BindClick(button, action);
+        }
+
+        public void SetStartCaption(string caption)
+        {
+            if (startButton == null) return;
+            var label = startButton.GetComponentInChildren<Text>();
+            if (label == null) return;
+            label.text = caption;
+            label.fontSize = caption != null && caption.Length > 4 ? 36 : 44;
         }
 
         public void SetEnergy(int current, int max)

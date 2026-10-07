@@ -313,12 +313,12 @@ namespace DressSort
         public void Wire(UnityAction onSwap, UnityAction onUndo, UnityAction onShuffle, UnityAction onGear,
             UnityAction onResume, UnityAction onRestart, UnityAction onMap)
         {
-            Bind(swapButton, onSwap);
-            Bind(undoButton, onUndo);
-            Bind(shuffleButton, onShuffle);
+            Sfx.BindSilent(swapButton, onSwap);
+            Sfx.BindSilent(undoButton, onUndo);
+            Sfx.BindSilent(shuffleButton, onShuffle);
             Bind(gear != null ? gear.GetComponent<Button>() : null, onGear);
             Bind(resumeButton, onResume);
-            Bind(restartButton, onRestart);
+            Sfx.BindSilent(restartButton, onRestart);
             Bind(mapButton, onMap);
         }
 
@@ -366,9 +366,7 @@ namespace DressSort
 
         static void Bind(Button button, UnityAction action)
         {
-            if (button == null || action == null) return;
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(action);
+            Sfx.BindClick(button, action);
         }
 
         static void Stretch(RectTransform rect)

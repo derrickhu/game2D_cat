@@ -172,6 +172,7 @@ namespace DressSort
                 yield return null;
             }
             gift.anchoredPosition = Vector2.zero;
+            Sfx.Play(SfxId.GiftLand);
 
             const float squash = 0.18f;
             for (float t = 0f; t < squash; t += Time.deltaTime)
@@ -202,6 +203,7 @@ namespace DressSort
         /// <summary>闭合的盒子换成盒身加盒盖，盒盖原地起跳飞走，同时放光和礼花。</summary>
         void OpenLid()
         {
+            Sfx.Play(SfxId.GiftPop);
             closed.gameObject.SetActive(false);
             boxBase.gameObject.SetActive(true);
             lid.gameObject.SetActive(true);
@@ -283,6 +285,7 @@ namespace DressSort
         public void ApplyReveal()
         {
             if (reward == null) return;
+            bool stillClosed = closed != null && closed.gameObject.activeSelf;
             StopAllCoroutines();
             gift.anchoredPosition = Vector2.zero;
             gift.localScale = Vector3.one;
@@ -306,6 +309,8 @@ namespace DressSort
             takeButton.transform.localScale = Vector3.one;
             if (rainLeft <= 0f)
                 rainLeft = 2f;
+            if (stillClosed)
+                Sfx.Play(SfxId.GiftPop);
         }
 
         void FinishReveal()
@@ -340,6 +345,7 @@ namespace DressSort
 
         void OnTake()
         {
+            Sfx.Play(SfxId.Claim);
             if (isBlueprint)
             {
                 app.Show(ScreenId.Workshop);

@@ -61,9 +61,11 @@ namespace DressSort
             int day = app.Wardrobe.CheckIn();
             if (day <= 0)
             {
+                Sfx.Play(SfxId.Deny);
                 Toast("今天已经签过了");
                 return;
             }
+            Sfx.Play(SfxId.Claim);
             Toast("签到成功，体力 +" + WardrobeService.CheckInRewards[day - 1]);
             changed?.Invoke();
             Refresh();

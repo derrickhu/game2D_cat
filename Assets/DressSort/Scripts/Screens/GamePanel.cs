@@ -137,6 +137,7 @@ namespace DressSort
             if (finished || board.Busy) return;
             if (!logic.CanPlay(column))
             {
+                Sfx.Play(SfxId.Deny);
                 if (hud != null)
                 {
                     if (logic.IsCovered(column))
@@ -164,7 +165,10 @@ namespace DressSort
             if (logic.LastUnlocked.Length > 0)
                 hud.ShowToast("钥匙打开了一把锁");
             else if (logic.LastAlarmOff)
+            {
+                Sfx.Play(SfxId.AlarmOff);
                 hud.ShowToast("闹钟关掉了");
+            }
             else if (logic.LastOpened.Length > 0)
                 hud.ShowToast("防尘罩拉开了");
 
@@ -180,6 +184,7 @@ namespace DressSort
             if (logic.AlarmRang)
             {
                 finished = true;
+                Sfx.Play(SfxId.Alarm);
                 hud.ShowToast("闹钟响了！撤回一步或者重新开始");
                 yield break;
             }
@@ -187,6 +192,7 @@ namespace DressSort
             if (logic.OutOfMoves)
             {
                 finished = true;
+                Sfx.Play(SfxId.Stuck);
                 hud.ShowToast("步数用完了，撤回或者重新开始");
             }
         }
@@ -196,6 +202,7 @@ namespace DressSort
             int spare = Mathf.Max(0, level.moveLimit - logic.Steps);
             int stars = 1 + Mathf.Clamp(spare / Mathf.Max(1, level.moveLimit / 3), 0, 2);
 
+            Sfx.Play(SfxId.Win);
             app.Wardrobe.ReportCleared(level.index, stars);
             RankService.Submit(app.Wardrobe.LevelsCleared);
             app.PendingLevel = level;
@@ -242,6 +249,7 @@ namespace DressSort
             if (board.Busy) return;
             if (!logic.CanUndo)
             {
+                Sfx.Play(SfxId.Deny);
                 hud.ShowToast("没有可撤回的步骤");
                 return;
             }
@@ -252,6 +260,7 @@ namespace DressSort
             board.Refresh();
             finished = false;
             UpdateHud();
+            Sfx.Play(SfxId.Undo);
             hud.ShowToast("已撤回一步");
         }
 
@@ -260,6 +269,7 @@ namespace DressSort
             if (board.Busy) return;
             if (shufflesLeft <= 0 && !finished)
             {
+                Sfx.Play(SfxId.Deny);
                 hud.ShowToast("随机次数用完了");
                 return;
             }
@@ -270,6 +280,7 @@ namespace DressSort
             shufflesLeft = keep;
             swapsLeft = swaps;
             UpdateHud();
+            Sfx.Play(SfxId.Shuffle);
             hud.ShowToast("重新洗牌");
         }
 
@@ -279,16 +290,19 @@ namespace DressSort
             if (board.PickMode)
             {
                 CancelSwap();
+                Sfx.Play(SfxId.Tap);
                 hud.ShowToast("");
                 return;
             }
             if (swapsLeft <= 0)
             {
+                Sfx.Play(SfxId.Deny);
                 hud.ShowToast("交换次数用完了");
                 return;
             }
             board.PickMode = true;
             hud.SetSwapArmed(true);
+            Sfx.Play(SfxId.Tap);
             hud.ShowToast("点架上任意一件，和手里这件交换");
         }
 
@@ -305,6 +319,7 @@ namespace DressSort
             if (board.Busy || finished) return;
             if (!logic.CanSwap(column, row))
             {
+                Sfx.Play(SfxId.Deny);
                 if (logic.IsCovered(column))
                     hud.ShowToast("防尘罩还没拉开");
                 else if (logic.IsLocked(column))
@@ -341,6 +356,7 @@ namespace DressSort
             if (board.Busy) return;
             hud.ShowPause(false);
             Deal(level.seed);
+            Sfx.Play(SfxId.Shuffle);
             hud.ShowToast("重新开始");
         }
 

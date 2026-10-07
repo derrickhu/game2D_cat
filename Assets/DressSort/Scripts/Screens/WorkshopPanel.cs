@@ -166,15 +166,18 @@ namespace DressSort
         {
             if (app.Wardrobe.IsUnlocked(item))
             {
+                Sfx.Play(SfxId.Equip);
                 app.Wardrobe.Equip(item);
                 app.Show(ScreenId.DressUp);
                 return;
             }
             if (!app.Wardrobe.Craft(item))
             {
+                Sfx.Play(SfxId.Deny);
                 Toast("还差一些材料，继续闯关攒一攒");
                 return;
             }
+            Sfx.Play(SfxId.Craft);
             Refresh();
             Toast("做好了「" + item.displayName + "」，已放进衣柜");
             RectTransform made = cards.Find(c => c.name == "Card_" + item.id);

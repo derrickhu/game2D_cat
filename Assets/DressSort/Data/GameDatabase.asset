@@ -107,6 +107,7 @@ MonoBehaviour:
   packLane: {fileID: 21300000, guid: 62d4fb5ae6f294e03a946d7848239b6a, type: 3}
   packLaneOn: {fileID: 21300000, guid: 08d81270a14504df28e5e6337cd2cadd, type: 3}
   packLaneReady: {fileID: 21300000, guid: 78925b9ada4544df3ac4758b73527f6f, type: 3}
+  packCarpet: {fileID: 21300000, guid: 60e8991cd5ef1436f9103b4bfbc3de99, type: 3}
   packBox: {fileID: 21300000, guid: c402de7bd10ba462aad87bd5b40414f7, type: 3}
   packBtn: {fileID: 21300000, guid: 36cb505d920bc42f9a559f55da1bff8b, type: 3}
   packRefill: {fileID: 21300000, guid: abc0465c2f5754a6cae48f50d219ec52, type: 3}

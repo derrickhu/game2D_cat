@@ -10,14 +10,12 @@ namespace DressSort.EditorTools
     public class SpriteImportSettings : AssetPostprocessor
     {
         const string ArtRoot = "Assets/DressSort/Art/";
-        const string IconRes = "Assets/DressSort/Resources/DressIcons/";
-        const string WardrobeRes = "Assets/DressSort/Resources/WardrobePreview/";
         const string HomeRes = "Assets/DressSort/Resources/HomeUi/";
 
         void OnPreprocessTexture()
         {
-            if (!assetPath.StartsWith(ArtRoot) && !assetPath.StartsWith(IconRes)
-                && !assetPath.StartsWith(WardrobeRes) && !assetPath.StartsWith(HomeRes)) return;
+            bool packCarpet = assetPath.EndsWith("/Resources/Pack/bg_carpet.jpg");
+            if (!assetPath.StartsWith(ArtRoot) && !assetPath.StartsWith(HomeRes) && !packCarpet) return;
 
             var importer = (TextureImporter)assetImporter;
             importer.textureType = TextureImporterType.Sprite;
@@ -35,22 +33,31 @@ namespace DressSort.EditorTools
             bool portrait = assetPath.Contains("/Portraits/");
             bool chrome = assetPath.Contains("/Art/Ui/");
             bool sceneBg = assetPath.Contains("/Art/Ui/Bgs/")
+                || assetPath.EndsWith("/Resources/Pack/bg_carpet.jpg")
                 || assetPath.Contains("/Art/Ui/Workshop/bg_")
                 || assetPath.Contains("/Art/Ui/Reward/bg_")
                 || assetPath.Contains("/Art/Loading/")
                 || assetPath.EndsWith("/bg.png");
-            importer.maxTextureSize = sceneBg ? 2048
-                : portrait ? 1024
+            // 立绘高清在云上。包里只留一档小图，免得没网时人偶是空的；
+            // 下到高清后按同一比例换上，尺寸变化不会把脖子错开。
+            // 背景是整屏图。源 JPEG 再压小不会改变进包大小，Unity 会按像素重编码；
+            // 长边收到 1024，贴图体积大约变成原来的四分之一。
+            importer.maxTextureSize = sceneBg ? 1024
+                : portrait ? 256
                 : chrome ? 1024
                 : 512;
             importer.textureCompression = TextureImporterCompression.CompressedHQ;
 
             if (assetPath.EndsWith("/Game/dust_cover.png"))
                 importer.spriteBorder = new Vector4(60f, 44f, 60f, 84f);
-            else if (assetPath.EndsWith("/Pack/lane.png") || assetPath.EndsWith("/Pack/lane_ready.png"))
-                importer.spriteBorder = new Vector4(52f, 120f, 52f, 56f);
-            else if (assetPath.EndsWith("/Pack/lane_on.png"))
-                importer.spriteBorder = new Vector4(72f, 140f, 72f, 72f);
+            else if (assetPath.EndsWith("/Pack/lane.png")
+                || assetPath.EndsWith("/Pack/lane_on.png")
+                || assetPath.EndsWith("/Pack/lane_ready.png"))
+            {
+                // 已经按铺地布的最终比例画好，整张显示。长边超过 1024，单独放开。
+                importer.maxTextureSize = 2048;
+                importer.spriteBorder = Vector4.zero;
+            }
             else if (assetPath.Contains("/Art/Ui/btn_"))
                 importer.spriteBorder = new Vector4(160f, 80f, 160f, 80f);
             else if (assetPath.Contains("/Art/Ui/card"))

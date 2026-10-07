@@ -20,15 +20,7 @@ namespace DressSort
         [Tooltip("棋盘和衣柜格子里用的小图，带白描边")]
         public Sprite icon;
 
-        /// <summary>先用 Inspector 上的 icon，丢了再从 Resources/DressIcons 补。</summary>
-        public Sprite ResolveIcon()
-        {
-            if (icon != null)
-                return icon;
-            if (string.IsNullOrEmpty(id))
-                return null;
-            return Resources.Load<Sprite>("DressIcons/" + id);
-        }
+        public Sprite ResolveIcon() => icon;
 
         [Tooltip("裙子用身体层，发型用头和前发，翅膀用背后那层")]
         public Sprite worn;

@@ -42,6 +42,8 @@ namespace DressSort
                 hud.topBar.SetParent(root, false);
 
             doll = PaperDoll.CreateFill(hud.dollSlot);
+            // 脚超出基准时会伸进衣柜上沿，人偶画在面板上面，蕾丝才不会把鞋盖住。
+            hud.dollSlot.SetAsLastSibling();
             hud.Wire(() => app.Show(ScreenId.Home), () => app.Show(ScreenId.Home), SwitchTo, OnPick);
         }
 
@@ -81,7 +83,7 @@ namespace DressSort
                 }
                 bool unlocked = app.Wardrobe.IsUnlocked(item);
                 bool equipped = app.Wardrobe.Equipped(activeSlot) == item;
-                hud.PaintCard(i, unlocked ? PreviewOf(item) : null, unlocked, equipped, false);
+                hud.PaintCard(i, unlocked ? item.ResolveIcon() : null, unlocked, equipped, false);
             }
         }
 
@@ -89,7 +91,12 @@ namespace DressSort
         {
             if (index < 0 || index >= shown.Count) return;
             ItemDef item = shown[index];
-            if (item == null || !app.Wardrobe.IsUnlocked(item)) return;
+            if (item == null || !app.Wardrobe.IsUnlocked(item))
+            {
+                Sfx.Play(SfxId.Deny);
+                return;
+            }
+            Sfx.Play(SfxId.Equip);
 
             if (activeSlot == ItemSlot.Wings && app.Wardrobe.EquippedWings == item)
                 app.Wardrobe.Unequip(ItemSlot.Wings);
@@ -109,17 +116,5 @@ namespace DressSort
                     app.Wardrobe.EquippedHair);
         }
 
-        static Sprite PreviewOf(ItemDef item)
-        {
-            if (item == null)
-                return null;
-            if (!string.IsNullOrEmpty(item.id))
-            {
-                Sprite preview = Resources.Load<Sprite>("WardrobePreview/" + item.id);
-                if (preview != null)
-                    return preview;
-            }
-            return item.ResolveIcon();
-        }
     }
 }

@@ -109,6 +109,12 @@ namespace DressSort
 
         public static bool IsGiftLevel(int index) => index >= 1 && index <= GiftLevels;
 
+        public static void CopyGiftIds(List<string> dst)
+        {
+            for (int i = 0; i < Gifts.Length; i++)
+                dst.Add(Gifts[i]);
+        }
+
         public static LevelReward RewardFor(int index)
         {
             var reward = new LevelReward { kind = Kind.Materials, hard = index % 10 == 0 };

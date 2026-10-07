@@ -50,6 +50,11 @@ namespace DressSort
                 hud.SetEnergy(app.Wardrobe.RecoverEnergy(), WardrobeService.MaxEnergy);
             if (hud != null && hud.progressLabel != null)
                 hud.progressLabel.text = $"已解锁 {app.Wardrobe.UnlockedCount} / {app.Wardrobe.TotalCount}";
+            if (hud != null)
+            {
+                LevelDef next = app.NextLevel;
+                hud.SetStartCaption(next != null ? "第" + next.index + "关" : "已通关");
+            }
             if (!string.IsNullOrEmpty(app.Notice))
             {
                 Toast(app.Notice);

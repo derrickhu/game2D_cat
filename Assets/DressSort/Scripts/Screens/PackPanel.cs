@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace DressSort
 {
@@ -16,6 +17,7 @@ namespace DressSort
         PackBoard board;
         ItemDef[] palette = new ItemDef[0];
         Sprite mystery;
+        bool stuckNoted;
 
         protected override void Build()
         {
@@ -45,12 +47,91 @@ namespace DressSort
             view = hud.GetComponent<PackView>();
             if (view == null)
                 view = PackView.Attach(hud);
+            ApplyPackArt();
+            hud.FitOnCarpet();
+            hud.FitChrome();
             hud.Wire(() => app.Show(ScreenId.Home), Restart, OnPack, OnRefill, OnLane);
         }
+
+        void ApplyPackArt()
+        {
+            if (hud == null) return;
+            if (hud.backdrop == null)
+            {
+                Transform found = hud.transform.Find("Backdrop");
+                if (found != null)
+                    hud.backdrop = found.GetComponent<Image>();
+            }
+
+            Sprite carpet = Resources.Load<Sprite>("Pack/bg_carpet");
+            if (carpet == null && app.Database != null)
+                carpet = app.Database.packCarpet;
+            Sprite lane = hud.laneSprite;
+            Sprite laneOn = hud.laneOnSprite;
+            Sprite laneReady = hud.laneReadySprite;
+#if UNITY_EDITOR
+            // 编辑器里直接读磁盘上的新图。导入没跟上时，预制还指着旧房间。
+            Sprite looseCarpet = LoadLoose("DressSort/Resources/Pack/bg_carpet.jpg");
+            if (looseCarpet != null) carpet = looseCarpet;
+            Sprite looseLane = LoadLoose("DressSort/Art/Ui/Pack/lane.png");
+            Sprite looseOn = LoadLoose("DressSort/Art/Ui/Pack/lane_on.png");
+            Sprite looseReady = LoadLoose("DressSort/Art/Ui/Pack/lane_ready.png");
+            if (looseLane != null) lane = looseLane;
+            if (looseOn != null) laneOn = looseOn;
+            if (looseReady != null) laneReady = looseReady;
+#endif
+            hud.laneSprite = lane;
+            hud.laneOnSprite = laneOn;
+            hud.laneReadySprite = laneReady;
+            Sprite heap = Resources.Load<Sprite>("Pack/heap");
+            Sprite openBin = Resources.Load<Sprite>("Pack/bin_open");
+            Sprite shutBin = Resources.Load<Sprite>("Pack/bin_shut");
+#if UNITY_EDITOR
+            Sprite looseHeap = LoadLoose("DressSort/Resources/Pack/heap.png");
+            Sprite looseOpen = LoadLoose("DressSort/Resources/Pack/bin_open.png");
+            Sprite looseShut = LoadLoose("DressSort/Resources/Pack/bin_shut.png");
+            if (looseHeap != null) heap = looseHeap;
+            if (looseOpen != null) openBin = looseOpen;
+            if (looseShut != null) shutBin = looseShut;
+#endif
+            hud.heapSprite = heap;
+            hud.binOpen = openBin;
+            hud.binShut = shutBin;
+            if (hud.backdrop != null && carpet != null)
+            {
+                hud.backdrop.sprite = carpet;
+                hud.backdrop.color = Color.white;
+                hud.backdrop.type = Image.Type.Simple;
+                hud.backdrop.preserveAspect = false;
+            }
+            for (int i = 0; i < hud.laneFaces.Length; i++)
+            {
+                if (hud.laneFaces[i] == null || lane == null) continue;
+                hud.laneFaces[i].sprite = lane;
+                hud.laneFaces[i].type = Image.Type.Simple;
+                hud.laneFaces[i].color = Color.white;
+            }
+        }
+
+#if UNITY_EDITOR
+        static Sprite LoadLoose(string underAssets)
+        {
+            string full = System.IO.Path.Combine(Application.dataPath, underAssets);
+            if (!System.IO.File.Exists(full)) return null;
+            byte[] bytes = System.IO.File.ReadAllBytes(full);
+            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            if (!tex.LoadImage(bytes)) return null;
+            tex.name = System.IO.Path.GetFileNameWithoutExtension(full);
+            return Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+        }
+#endif
 
         public override void OnShow()
         {
             if (hud == null) return;
+            ApplyPackArt();
+            hud.FitOnCarpet();
+            hud.FitChrome();
             Restart();
         }
 
@@ -58,17 +139,20 @@ namespace DressSort
         {
             if (view != null && view.Busy) return;
             palette = PickPalette();
-            mystery = Resources.Load<Sprite>("DressIcons/mystery");
+            mystery = app.Database.mysteryItem != null ? app.Database.mysteryItem.ResolveIcon() : null;
             if (palette.Length == 0)
             {
+                Sfx.Play(SfxId.Deny);
                 hud.ShowToast("还没有可以装箱的裙子");
                 return;
             }
+            stuckNoted = false;
+            Sfx.Play(SfxId.Shuffle);
             board = new PackBoard(palette.Length, Random.Range(1, 999999));
             hud.ClearBox();
             view.Bind(board, palette, mystery);
             RefreshChrome();
-            hud.ShowToast("先点一列，再点另一列，把最上面的同款倒过去");
+            hud.ShowToast("先点一列，再点另一列。最上面连着的同色会一起倒");
         }
 
         void OnLane(int column)
@@ -83,10 +167,16 @@ namespace DressSort
                         if (board == null || board.IsOpen(column)) return;
                         board.UnlockAd(column);
                         view.Refresh();
+                        Sfx.Play(SfxId.Unlock);
                         hud.ShowToast("这一列临时解锁了");
-                    }, () => hud.ShowToast("广告没看完"));
+                    }, () =>
+                    {
+                        Sfx.Play(SfxId.Deny);
+                        hud.ShowToast("广告没看完");
+                    });
                     return;
                 }
+                Sfx.Play(SfxId.Deny);
                 hud.ShowToast("装 1 箱后解锁");
                 return;
             }
@@ -97,6 +187,8 @@ namespace DressSort
         IEnumerator MoveRoutine(int column)
         {
             yield return view.PlayMove(column);
+            if (!string.IsNullOrEmpty(view.Blocked))
+                hud.ShowToast(view.Blocked);
             RefreshChrome();
             Notice();
         }
@@ -106,6 +198,7 @@ namespace DressSort
             if (board == null || view.Busy || board.Won) return;
             if (!board.CanPack)
             {
+                Sfx.Play(SfxId.Deny);
                 hud.ShowToast("还没有排满的一列");
                 return;
             }
@@ -126,6 +219,7 @@ namespace DressSort
             if (packed.Won)
             {
                 bool granted = app.Wardrobe.ClaimPack();
+                Sfx.Play(SfxId.Win);
                 hud.ShowToast(granted ? "整理完成，体力 +2" : "整理完成，今天的体力已经领过");
                 yield break;
             }
@@ -137,28 +231,42 @@ namespace DressSort
             if (board == null || view.Busy || board.Won) return;
             if (!board.CanRefill)
             {
-                hud.ShowToast(board.ReserveCount == 0 ? "衣服已经发完了" : "列上没有空位");
+                Sfx.Play(SfxId.Deny);
+                if (board.ReserveCount == 0)
+                    hud.ShowToast("衣服已经发完了");
+                else
+                    hud.ShowToast("列上没有空位");
                 return;
             }
-            int placed = board.Refill();
-            view.Refresh();
+            StartCoroutine(RefillRoutine());
+        }
+
+        IEnumerator RefillRoutine()
+        {
+            yield return view.PlayRefill();
             RefreshChrome();
-            hud.ShowToast(placed > 0 ? "补了 " + placed + " 件" : "没有补上");
             Notice();
         }
 
         void Notice()
         {
             if (board == null || board.Won) return;
-            if (board.IsStuck)
-                hud.ShowToast("这局堵住了，点重开再来");
+            if (!board.IsStuck)
+            {
+                stuckNoted = false;
+                return;
+            }
+            if (stuckNoted) return;
+            stuckNoted = true;
+            Sfx.Play(SfxId.Stuck);
+            hud.ShowToast("这局堵住了，点重开再来");
         }
 
         void RefreshChrome()
         {
             if (hud == null || board == null) return;
-            hud.SetProgress(board.BoxesDone, PackBoard.BoxesToWin);
-            hud.SetQueue(board.ReserveCount, mystery);
+            hud.SetProgress(board.BoxesDone, PackBoard.BoxesToWin, mystery);
+            hud.SetPile(board.ReserveCount);
         }
 
         ItemDef[] PickPalette()

@@ -10,11 +10,25 @@ public static class AnimalSpriteFactory
         if (type == AnimalType.Rainbow)
             return Rainbow();
 
-        var loaded = Resources.Load<Sprite>("Animals/" + type);
+        Sprite loaded = LoadPainted(type.ToString());
         if (loaded != null)
             return loaded;
 
         return Fallback(type);
+    }
+
+    /// <summary>
+    /// 画好的动物不放 Resources，否则会跟叠叠裙一起打进微信包。
+    /// 编辑器里直接读 Art；小游戏包里用不到这些图。
+    /// </summary>
+    static Sprite LoadPainted(string name)
+    {
+#if UNITY_EDITOR
+        return UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+            "Assets/AnimalSort/Art/Animals/" + name + ".png");
+#else
+        return null;
+#endif
     }
 
     public static Color BodyColor(AnimalType type)

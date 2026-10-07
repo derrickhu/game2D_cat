@@ -21,7 +21,6 @@ RAW_UI = Path(
     "/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/level-board-ui"
 )
 ART = ROOT / "Assets" / "DressSort" / "Art"
-ICON_RES = ROOT / "Assets" / "DressSort" / "Resources" / "DressIcons"
 
 SHEET_NAMES = [
     "teal_sailor",
@@ -67,12 +66,9 @@ def main():
     for name, im in packed.items():
         dest_raw = out_dir / f"dress_{name}.png"
         dest_art = ART / "Icons" / f"dress_{name}.png"
-        dest_res = ICON_RES / f"{name}.png"
         artpipe.save(im, dest_raw, quant=False)
         dest_art.parent.mkdir(parents=True, exist_ok=True)
-        dest_res.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(dest_raw, dest_art)
-        shutil.copy2(dest_raw, dest_res)
         print(f"  dress_{name:16} {im.size} {dest_art.stat().st_size:7d}")
 
     hanger_src = RAW_UI / "hanger_only.png"

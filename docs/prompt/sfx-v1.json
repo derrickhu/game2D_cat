@@ -1,0 +1,137 @@
+{
+  "defaults": { "bitrate": "96k", "prompt_influence": 0.5 },
+  "sfx": [
+    {
+      "name": "ui_tap",
+      "text": "crisp soft plastic button tick with a tiny high silver bell ping, cute casual game UI, sharp attack, dry, no reverb, no music, no voice",
+      "duration": 0.16,
+      "output": "../../Assets/DressSort/Resources/Audio/ui_tap.mp3"
+    },
+    {
+      "name": "ui_deny",
+      "text": "soft rounded bubble pop with a slightly falling pitch, gentle and cute, dry, no buzzer, no alarm, no voice, no music",
+      "duration": 0.22,
+      "output": "../../Assets/DressSort/Resources/Audio/ui_deny.mp3"
+    },
+    {
+      "name": "cloth_lift",
+      "text": "one tiny high glockenspiel pluck flicking upward, bright silver, cute kawaii mobile game, very short, dry",
+      "duration": 0.22,
+      "output": "../../Assets/DressSort/Resources/Audio/cloth_lift.mp3"
+    },
+    {
+      "name": "cloth_place",
+      "text": "a tiny high music box tick, like a light dress ribbon tapping a wooden hanger, bright and cute, very short, dry",
+      "duration": 0.2,
+      "output": "../../Assets/DressSort/Resources/Audio/cloth_place.mp3"
+    },
+    {
+      "name": "column_clear",
+      "text": "three ascending music box tines playing C E G, soft glockenspiel, cute and bright, short warm room, no voice, no drums, no extra melody",
+      "duration": 0.7,
+      "output": "../../Assets/DressSort/Resources/Audio/column_clear.mp3"
+    },
+    {
+      "name": "lock_open",
+      "text": "tiny metal key turning in a small lock, then one bright silver bell sparkle, cute, dry with a very short tail, no voice, no music",
+      "duration": 0.55,
+      "output": "../../Assets/DressSort/Resources/Audio/lock_open.mp3"
+    },
+    {
+      "name": "cover_slide",
+      "text": "soft cloth sliding off a thin rail, gentle airy whoosh, light and cute, dry, no voice, no music",
+      "duration": 0.45,
+      "output": "../../Assets/DressSort/Resources/Audio/cover_slide.mp3"
+    },
+    {
+      "name": "alarm",
+      "text": "cute small music box alarm, two gentle high dings, soft and sweet, short room, no siren, no harsh beep, no voice",
+      "duration": 0.85,
+      "output": "../../Assets/DressSort/Resources/Audio/alarm.mp3"
+    },
+    {
+      "name": "alarm_off",
+      "text": "small clock spring unwinding into two falling music box notes, gentle and cute, dry, no voice, no music",
+      "duration": 0.5,
+      "output": "../../Assets/DressSort/Resources/Audio/alarm_off.mp3"
+    },
+    {
+      "name": "undo",
+      "text": "soft reverse silk whoosh with a falling pitch, light and dry, cute, no voice, no music",
+      "duration": 0.3,
+      "output": "../../Assets/DressSort/Resources/Audio/undo.mp3"
+    },
+    {
+      "name": "shuffle",
+      "text": "light cascade of cotton clothes rustling, playful and soft, dry, cute, no voice, no music",
+      "duration": 0.55,
+      "output": "../../Assets/DressSort/Resources/Audio/shuffle.mp3"
+    },
+    {
+      "name": "swap",
+      "text": "two bright music box notes, E6 then G6, quick and playful like two tiny silver bells trading places, cute kawaii, dry, short",
+      "duration": 0.45,
+      "output": "../../Assets/DressSort/Resources/Audio/swap.mp3"
+    },
+    {
+      "name": "win",
+      "text": "music box arpeggio C E G C with tiny silver bells, warm cute celebration, short room, instrumental, no voice, no drums, no lyrics",
+      "duration": 1.6,
+      "output": "../../Assets/DressSort/Resources/Audio/win.mp3"
+    },
+    {
+      "name": "gift_land",
+      "text": "soft plush gift box landing with a light cushioned thud, cute, dry, no voice, no music",
+      "duration": 0.28,
+      "output": "../../Assets/DressSort/Resources/Audio/gift_land.mp3"
+    },
+    {
+      "name": "gift_pop",
+      "text": "a paper ribbon tear, then a cardboard box lid pop, then a clear silver bell tone that rings for a moment. One continuous sound effect, cute, no voice, no music",
+      "duration": 1.4,
+      "output": "../../Assets/DressSort/Resources/Audio/gift_pop.mp3"
+    },
+    {
+      "name": "claim",
+      "text": "bright two-note glockenspiel rising, soft and cute, short decay, no voice, no music bed",
+      "duration": 0.48,
+      "output": "../../Assets/DressSort/Resources/Audio/claim.mp3"
+    },
+    {
+      "name": "craft",
+      "text": "a soft thread stitch, a second stitch, then a tiny silver bell that rings and fades, cute sewing, dry, no sewing machine motor, no voice, no music",
+      "duration": 0.9,
+      "output": "../../Assets/DressSort/Resources/Audio/craft.mp3"
+    },
+    {
+      "name": "equip",
+      "text": "gentle fabric swish of slipping on a light dress, airy and cute, dry, no voice, no music",
+      "duration": 0.32,
+      "output": "../../Assets/DressSort/Resources/Audio/equip.mp3"
+    },
+    {
+      "name": "popup",
+      "text": "soft paper card opening with a light airy pop, cute, dry, no voice, no music",
+      "duration": 0.26,
+      "output": "../../Assets/DressSort/Resources/Audio/popup.mp3"
+    },
+    {
+      "name": "pack",
+      "text": "cotton clothes sliding into a small cardboard box, soft rustle then a light flap closing, cute, dry, no voice, no music",
+      "duration": 0.6,
+      "output": "../../Assets/DressSort/Resources/Audio/pack.mp3"
+    },
+    {
+      "name": "heart",
+      "text": "a soft warm plush heart bounce, then a small silver bell that rings and fades, cute, dry, no voice, no music",
+      "duration": 0.6,
+      "output": "../../Assets/DressSort/Resources/Audio/heart.mp3"
+    },
+    {
+      "name": "stuck",
+      "text": "two descending music box notes G then E, soft and sympathetic, short room, cute, no buzzer, no sad orchestra, no voice",
+      "duration": 0.65,
+      "output": "../../Assets/DressSort/Resources/Audio/stuck.mp3"
+    }
+  ]
+}

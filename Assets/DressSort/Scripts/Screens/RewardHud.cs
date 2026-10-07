@@ -124,8 +124,8 @@ namespace DressSort
 
         public void Wire(UnityAction onTap, UnityAction onTake)
         {
-            Bind(tapButton, onTap);
-            Bind(takeButton, onTake);
+            Sfx.BindSilent(tapButton, onTap);
+            Sfx.BindSilent(takeButton, onTake);
         }
 
         static Vector2 SizeOf(Sprite sprite, float k, Vector2 fallback) =>
@@ -138,13 +138,6 @@ namespace DressSort
             label.resizeTextForBestFit = true;
             label.resizeTextMinSize = min;
             label.resizeTextMaxSize = max;
-        }
-
-        static void Bind(Button button, UnityAction action)
-        {
-            if (button == null || action == null) return;
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(action);
         }
 
         static void Stretch(RectTransform rect)

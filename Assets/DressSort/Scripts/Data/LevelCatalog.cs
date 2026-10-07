@@ -85,6 +85,12 @@ namespace DressSort
             "orange_slice", "ivory_lace", "strawberry", "grape_school",
         };
 
+        public static void CopyBoardDressIds(List<string> dst)
+        {
+            for (int i = 0; i < DressOrder.Length; i++)
+                dst.Add(DressOrder[i]);
+        }
+
         static readonly Dictionary<int, LevelDef> cache = new Dictionary<int, LevelDef>();
         static GameDatabase cachedFor;
 

@@ -92,6 +92,11 @@ namespace DressSort
             }
 
             booted = true;
+            if (Application.isPlaying)
+            {
+                Sfx.Install();
+                CdnPortraits.Warm();
+            }
             BindChrome(database);
             UiKit.Skin = database;
             Wardrobe = new WardrobeService(database);
@@ -209,6 +214,8 @@ namespace DressSort
             if (db.mysteryItem == null)
                 db.mysteryItem = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemDef>(
                     "Assets/DressSort/Data/Items/mystery.asset");
+            if (db.packCarpet == null)
+                db.packCarpet = Resources.Load<Sprite>("Pack/bg_carpet");
             if (db.packLane == null)
             {
                 db.packLane = LoadUiSprite(ui + "Pack/lane");
@@ -463,6 +470,14 @@ namespace DressSort
             }
 
             current = id;
+            BgmId bgm = BgmId.Lobby;
+            if (id == ScreenId.Game)
+                bgm = BgmId.Play;
+            else if (id == ScreenId.Pack)
+                bgm = BgmId.Event;
+            else if (id == ScreenId.Reward)
+                bgm = BgmId.None;
+            Sfx.SetBgm(bgm);
             if (panels.TryGetValue(id, out Panel next) && next != null)
             {
                 next.gameObject.SetActive(true);

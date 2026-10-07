@@ -36,6 +36,7 @@ namespace DressSort.EditorTools
         public static void BindSprites(GameDatabase database)
         {
             if (database == null) return;
+            database.packCarpet = Resources.Load<Sprite>("Pack/bg_carpet");
             database.packLane = Load("Ui/Pack/lane");
             database.packLaneOn = Load("Ui/Pack/lane_on");
             database.packLaneReady = Load("Ui/Pack/lane_ready");

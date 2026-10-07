@@ -34,7 +34,7 @@
     .stack button { flex: 1; }
     main { display: flex; flex-direction: column; min-width: 0; }
     .toolbar { padding: 10px 16px; background: #fff; border-bottom: 1px solid var(--line); font-size: 12px; color: #4b5563; }
-    .stage-wrap { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .stage-wrap { flex: 1; overflow: auto; display: flex; align-items: flex-start; justify-content: flex-start; padding: 20px; }
     canvas { background-image:
       linear-gradient(45deg, #d9dde3 25%, transparent 25%),
       linear-gradient(-45deg, #d9dde3 25%, transparent 25%),
@@ -133,8 +133,8 @@
 
     <label>导出文件名（当前层）</label>
     <input id="exportName" type="text" value="aligned.png">
-    <p class="hint">每层自己的位置和缩放。导出当前，或一次导出全部。</p>
-    <label><input id="alsoGame" type="checkbox"> 再出一份 864×1084 游戏尺寸</label>
+    <p class="hint">头和脖子对齐之后，脚或手超出基准也会留在图里。同一套头、后发、衣服要一起导出，画布才一样大。</p>
+    <label><input id="alsoGame" type="checkbox"> 再出一份游戏尺寸（基准高度缩到 1084，多出来的不裁）</label>
     <button class="btn-teal" type="button" id="saveBtn">导出当前层</button>
     <button class="btn-teal" type="button" id="saveAllBtn">导出全部层</button>
     <button class="btn-ghost" type="button" id="downloadBtn">下载当前层</button>
@@ -175,41 +175,90 @@
       };
     }
 
+    // 基准矩形是对齐原点。层可以画出这个矩形，导出时整张画布跟着变大，不裁脚。
+    // 左右按离基准中线更远的一侧补齐，中线仍在画布正中，游戏里顶中叠层不会把脖子挪开。
+    // 上方只在真的画出基准时才加空；脚在下面，不加顶空。
+    function sessionFrame() {
+      const base = state.baseline;
+      if (!base) return null;
+      let minX = 0;
+      let minY = 0;
+      let maxX = base.width;
+      let maxY = base.height;
+      state.layers.forEach((layer) => {
+        const { w, h } = layerSize(layer);
+        minX = Math.min(minX, layer.x);
+        minY = Math.min(minY, layer.y);
+        maxX = Math.max(maxX, layer.x + w);
+        maxY = Math.max(maxY, layer.y + h);
+      });
+      const half = Math.max(base.width / 2 - minX, maxX - base.width / 2);
+      const width = Math.max(1, Math.round(half * 2));
+      const originX = Math.round(width / 2 - base.width / 2);
+      const contentTop = Math.min(0, minY);
+      const contentBottom = Math.max(base.height, maxY);
+      const originY = Math.round(-contentTop);
+      const height = Math.max(1, Math.round(contentBottom - contentTop));
+      return {
+        originX,
+        originY,
+        width,
+        height,
+        extraLeft: originX,
+        extraTop: originY,
+        extraRight: Math.max(0, width - originX - base.width),
+        extraBottom: Math.max(0, height - originY - base.height),
+      };
+    }
+
     function draw() {
       const base = state.baseline;
       if (!base) return;
+      const frame = sessionFrame();
       const maxW = Math.max(240, window.innerWidth - 360);
       const maxH = Math.max(240, window.innerHeight - 80);
-      state.viewScale = Math.min(maxW / base.width, maxH / base.height, 1);
-      canvas.width = Math.round(base.width * state.viewScale);
-      canvas.height = Math.round(base.height * state.viewScale);
+      state.viewScale = Math.min(maxW / frame.width, maxH / frame.height, 1);
+      canvas.width = Math.round(frame.width * state.viewScale);
+      canvas.height = Math.round(frame.height * state.viewScale);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
       ctx.scale(state.viewScale, state.viewScale);
       ctx.globalAlpha = state.baseAlpha;
-      ctx.drawImage(base, 0, 0);
+      ctx.drawImage(base, frame.originX, frame.originY);
       ctx.globalAlpha = 1;
       state.layers.forEach((layer, i) => {
         if (!layer.visible) return;
         const { w, h } = layerSize(layer);
         ctx.globalAlpha = layer.alpha;
-        ctx.drawImage(layer.img, layer.x, layer.y, w, h);
+        ctx.drawImage(layer.img, layer.x + frame.originX, layer.y + frame.originY, w, h);
         ctx.globalAlpha = 1;
         if (i === state.selected) {
           ctx.save();
           ctx.strokeStyle = "#2a9b96";
           ctx.lineWidth = 2 / state.viewScale;
           ctx.setLineDash([6 / state.viewScale, 4 / state.viewScale]);
-          ctx.strokeRect(layer.x + 0.5, layer.y + 0.5, w - 1, h - 1);
+          ctx.strokeRect(layer.x + frame.originX + 0.5, layer.y + frame.originY + 0.5, w - 1, h - 1);
           ctx.restore();
         }
       });
+      ctx.save();
+      ctx.strokeStyle = "#e07a8a";
+      ctx.lineWidth = 2 / state.viewScale;
+      ctx.setLineDash([8 / state.viewScale, 6 / state.viewScale]);
+      ctx.strokeRect(frame.originX + 0.5, frame.originY + 0.5, base.width - 1, base.height - 1);
+      ctx.restore();
       ctx.restore();
       const layer = selectedLayer();
       const { w, h } = layerSize(layer);
+      const overflow = [];
+      if (frame.extraBottom) overflow.push(`下方多 ${frame.extraBottom}`);
+      if (frame.extraTop) overflow.push(`上方多 ${frame.extraTop}`);
+      if (frame.extraLeft) overflow.push(`左侧多 ${frame.extraLeft}`);
+      if (frame.extraRight) overflow.push(`右侧多 ${frame.extraRight}`);
+      const extra = overflow.length ? `  ·  超出保留（${overflow.join("，")}）` : "";
       $("info").textContent = layer
-        ? `基准 ${base.width}×${base.height}  ·  ${layer.name} ${w}×${h}  @ (${layer.x}, ${layer.y})  ·  ${Math.round(layer.scale * 100)}%  ·  ${state.layers.length} 层`
-        : `基准 ${base.width}×${base.height}  ·  还没导入切图`;
+        ? `基准 ${base.width}×${base.height}  ·  导出 ${frame.width}×${frame.height}${extra}  ·  ${layer.name} ${w}×${h}  @ (${layer.x}, ${layer.y})  ·  ${Math.round(layer.scale * 100)}%`
+        : `基准 ${base.width}×${base.height}  ·  导出 ${frame.width}×${frame.height}${extra}  ·  还没导入切图`;
       $("posX").value = layer ? layer.x : 0;
       $("posY").value = layer ? layer.y : 0;
       $("scale").value = layer ? Math.round(layer.scale * 100) : 100;
@@ -335,25 +384,26 @@
     }
 
     function composeExport(layer) {
-      if (!state.baseline || !layer) return null;
+      const frame = sessionFrame();
+      if (!frame || !layer) return null;
       const out = document.createElement("canvas");
-      out.width = state.baseline.width;
-      out.height = state.baseline.height;
+      out.width = frame.width;
+      out.height = frame.height;
       const c = out.getContext("2d");
       const { w, h } = layerSize(layer);
       c.clearRect(0, 0, out.width, out.height);
-      c.drawImage(layer.img, layer.x, layer.y, w, h);
+      c.drawImage(layer.img, layer.x + frame.originX, layer.y + frame.originY, w, h);
       return out;
     }
 
     function toGameSize(srcCanvas) {
+      const base = state.baseline;
+      const scale = base && base.height ? 1084 / base.height : 1;
       const dest = document.createElement("canvas");
-      dest.width = 864;
-      dest.height = 1084;
+      dest.width = Math.max(1, Math.round(srcCanvas.width * scale));
+      dest.height = Math.max(1, Math.round(srcCanvas.height * scale));
       const c = dest.getContext("2d");
-      const scale = dest.height / srcCanvas.height;
-      const nw = Math.max(1, Math.round(srcCanvas.width * scale));
-      c.drawImage(srcCanvas, Math.round((dest.width - nw) / 2), 0, nw, dest.height);
+      c.drawImage(srcCanvas, 0, 0, dest.width, dest.height);
       return dest;
     }
 
@@ -496,9 +546,10 @@
 
     function localPoint(ev) {
       const rect = canvas.getBoundingClientRect();
+      const frame = sessionFrame();
       return {
-        x: (ev.clientX - rect.left) / state.viewScale,
-        y: (ev.clientY - rect.top) / state.viewScale,
+        x: (ev.clientX - rect.left) / state.viewScale - (frame ? frame.originX : 0),
+        y: (ev.clientY - rect.top) / state.viewScale - (frame ? frame.originY : 0),
       };
     }
 
