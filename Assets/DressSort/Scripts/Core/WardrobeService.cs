@@ -30,6 +30,7 @@ namespace DressSort
             public int[] materials = new int[CraftCatalog.MatCount];
             public List<int> taskClaimed = new List<int>();
             public bool tasksReady;
+            public bool gmWorkshop;
         }
 
         readonly GameDatabase database;
@@ -218,8 +219,16 @@ namespace DressSort
 
         // ------------------------------------------------------------ 工坊
 
-        /// <summary>第 21 关通关送第一张图纸，工坊从那时开放。</summary>
-        public bool WorkshopOpen => data.levelsCleared >= CraftCatalog.WorkshopLevel;
+        /// <summary>第 21 关通关送第一张图纸，工坊从那时开放。GM 也可以单独放开。</summary>
+        public bool WorkshopOpen => data.levelsCleared >= CraftCatalog.WorkshopLevel || data.gmWorkshop;
+
+        /// <summary>GM 放开工坊。不改关卡进度，重置存档后恢复上锁。</summary>
+        public void UnlockWorkshop()
+        {
+            if (data.gmWorkshop) return;
+            data.gmWorkshop = true;
+            Save();
+        }
 
         public bool TaskClaimed(int index) =>
             data.taskClaimed != null && data.taskClaimed.Contains(index);

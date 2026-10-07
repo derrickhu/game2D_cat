@@ -7,14 +7,14 @@ using UnityEngine;
 namespace DressSort.EditorTools
 {
     /// <summary>
-    /// 微信小游戏打包入口。SDK 本体跟 black-rosa 一样走本地包
-    /// Packages/com.qq.weixin.minigame（133MB，不入库），没有就从隔壁工程拷。
+    /// 微信小游戏打包入口。SDK 本体是本地包 Packages/com.qq.weixin.minigame
+    /// （官方预览版，不入库），没有就从隔壁工程拷。
     /// 团结规定：微信子平台没 Active 时，顶栏不会出现「微信小游戏」。
     /// </summary>
     public static class WxMiniGameMenu
     {
         const string PackageName = "com.qq.weixin.minigame";
-        const string ConfigPath = "Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset";
+        const string ConfigPath = "Assets/WX-WASM-SDK-V3/Editor/MiniGameConfig.asset";
         const string DefaultAppId = "wxd7e8bab5c9f43673";
         const string LegacyAppId = "wxad27f529c95e582c";
 
@@ -33,7 +33,7 @@ namespace DressSort.EditorTools
         public static void OpenConvertWindow()
         {
             if (!Prepare()) return;
-            if (!EditorApplication.ExecuteMenuItem("微信小游戏/转换小游戏"))
+            if (!EditorApplication.ExecuteMenuItem("微信小游戏 / 转换小游戏"))
                 InvokeWx("WeChatWASM.WXEditorWin", "Open", null);
         }
 
@@ -124,11 +124,11 @@ namespace DressSort.EditorTools
 
         static void EnsureConfig()
         {
-            string dir = Path.Combine(Application.dataPath, "WX-WASM-SDK-V2", "Editor");
+            string dir = Path.Combine(Application.dataPath, "WX-WASM-SDK-V3", "Editor");
             Directory.CreateDirectory(dir);
-            Directory.CreateDirectory(Path.Combine(Application.dataPath, "WX-WASM-SDK-V2", "Runtime", "Plugins"));
+            Directory.CreateDirectory(Path.Combine(Application.dataPath, "WX-WASM-SDK-V3", "Runtime", "Plugins"));
 
-            string link = Path.Combine(Application.dataPath, "WX-WASM-SDK-V2", "Runtime", "Plugins", "link.xml");
+            string link = Path.Combine(Application.dataPath, "WX-WASM-SDK-V3", "Runtime", "Plugins", "link.xml");
             if (!File.Exists(link))
             {
                 File.WriteAllText(link,
@@ -217,7 +217,11 @@ namespace DressSort.EditorTools
                 .Replace("projectName: ink-line", "projectName: dress-sort")
                 .Replace("Appid: " + LegacyAppId, "Appid: " + DefaultAppId)
                 .Replace("DST: /Users/rosa/rosa_games/black-rosa/wechat-minigame",
-                    "DST: " + Path.Combine(project, "wechat-minigame"));
+                    "DST: " + Path.Combine(project, "wechat-minigame"))
+                .Replace("bgImageSrc: Assets/WX-WASM-SDK-V2/Runtime/wechat-default/images/background.jpg",
+                    "bgImageSrc: Assets/DressSort/Art/Loading/loading.jpg")
+                .Replace("bgImageSrc: Assets/WX-WASM-SDK-V3/Runtime/wechat-default/wx-game-kit/images/background.jpg",
+                    "bgImageSrc: Assets/DressSort/Art/Loading/loading.jpg");
             if (patched == text) return;
             File.WriteAllText(path, patched);
             Debug.Log("[叠叠裙] 已把 SDK 自带的 MiniGameConfig 从墨字防线改成叠叠裙。");
@@ -251,13 +255,30 @@ namespace DressSort.EditorTools
             if (File.Exists(gameJs))
             {
                 string js = File.ReadAllText(gameJs);
-                if (!js.Contains("APPID: '" + DefaultAppId + "'") && !js.Contains("APPID: \"" + DefaultAppId + "\""))
+                // v0.1.35 的 game.js 不再写 APPID，AppID 在 project.config.json 和 wx-game-kit/config.json。
+                if (js.Contains("APPID:")
+                    && !js.Contains("APPID: '" + DefaultAppId + "'")
+                    && !js.Contains("APPID: \"" + DefaultAppId + "\""))
                 {
                     js = System.Text.RegularExpressions.Regex.Replace(
                         js, "APPID:\\s*['\"][^'\"]*['\"]", "APPID: '" + DefaultAppId + "'");
                     File.WriteAllText(gameJs, js);
                     ok = false;
                     Debug.LogWarning("[叠叠裙] 导出的 game.js APPID 不对，已改成 " + DefaultAppId);
+                }
+            }
+
+            string kitConfig = Path.Combine(minigame, "wx-game-kit", "config.json");
+            if (File.Exists(kitConfig))
+            {
+                string kit = File.ReadAllText(kitConfig);
+                if (!kit.Contains("\"appID\": \"" + DefaultAppId + "\""))
+                {
+                    kit = System.Text.RegularExpressions.Regex.Replace(
+                        kit, "\"appID\"\\s*:\\s*\"[^\"]*\"", "\"appID\": \"" + DefaultAppId + "\"");
+                    File.WriteAllText(kitConfig, kit);
+                    ok = false;
+                    Debug.LogWarning("[叠叠裙] 导出的 wx-game-kit/config.json AppID 不对，已改成 " + DefaultAppId);
                 }
             }
 

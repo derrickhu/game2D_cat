@@ -22,6 +22,7 @@ namespace DressSort
         public Button dressButton;
         public Button gearButton;
         public Button wipeButton;
+        public Button gmButton;
         public Button energyPlus;
         public HomeSideEntry[] sideButtons;
 
@@ -76,6 +77,8 @@ namespace DressSort
 
             wipeButton = UiKit.Button(transform, "重置", new Vector2(1f, 0f),
                 new Vector2(-88f, 56f), new Vector2(140f, 56f), Chip.White, 24, () => { });
+            gmButton = UiKit.Button(transform, "GM", new Vector2(0f, 0f),
+                new Vector2(88f, 56f), new Vector2(140f, 56f), Chip.White, 24, () => { });
 
             toastLabel = UiKit.Label(transform, "Toast", "", new Vector2(0.5f, 0.5f),
                 new Vector2(0f, -420f), new Vector2(620f, 64f), 32, Palette.RoseDark);
@@ -99,6 +102,7 @@ namespace DressSort
             // 图标占左侧，字放在右侧空面上，并略微上移，躲开底部的深色底边。
             StyleCtaLabel(startButton, 0.16f);
             StyleCtaLabel(dressButton, 0.14f);
+            EnsureGmButton();
             if (sideButtons == null) return;
             for (int i = 0; i < sideButtons.Length; i++)
             {
@@ -345,12 +349,13 @@ namespace DressSort
         }
 
         public void Wire(UnityAction onStart, UnityAction onDress, UnityAction onEnergyPlus,
-            UnityAction onWipe, Action<string, string> onSide)
+            UnityAction onWipe, UnityAction onGm, Action<string, string> onSide)
         {
             Bind(startButton, onStart);
             Bind(dressButton, onDress);
             Bind(energyPlus, onEnergyPlus);
             Bind(wipeButton, onWipe);
+            Bind(gmButton, onGm);
             if (sideButtons == null) return;
             for (int i = 0; i < sideButtons.Length; i++)
             {
@@ -365,6 +370,18 @@ namespace DressSort
         static void Bind(Button button, UnityAction action)
         {
             Sfx.BindClick(button, action);
+        }
+
+        void EnsureGmButton()
+        {
+            if (gmButton != null)
+            {
+                Place((RectTransform)gmButton.transform, new Vector2(0f, 0f),
+                    new Vector2(88f, 56f), new Vector2(140f, 56f));
+                return;
+            }
+            gmButton = UiKit.Button(transform, "GM", new Vector2(0f, 0f),
+                new Vector2(88f, 56f), new Vector2(140f, 56f), Chip.White, 24, () => { });
         }
 
         public void SetStartCaption(string caption)

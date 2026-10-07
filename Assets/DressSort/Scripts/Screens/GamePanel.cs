@@ -199,10 +199,25 @@ namespace DressSort
 
         void Complete()
         {
+            Sfx.Play(SfxId.Win);
+            if (app.GmPlay)
+            {
+                LevelDef gmNext = app.LevelAt(level.index + 1);
+                if (gmNext == null)
+                {
+                    app.Notice = "GM 第 " + level.index + " 关过了";
+                    app.Show(ScreenId.Home);
+                    return;
+                }
+                app.CurrentLevel = gmNext;
+                level = gmNext;
+                Deal(level.seed);
+                return;
+            }
+
             int spare = Mathf.Max(0, level.moveLimit - logic.Steps);
             int stars = 1 + Mathf.Clamp(spare / Mathf.Max(1, level.moveLimit / 3), 0, 2);
 
-            Sfx.Play(SfxId.Win);
             app.Wardrobe.ReportCleared(level.index, stars);
             RankService.Submit(app.Wardrobe.LevelsCleared);
             app.PendingLevel = level;
@@ -364,7 +379,7 @@ namespace DressSort
         {
             if (hud == null || level == null) return;
             if (hud.levelLabel != null)
-                hud.levelLabel.text = "第 " + level.index + " 关";
+                hud.levelLabel.text = (app.GmPlay ? "GM 第 " : "第 ") + level.index + " 关";
             if (hud.movesLabel != null)
                 hud.movesLabel.text = "剩余 " + Mathf.Max(0, level.moveLimit - logic.Steps) + " 步";
             hud.SetCounts(swapsLeft, shufflesLeft);

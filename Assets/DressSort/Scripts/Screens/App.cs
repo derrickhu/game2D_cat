@@ -50,6 +50,9 @@ namespace DressSort
 
         public LevelDef CurrentLevel { get; set; }
 
+        /// <summary>从首页 GM 指定进来的。不扣体力，通关不写进度。</summary>
+        public bool GmPlay { get; private set; }
+
         /// <summary>刚通关那一关掉的材料，奖励页要显示。</summary>
         public int[] PendingMaterials { get; set; }
 
@@ -463,6 +466,8 @@ namespace DressSort
 
         void ApplyShow(ScreenId id)
         {
+            if (id != ScreenId.Game)
+                GmPlay = false;
             if (panels.TryGetValue(current, out Panel previous) && previous != null)
             {
                 previous.OnHide();
@@ -488,11 +493,21 @@ namespace DressSort
         public bool StartLevel(LevelDef level)
         {
             if (level == null) return false;
+            GmPlay = false;
             if (!Wardrobe.SpendEnergy())
                 return false;
             CurrentLevel = level;
             Show(ScreenId.Game);
             return true;
+        }
+
+        /// <summary>指定关卡直接开玩。不扣体力，通关也不推进存档。</summary>
+        public void StartGm(LevelDef level)
+        {
+            if (level == null) return;
+            GmPlay = true;
+            CurrentLevel = level;
+            Show(ScreenId.Game);
         }
 
         public T PanelOf<T>(ScreenId id) where T : Panel =>
