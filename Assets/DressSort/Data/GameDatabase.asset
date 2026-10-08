@@ -45,6 +45,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 758028ff2649d4e43bec5ecc17f3d62d, type: 2}
   - {fileID: 11400000, guid: cfc594c67723541139d456ee55e3cf48, type: 2}
   - {fileID: 11400000, guid: 9f862270a1acb41ebba7dd00fca3b241, type: 2}
+  - {fileID: 11400000, guid: 6d3bdcf66291a4635a74a86dbf9f07c4, type: 2}
   mysteryItem: {fileID: 11400000, guid: 72f31f3fc3411456a8f71ebbb6b856c2, type: 2}
   defaultDress: {fileID: 11400000, guid: 128f9e0cd8ec84dd3b424ff548380195, type: 2}
   defaultHair: {fileID: 11400000, guid: 11a1b2c3d4e5f60718293a4b5c6d7e80, type: 2}

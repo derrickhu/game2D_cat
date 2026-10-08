@@ -77,6 +77,7 @@ namespace DressSort.EditorTools
         {
             ("wing_aqua", "湖水蝶翼"),
             ("wing_rose", "蜜桃花瓣翼"),
+            ("wing_wisteria", "紫藤心翼"),
         };
 
         static readonly (string id, string label)[] Hairs =

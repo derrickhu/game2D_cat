@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,9 +11,15 @@ namespace DressSort
         HomeHud hud;
         PaperDoll doll;
         Coroutine toastRoutine;
+        static readonly ItemSlot[] GmSlots = { ItemSlot.Dress, ItemSlot.Hair, ItemSlot.Wings };
+        static readonly string[] GmSlotNames = { "裙子", "发型", "翅膀" };
+
         GameObject gmLayer;
+        GameObject gmUnlock;
+        RectTransform gmRows;
         Text gmNumber;
         int gmPick = 1;
+        int gmSlot;
 
         protected override void Build()
         {
@@ -129,7 +136,7 @@ namespace DressSort
             gmLayer = go;
 
             Image board = UiKit.Icon(go.transform, "Board", UiKit.Rounded, new Vector2(0.5f, 0.5f),
-                Vector2.zero, new Vector2(680f, 560f));
+                Vector2.zero, new Vector2(680f, 760f));
             board.type = Image.Type.Sliced;
             board.color = new Color(1f, 0.97f, 0.93f, 1f);
             board.raycastTarget = true;
@@ -150,6 +157,8 @@ namespace DressSort
                     new Vector2(x, -50f), new Vector2(92f, 64f), Chip.White, 26, () => ShiftGm(step));
             }
 
+            UiKit.Button(board.transform, "解锁装饰", new Vector2(0.5f, 0f),
+                new Vector2(0f, 236f), new Vector2(440f, 72f), Chip.Teal, 32, OpenUnlock);
             UiKit.Button(board.transform, "开放工坊", new Vector2(0.5f, 0f),
                 new Vector2(0f, 148f), new Vector2(440f, 72f), Chip.Pink, 32, OpenWorkshop);
             UiKit.Button(board.transform, "进入", new Vector2(0.5f, 0f),
@@ -189,8 +198,138 @@ namespace DressSort
             app.Show(ScreenId.Workshop);
         }
 
+        void OpenUnlock()
+        {
+            if (gmUnlock != null) return;
+            RectTransform layer = root.parent as RectTransform ?? root;
+            var go = new GameObject("GmUnlock", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(layer, false);
+            var rect = (RectTransform)go.transform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            rect.SetAsLastSibling();
+            var dim = go.GetComponent<Image>();
+            dim.sprite = UiKit.SoftRect;
+            dim.type = Image.Type.Sliced;
+            dim.color = new Color(0.2f, 0.12f, 0.14f, 0.45f);
+            dim.raycastTarget = true;
+            gmUnlock = go;
+
+            Image board = UiKit.Icon(go.transform, "Board", UiKit.Rounded, new Vector2(0.5f, 0.5f),
+                Vector2.zero, new Vector2(860f, 1280f));
+            board.type = Image.Type.Sliced;
+            board.color = new Color(1f, 0.97f, 0.93f, 1f);
+            board.raycastTarget = true;
+
+            UiKit.Label(board.transform, "Title", "解锁装饰", new Vector2(0.5f, 1f),
+                new Vector2(0f, -56f), new Vector2(400f, 64f), 40, Palette.Ink);
+            for (int i = 0; i < GmSlotNames.Length; i++)
+            {
+                int index = i;
+                UiKit.Button(board.transform, GmSlotNames[i], new Vector2(0.5f, 1f),
+                    new Vector2((i - 1) * 220f, -150f), new Vector2(200f, 64f), Chip.White, 28,
+                    () => ShowUnlockSlot(index));
+            }
+            UiKit.Button(board.transform, "本页全解锁", new Vector2(0.5f, 1f),
+                new Vector2(0f, -230f), new Vector2(360f, 64f), Chip.Pink, 28, UnlockPage);
+
+            var vpGo = new GameObject("Items", typeof(RectTransform), typeof(Image), typeof(RectMask2D),
+                typeof(ScrollRect));
+            vpGo.transform.SetParent(board.transform, false);
+            var vp = (RectTransform)vpGo.transform;
+            vp.anchorMin = new Vector2(0.5f, 1f);
+            vp.anchorMax = new Vector2(0.5f, 1f);
+            vp.pivot = new Vector2(0.5f, 1f);
+            vp.sizeDelta = new Vector2(780f, 860f);
+            vp.anchoredPosition = new Vector2(0f, -280f);
+            var hit = vpGo.GetComponent<Image>();
+            hit.color = new Color(1f, 1f, 1f, 0.01f);
+            hit.raycastTarget = true;
+
+            gmRows = UiKit.Rect(vp, "Rows", new Vector2(0.5f, 1f), Vector2.zero, new Vector2(780f, 0f));
+            gmRows.pivot = new Vector2(0.5f, 1f);
+            var scroll = vpGo.GetComponent<ScrollRect>();
+            scroll.content = gmRows;
+            scroll.viewport = vp;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 30f;
+
+            UiKit.Button(board.transform, "关闭", new Vector2(0.5f, 0f),
+                new Vector2(0f, 48f), new Vector2(280f, 72f), Chip.White, 32, CloseUnlock);
+            ShowUnlockSlot(gmSlot);
+        }
+
+        void ShowUnlockSlot(int index)
+        {
+            gmSlot = Mathf.Clamp(index, 0, GmSlots.Length - 1);
+            RebuildUnlockRows();
+        }
+
+        void RebuildUnlockRows()
+        {
+            if (gmRows == null) return;
+            for (int i = gmRows.childCount - 1; i >= 0; i--)
+                UiKit.Discard(gmRows.GetChild(i));
+            List<ItemDef> list = app.Database.ItemsInSlot(GmSlots[gmSlot]);
+            const float rowH = 76f;
+            for (int i = 0; i < list.Count; i++)
+            {
+                ItemDef item = list[i];
+                float y = -12f - rowH * 0.5f - i * rowH;
+                UiKit.Label(gmRows, "Name", item.displayName, new Vector2(0f, 1f),
+                    new Vector2(220f, y), new Vector2(420f, 64f), 30, Palette.Ink, TextAnchor.MiddleLeft);
+                if (app.Wardrobe.IsUnlocked(item))
+                {
+                    UiKit.Label(gmRows, "Owned", "已有", new Vector2(1f, 1f),
+                        new Vector2(-110f, y), new Vector2(160f, 56f), 28, Palette.Caption);
+                }
+                else
+                {
+                    UiKit.Button(gmRows, "解锁", new Vector2(1f, 1f),
+                        new Vector2(-110f, y), new Vector2(160f, 56f), Chip.Teal, 28, () => UnlockOne(item));
+                }
+            }
+            gmRows.sizeDelta = new Vector2(780f, Mathf.Max(24f, 24f + list.Count * rowH));
+            gmRows.anchoredPosition = Vector2.zero;
+        }
+
+        void UnlockOne(ItemDef item)
+        {
+            if (item == null || !app.Wardrobe.Unlock(item)) return;
+            PaintUnlockCount();
+            RebuildUnlockRows();
+            Toast("已解锁「" + item.displayName + "」");
+        }
+
+        void UnlockPage()
+        {
+            int added = app.Wardrobe.GrantUnlocked(app.Database.ItemsInSlot(GmSlots[gmSlot]));
+            PaintUnlockCount();
+            RebuildUnlockRows();
+            Toast(added == 0 ? "本页都已解锁" : "解锁了 " + added + " 件");
+        }
+
+        void PaintUnlockCount()
+        {
+            if (hud != null && hud.progressLabel != null)
+                hud.progressLabel.text = $"已解锁 {app.Wardrobe.UnlockedCount} / {app.Wardrobe.TotalCount}";
+        }
+
+        void CloseUnlock()
+        {
+            if (gmUnlock == null) return;
+            UiKit.Discard(gmUnlock.transform);
+            gmUnlock = null;
+            gmRows = null;
+        }
+
         void CloseGm()
         {
+            CloseUnlock();
             if (gmLayer == null) return;
             if (Application.isPlaying)
                 Destroy(gmLayer);

@@ -14,6 +14,7 @@ namespace DressSort
         [SerializeField] Image hairBack;
         [SerializeField] Image body;
         [SerializeField] Image head;
+        [SerializeField] WingMotes motes;
 
         const float WingAnchorY = 0.33f;
         const float WingWidthRatio = 1.55f;
@@ -48,6 +49,8 @@ namespace DressSort
             hairBack = UiKit.Icon(transform, "HairBack", null, new Vector2(0.5f, 0.5f), Vector2.zero, size);
             body = UiKit.Icon(transform, "Body", null, new Vector2(0.5f, 0.5f), Vector2.zero, size);
             head = UiKit.Icon(transform, "Head", null, new Vector2(0.5f, 0.5f), Vector2.zero, size);
+            RectTransform moteHost = UiKit.Stretch(transform, "WingMotes");
+            motes = moteHost.gameObject.AddComponent<WingMotes>();
         }
 
         static void StretchLayers(RectTransform root)
@@ -89,6 +92,11 @@ namespace DressSort
             if (hairBack != null) hairBack.transform.SetSiblingIndex(order++);
             if (body != null) body.transform.SetSiblingIndex(order++);
             if (head != null) head.transform.SetSiblingIndex(order++);
+            if (motes != null)
+            {
+                motes.Play(wingItem);
+                motes.transform.SetAsLastSibling();
+            }
         }
 
         void ShowArt(Image image, Sprite sprite)

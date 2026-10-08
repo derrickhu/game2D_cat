@@ -1,0 +1,15 @@
+A 2D game sprite sheet of three magical wing pairs in one horizontal row, evenly spaced, all the same size. Pure black background, the black of a turned-off screen.
+
+Each pair is one front-view butterfly wing set: two upper wings and two lower wings, left and right mirror copies, a narrow empty gap down the center where a small back would sit. The wing shape is crisp. The light is soft only at the outer rim.
+
+The wings are made of light. A bright white core runs along each vein. The membrane is a luminous color, brighter near the vein. The outer rim is that same bright color growing softer until it becomes the pure black background. Flat game-sprite rendering, high contrast, one soft glow, clean shapes.
+
+Left pair: glacier-pool blue membranes, gold-coin yellow veins, tiny star-shaped sparks of white light on the upper wings, blue-glass drops of light at the lower tips.
+
+Center pair: rose-wine red membranes, cream-white veins, a warm ruby heart of light at the root of each upper wing, soft petal-shaped lower wings.
+
+Right pair: wisteria-petal purple membranes, gold-coin veins, small grape-purple hearts of light along the lower edge, a brighter lilac bloom at the rim.
+
+The three pairs sit on one horizontal line, with a wide black gap between pairs. The whole wing stays inside the frame.
+
+Pure black background. Empty image, no letters, no captions, no banners, no numbers.

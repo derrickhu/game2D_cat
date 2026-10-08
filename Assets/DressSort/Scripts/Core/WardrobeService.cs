@@ -79,6 +79,22 @@ namespace DressSort
             return true;
         }
 
+        /// <summary>GM 一次解锁多件装饰。已经有的跳过，只存一次档。</summary>
+        public int GrantUnlocked(List<ItemDef> items)
+        {
+            if (items == null) return 0;
+            int added = 0;
+            for (int i = 0; i < items.Count; i++)
+            {
+                ItemDef item = items[i];
+                if (item == null || string.IsNullOrEmpty(item.id) || IsUnlocked(item)) continue;
+                data.unlocked.Add(item.id);
+                added++;
+            }
+            if (added > 0) Save();
+            return added;
+        }
+
         public void Equip(ItemDef item)
         {
             if (item == null || !IsUnlocked(item)) return;

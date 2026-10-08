@@ -40,7 +40,7 @@ namespace DressSort
         // 图纸按顺序发，发完的那类改送材料大礼包。画了新衣服接到对应队尾即可。
         static readonly string[] DressBlueprints = { "honey_bow" };
         static readonly string[] HairBlueprints = { "hair_milktea_long" };
-        static readonly string[] WingBlueprints = { "wing_aqua", "wing_rose" };
+        static readonly string[] WingBlueprints = { "wing_aqua", "wing_rose", "wing_wisteria" };
 
         static int[] Need(int cloth = 0, int hair = 0, int red = 0, int yellow = 0, int blue = 0,
             int black = 0, int lace = 0, int star = 0)
@@ -83,6 +83,7 @@ namespace DressSort
             { "hair_milktea_long", Need(hair: 9, red: 1, yellow: 2, black: 2) },
             { "wing_aqua", Need(cloth: 4, blue: 3, yellow: 1, lace: 4, star: 5) },
             { "wing_rose", Need(cloth: 4, red: 3, yellow: 1, lace: 4, star: 5) },
+            { "wing_wisteria", Need(cloth: 4, red: 2, blue: 3, lace: 4, star: 5) },
         };
 
         public enum Kind
