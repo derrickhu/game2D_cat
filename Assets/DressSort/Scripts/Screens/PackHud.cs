@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -30,7 +31,8 @@ namespace DressSort
         public Sprite heapSprite;
         public Sprite binOpen;
         public Sprite binShut;
-        public Image[] binFaces = new Image[PackBoard.BoxSlots];
+        public Image[] binFaces = new Image[PackBoard.MaxSeats];
+        public Text boxLabel;
         public RectTransform rewardTrack;
         public Image[] rewardNodes = new Image[PackBoard.BoxesToWin];
         public Image[] rewardChecks = new Image[PackBoard.BoxesToWin];
@@ -43,7 +45,11 @@ namespace DressSort
         public Image[] adBadges = new Image[PackBoard.ColumnCount];
         public Image[] readyMarks = new Image[PackBoard.ColumnCount];
         public Image box;
-        public Image[] boxSlots = new Image[PackBoard.BoxSlots];
+        public Image[] boxSlots = new Image[4];
+        int shownSeats = PackBoard.BoxPlan[0];
+        bool packHot;
+        bool binCelebrating;
+        float[] binPunch;
         public Button packButton;
         public Button refillButton;
         public Text toastLabel;
@@ -245,7 +251,7 @@ namespace DressSort
             }
 
             EnsurePile();
-            EnsureBins();
+            LayoutBins(shownSeats);
             EnsureReward();
             if (box != null && binOpen != null)
                 box.gameObject.SetActive(false);
@@ -303,10 +309,13 @@ namespace DressSort
             for (int i = 0; i < rewardNodes.Length; i++)
             {
                 bool filled = i < done;
+                bool current = !filled && i == done && done < goal;
                 if (rewardNodes[i] != null)
                     rewardNodes[i].color = filled
                         ? new Color(0.93f, 0.45f, 0.52f, 1f)
-                        : new Color(0.98f, 0.94f, 0.9f, 1f);
+                        : current
+                            ? new Color(1f, 0.78f, 0.52f, 1f)
+                            : new Color(0.98f, 0.94f, 0.9f, 1f);
                 if (rewardChecks[i] != null)
                     rewardChecks[i].enabled = filled;
                 if (rewardNumbers[i] != null)
@@ -371,15 +380,224 @@ namespace DressSort
             }
         }
 
+        public Sprite CheckSprite
+        {
+            get
+            {
+                if (readyMarks == null) return null;
+                for (int i = 0; i < readyMarks.Length; i++)
+                {
+                    if (readyMarks[i] != null && readyMarks[i].sprite != null)
+                        return readyMarks[i].sprite;
+                }
+                return null;
+            }
+        }
+
+        public void SetActions(bool canPack, bool canRefill)
+        {
+            packHot = canPack;
+            TintButton(packButton, canPack);
+            TintButton(refillButton, canRefill);
+            if (!canPack && packButton != null)
+                packButton.transform.localScale = Vector3.one;
+        }
+
+        public void SetBoxCount(int filled, int seats, int boxIndex, bool won)
+        {
+            if (boxLabel == null) return;
+            boxLabel.text = won ? "三箱都装满了" : "第" + (boxIndex + 1) + "箱  " + filled + "/" + seats;
+        }
+
+        public void LayoutBins(int seats)
+        {
+            if (seats < 1) seats = PackBoard.BoxPlan[0];
+            if (seats > PackBoard.MaxSeats) seats = PackBoard.MaxSeats;
+            shownSeats = seats;
+            EnsureBins();
+            if (binOpen == null || binFaces == null) return;
+
+            float pitch = seats >= 8 ? 128f : seats >= 6 ? 160f : 180f;
+            float width = seats >= 8 ? 116f : seats >= 6 ? 146f : 156f;
+            float height = width * (190f / 156f);
+            for (int i = 0; i < binFaces.Length; i++)
+            {
+                if (binFaces[i] == null) continue;
+                var root = binFaces[i].transform.parent as RectTransform;
+                if (root == null) continue;
+                bool show = i < seats;
+                root.gameObject.SetActive(show);
+                if (!show) continue;
+                float x = (i - (seats - 1) * 0.5f) * pitch;
+                root.sizeDelta = new Vector2(width, height);
+                root.anchoredPosition = new Vector2(x, 268f);
+                if (!binCelebrating)
+                    root.localScale = Vector3.one;
+                RectTransform open = binFaces[i].rectTransform;
+                open.sizeDelta = new Vector2(width, height);
+                open.anchoredPosition = new Vector2(0f, height * 0.5f);
+                Transform lid = root.Find("Shut");
+                var shut = lid as RectTransform;
+                if (shut != null)
+                {
+                    shut.sizeDelta = new Vector2(width, height * (124f / 190f));
+                    shut.anchoredPosition = new Vector2(0f, height * (62f / 190f));
+                    FitStamp(lid, width);
+                }
+            }
+            EnsureBoxLabel(268f + height + 36f);
+        }
+
+        public void NudgeBin(int index)
+        {
+            if (binCelebrating || binFaces == null || index < 0 || index >= binFaces.Length || binFaces[index] == null)
+                return;
+            if (binPunch == null || binPunch.Length != binFaces.Length)
+                binPunch = new float[binFaces.Length];
+            binPunch[index] = 0.14f;
+        }
+
+        public IEnumerator PopNode(int index)
+        {
+            if (rewardNodes == null || index < 0 || index >= rewardNodes.Length || rewardNodes[index] == null)
+                yield break;
+            RectTransform rect = rewardNodes[index].rectTransform;
+            float t = 0f;
+            const float duration = 0.28f;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float k = Mathf.Clamp01(t / duration);
+                rect.localScale = Vector3.one * (1f + Mathf.Sin(k * Mathf.PI) * 0.35f);
+                yield return null;
+            }
+            rect.localScale = Vector3.one;
+        }
+
+        public IEnumerator CelebrateBins()
+        {
+            binCelebrating = true;
+            if (binPunch != null)
+            {
+                for (int i = 0; i < binPunch.Length; i++)
+                    binPunch[i] = 0f;
+            }
+            var roots = new Transform[PackBoard.MaxSeats];
+            int count = 0;
+            for (int i = 0; i < shownSeats && binFaces != null && i < binFaces.Length; i++)
+            {
+                if (binFaces[i] == null) continue;
+                roots[count++] = binFaces[i].transform.parent;
+            }
+            float t = 0f;
+            const float duration = 0.28f;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float k = Mathf.Clamp01(t / duration);
+                for (int i = 0; i < count; i++)
+                {
+                    if (roots[i] == null) continue;
+                    float local = Mathf.Clamp01(k * 1.15f - i * 0.05f);
+                    roots[i].localScale = Vector3.one * (1f + Mathf.Sin(local * Mathf.PI) * 0.1f);
+                }
+                yield return null;
+            }
+            for (int i = 0; i < count; i++)
+            {
+                if (roots[i] != null)
+                    roots[i].localScale = Vector3.one;
+            }
+            binCelebrating = false;
+        }
+
+        public IEnumerator IntroBins()
+        {
+            binCelebrating = true;
+            var roots = new Transform[PackBoard.MaxSeats];
+            int count = 0;
+            for (int i = 0; i < shownSeats && binFaces != null && i < binFaces.Length; i++)
+            {
+                if (binFaces[i] == null) continue;
+                roots[count++] = binFaces[i].transform.parent;
+            }
+            for (int i = 0; i < count; i++)
+            {
+                if (roots[i] != null)
+                    roots[i].localScale = Vector3.one * 0.45f;
+            }
+            float t = 0f;
+            const float duration = 0.24f;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float k = Mathf.Clamp01(t / duration);
+                float s = k < 0.7f
+                    ? Mathf.Lerp(0.45f, 1.08f, k / 0.7f)
+                    : Mathf.Lerp(1.08f, 1f, (k - 0.7f) / 0.3f);
+                for (int i = 0; i < count; i++)
+                {
+                    if (roots[i] != null)
+                        roots[i].localScale = Vector3.one * s;
+                }
+                yield return null;
+            }
+            for (int i = 0; i < count; i++)
+            {
+                if (roots[i] != null)
+                    roots[i].localScale = Vector3.one;
+            }
+            binCelebrating = false;
+        }
+
+        void LateUpdate()
+        {
+            if (packButton != null)
+            {
+                if (!packHot)
+                    packButton.transform.localScale = Vector3.one;
+                else
+                {
+                    float s = 1f + Mathf.Sin(Time.unscaledTime * 5.4f) * 0.045f;
+                    packButton.transform.localScale = new Vector3(s, s, 1f);
+                }
+            }
+            if (binCelebrating || binPunch == null || binFaces == null) return;
+            for (int i = 0; i < binPunch.Length && i < binFaces.Length; i++)
+            {
+                if (binPunch[i] <= 0f || binFaces[i] == null) continue;
+                binPunch[i] = Mathf.Max(0f, binPunch[i] - Time.deltaTime * 0.85f);
+                Transform root = binFaces[i].transform.parent;
+                if (root != null)
+                    root.localScale = Vector3.one * (1f + binPunch[i]);
+            }
+        }
+
+        static void TintButton(Button button, bool on)
+        {
+            if (button == null) return;
+            var image = button.targetGraphic as Image;
+            if (image != null)
+                image.color = on ? Color.white : new Color(0.62f, 0.6f, 0.62f, 1f);
+        }
+
         void EnsureBins()
         {
-            if (binFaces == null || binFaces.Length != PackBoard.BoxSlots)
-                binFaces = new Image[PackBoard.BoxSlots];
+            if (binFaces == null || binFaces.Length != PackBoard.MaxSeats)
+            {
+                var next = new Image[PackBoard.MaxSeats];
+                if (binFaces != null)
+                {
+                    int n = Mathf.Min(binFaces.Length, next.Length);
+                    for (int i = 0; i < n; i++)
+                        next[i] = binFaces[i];
+                }
+                binFaces = next;
+            }
             if (binOpen == null) return;
             for (int i = 0; i < binFaces.Length; i++)
             {
                 if (binFaces[i] != null) continue;
-                float x = (i - (binFaces.Length - 1) * 0.5f) * 180f;
                 var slot = new GameObject("Bin_" + i, typeof(RectTransform));
                 slot.transform.SetParent(transform, false);
                 var root = (RectTransform)slot.transform;
@@ -387,7 +605,7 @@ namespace DressSort
                 root.anchorMax = new Vector2(0.5f, 0f);
                 root.pivot = new Vector2(0.5f, 0f);
                 root.sizeDelta = new Vector2(156f, 190f);
-                root.anchoredPosition = new Vector2(x, 268f);
+                root.anchoredPosition = new Vector2(0f, 268f);
 
                 Image open = UiKit.Icon(root, "Open", binOpen, new Vector2(0.5f, 0f),
                     new Vector2(0f, 95f), new Vector2(156f, 190f));
@@ -398,6 +616,19 @@ namespace DressSort
                 shut.gameObject.SetActive(false);
                 binFaces[i] = open;
             }
+        }
+
+        void EnsureBoxLabel(float y)
+        {
+            if (boxLabel == null)
+            {
+                boxLabel = UiKit.Label(transform, "BoxCount", "", new Vector2(0.5f, 0f),
+                    new Vector2(0f, y), new Vector2(520f, 40f), 28, Cocoa);
+                var rim = boxLabel.gameObject.AddComponent<Outline>();
+                rim.effectColor = new Color(1f, 0.98f, 0.93f, 0.92f);
+                rim.effectDistance = new Vector2(2f, -2f);
+            }
+            boxLabel.rectTransform.anchoredPosition = new Vector2(0f, y);
         }
 
         void PinTop(RectTransform rect, Vector2 anchor, Vector2 position)
@@ -472,7 +703,10 @@ namespace DressSort
                 binFaces[index].gameObject.SetActive(!shut);
                 Transform lid = binFaces[index].transform.parent.Find("Shut");
                 if (lid != null)
+                {
                     lid.gameObject.SetActive(shut);
+                    ApplyStamp(lid, sprite);
+                }
                 return;
             }
             if (index < 0 || boxSlots == null || index >= boxSlots.Length || boxSlots[index] == null) return;
@@ -482,8 +716,56 @@ namespace DressSort
 
         public void ClearBox()
         {
-            for (int i = 0; i < boxSlots.Length; i++)
+            int n = binFaces != null && binFaces.Length > 0 ? binFaces.Length : (boxSlots != null ? boxSlots.Length : 0);
+            for (int i = 0; i < n; i++)
                 SetBoxSlot(i, null);
+        }
+
+        void ApplyStamp(Transform lid, Sprite sprite)
+        {
+            Transform found = lid.Find("Stamp");
+            if (sprite == null)
+            {
+                if (found != null)
+                    found.gameObject.SetActive(false);
+                return;
+            }
+            Image stamp;
+            if (found == null)
+            {
+                stamp = UiKit.Icon(lid, "Stamp", sprite, new Vector2(0.5f, 0.5f),
+                    new Vector2(0f, 16f), new Vector2(72f, 72f));
+                stamp.raycastTarget = false;
+                Sprite check = CheckSprite;
+                if (check != null)
+                {
+                    Image tick = UiKit.Icon(stamp.transform, "Tick", check, new Vector2(1f, 0f),
+                        new Vector2(2f, 6f), new Vector2(34f, 34f));
+                    tick.raycastTarget = false;
+                }
+            }
+            else
+            {
+                found.gameObject.SetActive(true);
+                stamp = found.GetComponent<Image>();
+                if (stamp != null)
+                    stamp.sprite = sprite;
+            }
+            var root = lid.parent as RectTransform;
+            FitStamp(lid, root != null ? root.sizeDelta.x : 156f);
+        }
+
+        static void FitStamp(Transform lid, float width)
+        {
+            Transform stamp = lid.Find("Stamp");
+            if (stamp == null) return;
+            float s = Mathf.Clamp(width * 0.46f, 48f, 78f);
+            var rt = (RectTransform)stamp;
+            rt.sizeDelta = new Vector2(s, s);
+            rt.anchoredPosition = new Vector2(0f, width * 0.1f);
+            Transform tick = stamp.Find("Tick");
+            if (tick is RectTransform tickRect)
+                tickRect.sizeDelta = new Vector2(s * 0.46f, s * 0.46f);
         }
 
         public void ShowToast(string message)

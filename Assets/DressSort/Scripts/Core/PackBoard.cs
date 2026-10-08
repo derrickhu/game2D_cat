@@ -7,8 +7,12 @@ namespace DressSort
     /// 活动页「同款装箱」。不碰 Unity。
     /// 先点一列，再点另一列：只倒最上面连着的同款。
     /// 对面是空列，或者顶上也是同款，就能倒。空位有几件就倒几件，倒满为止，剩下的留在原列。
-    /// 一列被同款放满就可以装箱。收纳箱满 4 格算一箱，装满 3 箱过关。
-        /// 这一局裙子种类开局就定了。补充不用等台上清空：有空位的列各叠一件队列里的同款，原来的留在下面。
+    /// 一列被同款放满就可以装箱。三箱越装越大：4 格、6 格、8 格，装满过关。
+    /// 第 4 列装完 1 箱打开，第 5 列装完 2 箱打开，第 6 列看广告临时开。
+    /// 开局照参考局：一列同色全亮、顶上压 1 件别的；旁边几件能补满的，底下几张问号。空列留着挪那件压着的。
+    /// 每局换列、换裙子，也换亮着的件数、问号张数、一次补上来的件数。倒法不变：差几件就倒几件，凑满 8 件装箱。
+    /// 问号翻开才是刚才那件的颜色。第 4 列打开以后，一次摆出两列快装满的，连装两次。
+    /// 摆新局面的那一叠，只在目标列都空着时才放。补满的那一叠，只接到已经露出的同色上。
     /// </summary>
     public class PackBoard
     {
@@ -16,10 +20,12 @@ namespace DressSort
         public const int ColumnHeight = 8;
         public const int StartOpen = 3;
         public const int ProgressColumn = 3;
-        public const int AdColumnA = 4;
-        public const int AdColumnB = 5;
-        public const int BoxSlots = 4;
+        public const int SecondColumn = 4;
+        public const int AdColumn = 5;
+        public static readonly int[] BoxPlan = { 4, 6, 8 };
         public const int BoxesToWin = 3;
+        public const int GroupsToWin = 18;
+        public const int MaxSeats = 8;
 
         public struct Cell
         {
@@ -43,14 +49,20 @@ namespace DressSort
         }
 
         readonly List<Cell>[] columns;
-        readonly List<int> reserve = new List<int>();
+        readonly List<Drop> queue = new List<Drop>();
+        readonly List<int> chunkSize = new List<int>();
+        readonly List<bool> chunkOnEmpty = new List<bool>();
+        readonly List<WavePlan> plans = new List<WavePlan>();
         readonly bool[] open = new bool[ColumnCount];
+        int queueHead;
+        int nextChunk;
+        bool scriptedPuzzle;
 
         public int Selected { get; private set; } = -1;
         public int BoxFilled { get; private set; }
         public int BoxesDone { get; private set; }
         public bool Won { get; private set; }
-        public int ReserveCount => reserve.Count;
+        public int ReserveCount => queue.Count - queueHead;
 
         /// <summary>这一盘按记录的走法能装完。</summary>
         public bool Proven { get; private set; }
@@ -71,7 +83,23 @@ namespace DressSort
 
         public bool IsOpen(int column) => column >= 0 && column < ColumnCount && open[column];
 
-        public bool IsAdColumn(int column) => column == AdColumnA || column == AdColumnB;
+        public bool IsAdColumn(int column) => column == AdColumn;
+
+        public static int SeatsOf(int boxIndex)
+        {
+            if (boxIndex < 0) boxIndex = 0;
+            if (boxIndex >= BoxPlan.Length) boxIndex = BoxPlan.Length - 1;
+            return BoxPlan[boxIndex];
+        }
+
+        public int CurrentSeats => SeatsOf(BoxesDone);
+
+        public string LockHint(int column)
+        {
+            if (IsAdColumn(column)) return "临时解锁";
+            if (column == SecondColumn) return "装2箱后开";
+            return "装1箱后开";
+        }
 
         public IReadOnlyList<Cell> Column(int index) => columns[index];
 
@@ -174,16 +202,21 @@ namespace DressSort
             List<Cell> list = columns[column];
             result.Column = column;
             result.Type = list[0].Type;
+            if (Selected == column)
+                Selected = -1;
             list.Clear();
 
+            int seats = CurrentSeats;
             BoxFilled++;
-            if (BoxFilled >= BoxSlots)
+            if (BoxFilled >= seats)
             {
                 BoxFilled = 0;
                 BoxesDone++;
                 result.Shipped = true;
                 if (BoxesDone >= 1)
                     open[ProgressColumn] = true;
+                if (BoxesDone >= 2)
+                    open[SecondColumn] = true;
                 if (BoxesDone >= BoxesToWin)
                 {
                     Won = true;
@@ -193,38 +226,26 @@ namespace DressSort
             return result;
         }
 
-        public bool HasOpenSpace
-        {
-            get
-            {
-                for (int c = 0; c < ColumnCount; c++)
-                {
-                    if (IsOpen(c) && columns[c].Count < ColumnHeight) return true;
-                }
-                return false;
-            }
-        }
-
-        /// <summary>队列里还有这一局的裙子，并且已开的列上有空位，就可以补。不用等台上清空。</summary>
-        public bool CanRefill => !Won && reserve.Count > 0 && HasOpenSpace;
+        /// <summary>下一叠能整叠放上去：目标列有空位，空着或者顶上已经是同一件。</summary>
+        public bool CanRefill => !Won && ChunkFits();
 
         /// <summary>
-        /// 每个还有空位的已开列叠一件。满列跳过，原来的衣服留在下面。
-        /// 补上来的都是开局定好的那几种。
+        /// 放下预先排好的下一叠。一叠要么全放下，要么一件都不放。
+        /// 广告列不收。放下以后，顶上新露出来的同色会翻开。
         /// </summary>
         public int Refill()
         {
             if (!CanRefill) return 0;
-            int placed = 0;
-            for (int c = 0; c < ColumnCount; c++)
+            int size = chunkSize[nextChunk];
+            for (int i = 0; i < size; i++)
             {
-                if (!IsOpen(c) || columns[c].Count >= ColumnHeight) continue;
-                if (reserve.Count == 0) break;
-                PlaceIncoming(c, Take());
-                placed++;
+                Drop drop = queue[queueHead + i];
+                columns[drop.Column].Insert(0, new Cell { Type = drop.Type, Revealed = drop.Revealed });
             }
+            queueHead += size;
+            nextChunk++;
             RevealReady();
-            return placed;
+            return size;
         }
 
         public bool IsStuck
@@ -251,23 +272,25 @@ namespace DressSort
                 {
                     var dealt = new PackBoard(palette, seed * 17 + palette);
                     if (!dealt.Proven) return "unproven " + palette + ":" + seed;
-                    if (dealt.Column(2).Count != 0) return "parking " + palette;
+                    if (BoxPlan[0] + BoxPlan[1] + BoxPlan[2] != GroupsToWin) return "plan";
+                    if (dealt.Column(AdColumn).Count != 0) return "ad start";
+                    if (palette == 1)
+                    {
+                        if (dealt.Column(0).Count != ColumnHeight || !dealt.CanPack) return "pure";
+                        if (dealt.Column(2).Count != 0) return "pure buffer";
+                        if (dealt.ReserveCount != ColumnHeight * (GroupsToWin - 1))
+                            return "pure reserve " + dealt.ReserveCount;
+                    }
+                    else
+                    {
+                        if (!OpeningShape(dealt)) return "opening " + palette + ":" + seed;
+                        if (dealt.CanPack || dealt.CanRefill) return "opening free";
+                    }
                     int onBoard = 0;
                     for (int c = 0; c < ColumnCount; c++)
                         onBoard += dealt.Column(c).Count;
-                    if (onBoard != ColumnHeight * 2) return "board " + onBoard;
-                    if (dealt.ReserveCount != ColumnHeight * 2 * 5) return "reserve " + dealt.ReserveCount;
-                    if (!dealt.CanRefill) return "no refill";
-                    if (palette > 1 && dealt.CanPack) return "already sorted";
-                    var seen = new bool[palette];
-                    for (int c = 0; c < 2; c++)
-                    {
-                        for (int i = 0; i < dealt.Column(c).Count; i++)
-                            seen[dealt.Column(c)[i].Type] = true;
-                    }
-                    if (dealt.Refill() != 1 || dealt.Column(2).Count != 1) return "gap";
-                    int added = dealt.Column(2)[0].Type;
-                    if (added < 0 || added >= palette || !seen[added]) return "new dress";
+                    if (onBoard + dealt.ReserveCount != ColumnHeight * GroupsToWin)
+                        return "reserve " + palette + ":" + seed;
                 }
             }
 
@@ -279,13 +302,25 @@ namespace DressSort
                 for (int i = 0; i < again.Column(c).Count; i++)
                 {
                     if (again.Column(c)[i].Type != same.Column(c)[i].Type) return "seed";
+                    if (again.Column(c)[i].Revealed != same.Column(c)[i].Revealed) return "seed face";
                 }
             }
+
+            bool buried = false;
+            for (int c = 0; c < StartOpen; c++)
+            {
+                for (int i = 0; i < again.Column(c).Count; i++)
+                {
+                    if (i == 0 && !again.Column(c)[i].Revealed) return "top buried";
+                    if (!again.Column(c)[i].Revealed) buried = true;
+                }
+            }
+            if (!buried) return "no mystery";
 
             var board = new PackBoard(1, 3);
             if (!board.Proven) return "deal";
             if (board.Selected != -1) return "preselected";
-            if (!board.IsOpen(0) || board.IsOpen(ProgressColumn) || board.IsOpen(AdColumnA))
+            if (!board.IsOpen(0) || board.IsOpen(ProgressColumn) || board.IsOpen(SecondColumn) || board.IsOpen(AdColumn))
                 return "open";
             if (board.Column(0).Count != ColumnHeight) return "deal " + board.Column(0).Count;
             if (!board.Column(0)[0].Revealed) return "top hidden";
@@ -333,22 +368,108 @@ namespace DressSort
             PackResult packed = board.Pack();
             if (packed.Column != 0 || packed.Type != 0 || board.Column(0).Count != 0)
                 return "pack";
-            // 台上还有衣服也能补。每个空位叠一件，底下原来的留着。
-            board.SetColumn(0, 1, 1);
-            board.SetColumn(1);
-            board.SetColumn(2);
-            if (!board.CanRefill) return "refill";
-            if (board.Refill() != 3) return "placed";
-            if (board.Column(0).Count != 3 || board.Column(0)[2].Type != 1) return "kept";
-            if (!board.UnlockAd(AdColumnA) || !board.IsOpen(AdColumnA)) return "ad";
-            if (board.UnlockAd(ProgressColumn)) return "progress unlocked early";
+            if (!board.UnlockAd(AdColumn) || !board.IsOpen(AdColumn)) return "ad";
+            if (board.UnlockAd(ProgressColumn) || board.UnlockAd(SecondColumn)) return "progress unlocked early";
 
-            EnsureCatalog();
-            var scripted = new PackBoard();
-            var fallback = scripted.MakeScreen(0, 1, new Random(1), true);
-            var rest = new List<int> { 0, 0, 1, 1, 0, 1, 0, 1, 0, 1 };
-            if (!scripted.Play(fallback, rest)) return "fallback";
+            var live = new PackBoard(3, 4);
+            int pile, donor, buffer;
+            if (!FindOpening(live, out pile, out donor, out buffer)) return "live";
+            int blocker = live.Column(pile)[0].Type;
+            int body = live.Column(pile)[1].Type;
+            int keys = 0;
+            while (keys < live.Column(donor).Count && live.Column(donor)[keys].Type == body)
+                keys++;
+            int hidden = live.Column(donor).Count - keys;
+            if (live.Tap(pile) != TapResult.Selected) return "arm pile";
+            if (live.Tap(buffer) != TapResult.Moved) return "to buffer";
+            if (live.Column(buffer).Count != 1 || live.Column(buffer)[0].Type != blocker) return "held";
+            if (live.CanRefill) return "refill early";
+            if (live.Tap(donor) != TapResult.Selected) return "arm donor";
+            if (live.Tap(pile) != TapResult.Moved) return "complete";
+            if (!live.IsFullUniform(pile) || live.Column(pile)[0].Type != body) return "ready body";
+            if (!live.Column(donor)[0].Revealed || live.Column(donor)[0].Type != blocker) return "flip";
+            if (!live.CanRefill) return "refill late";
+            if (live.Tap(buffer) != TapResult.Selected) return "arm buffer";
+            if (live.Tap(donor) != TapResult.Moved || live.Column(donor).Count != hidden + 1) return "merge";
+            if (!live.UnlockAd(AdColumn)) return "ad live";
+            if (live.Refill() != 7 - hidden || live.Column(AdColumn).Count != 0) return "ad refill";
+            if (!live.IsFullUniform(donor) || live.Column(donor)[0].Type != blocker) return "second";
+
+            var shapes = new HashSet<string>();
+            var pileSizes = new HashSet<int>();
+            var donorSizes = new HashSet<int>();
+            for (int s = 1; s <= 30; s++)
+            {
+                var varied = new PackBoard(4, s * 13 + 5);
+                if (!varied.Proven) return "variety proof " + s;
+                int vp, vd, vb;
+                if (!FindOpening(varied, out vp, out vd, out vb)) return "variety shape";
+                pileSizes.Add(varied.Column(vp).Count);
+                donorSizes.Add(varied.Column(vd).Count);
+                shapes.Add(vp + ":" + vd + ":" + vb + ":" + varied.Column(vp).Count
+                    + ":" + varied.Column(vd).Count + ":" + varied.Column(vp)[0].Type);
+            }
+            if (shapes.Count < 6) return "variety " + shapes.Count;
+            if (pileSizes.Count < 2 || donorSizes.Count < 2) return "qty";
             return "ok";
+        }
+
+        static bool OpeningShape(PackBoard dealt)
+        {
+            int pile, donor, buffer;
+            if (!FindOpening(dealt, out pile, out donor, out buffer)) return false;
+            int blocker = dealt.Column(pile)[0].Type;
+            int body = dealt.Column(pile)[1].Type;
+            if (blocker == body || !dealt.Column(pile)[0].Revealed) return false;
+            for (int i = 1; i < dealt.Column(pile).Count; i++)
+            {
+                if (dealt.Column(pile)[i].Type != body || !dealt.Column(pile)[i].Revealed) return false;
+            }
+            int keys = 0;
+            while (keys < dealt.Column(donor).Count
+                && dealt.Column(donor)[keys].Type == body
+                && dealt.Column(donor)[keys].Revealed)
+                keys++;
+            if (keys < 1 || dealt.Column(pile).Count != ColumnHeight - keys + 1) return false;
+            if (keys >= dealt.Column(donor).Count) return false;
+            for (int i = keys; i < dealt.Column(donor).Count; i++)
+            {
+                if (dealt.Column(donor)[i].Type != blocker || dealt.Column(donor)[i].Revealed) return false;
+            }
+            return true;
+        }
+
+        static bool FindOpening(PackBoard dealt, out int pile, out int donor, out int buffer)
+        {
+            pile = -1;
+            donor = -1;
+            buffer = -1;
+            for (int c = 0; c < StartOpen; c++)
+            {
+                IReadOnlyList<Cell> column = dealt.Column(c);
+                if (column.Count == 0)
+                {
+                    if (buffer >= 0) return false;
+                    buffer = c;
+                    continue;
+                }
+                bool hidden = false;
+                for (int i = 0; i < column.Count; i++)
+                {
+                    if (!column[i].Revealed) hidden = true;
+                }
+                if (hidden)
+                {
+                    if (donor >= 0) return false;
+                    donor = c;
+                }
+                else
+                {
+                    if (pile >= 0) return false;
+                    pile = c;
+                }
+            }
+            return pile >= 0 && donor >= 0 && buffer >= 0;
         }
 
         void SetColumn(int column, params int[] types)
@@ -358,451 +479,281 @@ namespace DressSort
                 columns[column].Add(new Cell { Type = types[i], Revealed = true });
         }
 
-        struct DealScreen
+        struct Drop
         {
-            public int ColorA;
-            public int ColorB;
-            public int[] Top0;
-            public int[] Top1;
-            public int[] MoveFrom;
-            public int[] MoveTo;
+            public int Column;
+            public int Type;
+            public bool Revealed;
         }
 
-        struct Pattern
+        struct Part
         {
-            public long State;
-            public int[] Moves;
+            public int Type;
+            public bool Revealed;
+            public int Count;
         }
 
-        const int ColBits = 12;
-        static List<Pattern> catalog;
-
-        /// <summary>
-        /// 12 组都是开局选定的那几种颜色。台上先摆两组混在一起，第三列空着。
-        /// 其余留在队列里，补充时叠到有空位的列上，先补已经在台上的颜色。
-        /// 空列连续补满就能装箱；台上那两列留到最后再倒开。同一种子同一盘。
-        /// </summary>
         void Deal(int paletteSize, int seed)
         {
+            Build(paletteSize, seed);
+            var ghost = new PackBoard();
+            ghost.Build(paletteSize, seed);
+            Proven = ghost.PlayAll();
+        }
+
+        struct WavePlan
+        {
+            public int Pile;
+            public int Donor;
+            public int Buffer;
+            public int Merge;
+            public int Body;
+            public int Blocker;
+            public int Hidden;
+            public int Keys;
+            public bool Wide;
+        }
+
+        void Build(int paletteSize, int seed)
+        {
+            scriptedPuzzle = paletteSize > 1;
+            if (!scriptedPuzzle)
+            {
+                Lay(Stack(0, P(0, true, ColumnHeight)));
+                for (int i = 1; i < GroupsToWin; i++)
+                    Commit(Stack(2, P(0, true, ColumnHeight)), true);
+                return;
+            }
+
+            plans.AddRange(MakePlans(paletteSize, seed));
+            Lay(Layout(plans[0]));
+            Commit(Finish(plans[0]), false);
+            for (int w = 1; w < plans.Count; w++)
+            {
+                Commit(Layout(plans[w]), true);
+                if (!plans[w].Wide)
+                    Commit(Finish(plans[w]), false);
+            }
+        }
+
+        static List<WavePlan> MakePlans(int paletteSize, int seed)
+        {
             var random = new Random(seed);
-            int groups = BoxesToWin * BoxSlots;
-            var colors = new int[paletteSize];
+            var color = new int[paletteSize];
             for (int i = 0; i < paletteSize; i++)
-                colors[i] = i;
-            for (int i = paletteSize - 1; i > 0; i--)
+                color[i] = i;
+            Shuffle(color, random);
+
+            int waves = GroupsToWin / 2;
+            int narrowWaves = BoxPlan[0] / 2;
+            int cursor = random.Next(paletteSize);
+            var list = new List<WavePlan>(waves);
+            for (int w = 0; w < waves; w++)
+            {
+                int body = color[cursor % paletteSize];
+                int blocker = color[(cursor + 1) % paletteSize];
+                if (random.Next(2) == 0)
+                {
+                    int tmp = body;
+                    body = blocker;
+                    blocker = tmp;
+                }
+                cursor++;
+                if (paletteSize > 2 && random.Next(3) == 0)
+                    cursor++;
+
+                bool wide = w >= narrowWaves;
+                int[] cols = wide
+                    ? new[] { 0, 1, 2, ProgressColumn }
+                    : new[] { 0, 1, 2 };
+                Shuffle(cols, random);
+                int hidden = 2 + random.Next(3);
+                int keysMax = Math.Min(3, 6 - hidden);
+                list.Add(new WavePlan
+                {
+                    Pile = cols[0],
+                    Donor = cols[1],
+                    Buffer = cols[2],
+                    Merge = wide ? cols[3] : -1,
+                    Body = body,
+                    Blocker = blocker,
+                    Hidden = hidden,
+                    Keys = 1 + random.Next(keysMax),
+                    Wide = wide,
+                });
+            }
+            return list;
+        }
+
+        static void Shuffle(int[] values, Random random)
+        {
+            for (int i = values.Length - 1; i > 0; i--)
             {
                 int j = random.Next(i + 1);
-                int tmp = colors[i];
-                colors[i] = colors[j];
-                colors[j] = tmp;
+                int tmp = values[i];
+                values[i] = values[j];
+                values[j] = tmp;
             }
-
-            var count = new int[paletteSize];
-            for (int i = 0; i < groups; i++)
-                count[colors[i % paletteSize]]++;
-
-            EnsureCatalog();
-            int colorA = TakeColor(count, random, -1);
-            int colorB = TakeColor(count, random, colorA);
-            DealScreen screen = MakeScreen(colorA, colorB, random);
-            List<int> rest = RemainingGroups(count, colorA, colorB);
-            if (!Prove(screen, rest))
-                screen = MakeScreen(colorA, colorB, random, true);
-            if (!Prove(screen, rest)) return;
-
-            Lay(screen, rest);
-            Proven = true;
         }
 
-        static List<int> RemainingGroups(int[] count, int colorA, int colorB)
+        /// <summary>一列同色全亮、顶上压 1 件。旁边若干件补满用的压在问号上。宽局再加一列同色，方便连装。</summary>
+        static List<Drop> Layout(WavePlan plan)
         {
-            var rest = new List<int>();
-            for (int c = 0; c < count.Length; c++)
-            {
-                for (int n = 0; n < count[c]; n++)
-                    rest.Add(c);
-            }
-            rest.Sort((a, b) =>
-            {
-                int pa = a == colorA || a == colorB ? 0 : 1;
-                int pb = b == colorA || b == colorB ? 0 : 1;
-                if (pa != pb) return pa - pb;
-                return a - b;
-            });
-            return rest;
+            var drops = new List<Drop>();
+            if (plan.Wide)
+                drops.AddRange(Stack(plan.Merge, P(plan.Blocker, true, 7 - plan.Hidden)));
+            drops.AddRange(Stack(plan.Pile, P(plan.Blocker, true, 1), P(plan.Body, true, ColumnHeight - plan.Keys)));
+            drops.AddRange(Stack(plan.Donor, P(plan.Body, true, plan.Keys), P(plan.Blocker, false, plan.Hidden)));
+            return drops;
         }
 
-        static int TakeColor(int[] count, Random random, int avoid)
+        static List<Drop> Finish(WavePlan plan)
         {
-            int best = -1;
-            int choices = 0;
-            for (int i = 0; i < count.Length; i++)
-            {
-                if (count[i] <= 0 || i == avoid) continue;
-                if (best < 0 || count[i] > count[best])
-                {
-                    best = i;
-                    choices = 1;
-                }
-                else if (count[i] == count[best])
-                {
-                    choices++;
-                    if (random.Next(choices) == 0) best = i;
-                }
-            }
-            if (best < 0)
-            {
-                for (int i = 0; i < count.Length; i++)
-                {
-                    if (count[i] <= 0) continue;
-                    best = i;
-                    break;
-                }
-            }
-            if (best >= 0) count[best]--;
-            return best < 0 ? 0 : best;
+            int count = 7 - plan.Hidden;
+            if (count <= 1)
+                return Stack(plan.Donor, P(plan.Blocker, true, count));
+            return Stack(plan.Donor, P(plan.Blocker, true, 1), P(plan.Blocker, false, count - 1));
         }
 
-        static void EnsureCatalog()
+        static Part P(int type, bool revealed, int count)
         {
-            if (catalog != null) return;
-            long solved = StateOf(ColFrom(0, 0, 0, 0, 0, 0, 0, 0), ColFrom(1, 1, 1, 1, 1, 1, 1, 1), 0);
-            var parent = new Dictionary<long, long>();
-            var forward = new Dictionary<long, int>();
-            var dist = new Dictionary<long, int>();
-            var queue = new Queue<long>();
-            parent[solved] = -1;
-            dist[solved] = 0;
-            queue.Enqueue(solved);
-            var byDistance = new List<long>[11];
-            for (int i = 0; i < byDistance.Length; i++)
-                byDistance[i] = new List<long>();
+            return new Part { Type = type, Revealed = revealed, Count = count };
+        }
 
-            while (queue.Count > 0 && parent.Count < 200000)
+        /// <summary>parts 从顶上往下写。存进列表时改成从底下往上，方便之后插到列顶。</summary>
+        static List<Drop> Stack(int column, params Part[] topFirst)
+        {
+            var list = new List<Drop>();
+            for (int p = topFirst.Length - 1; p >= 0; p--)
             {
-                long state = queue.Dequeue();
-                if (dist[state] >= 10) continue;
-                int nextDist = dist[state] + 1;
-                for (int held = 0; held < 3; held++)
+                for (int n = 0; n < topFirst[p].Count; n++)
                 {
-                    for (int origin = 0; origin < 3; origin++)
+                    list.Add(new Drop
                     {
-                        if (held == origin) continue;
-                        int group = GroupOf(StateCol(state, held));
-                        for (int k = 1; k <= group; k++)
-                        {
-                            if (!Reverse(state, held, origin, k, out long next)) continue;
-                            long source = StateCol(next, origin);
-                            if (ColLen(source) == ColumnHeight && IsPure(source)) continue;
-                            if (parent.ContainsKey(next)) continue;
-                            parent[next] = state;
-                            forward[next] = origin * 3 + held;
-                            dist[next] = nextDist;
-                            queue.Enqueue(next);
-                            if (nextDist >= 4 && nextDist < byDistance.Length
-                                && IsDealShape(next) && BothMixed(next)
-                                && byDistance[nextDist].Count < 8)
-                                byDistance[nextDist].Add(next);
-                        }
-                    }
+                        Column = column,
+                        Type = topFirst[p].Type,
+                        Revealed = topFirst[p].Revealed,
+                    });
                 }
             }
+            return list;
+        }
 
-            catalog = new List<Pattern>();
-            catalog.Add(FallbackPattern());
-            for (int d = 4; d < byDistance.Length; d++)
+        void Lay(List<Drop> drops)
+        {
+            for (int i = 0; i < drops.Count; i++)
             {
-                for (int i = 0; i < byDistance[d].Count; i++)
+                columns[drops[i].Column].Insert(0, new Cell
                 {
-                    long state = byDistance[d][i];
-                    var moves = new List<int>();
-                    long cursor = state;
-                    while (parent[cursor] != -1)
-                    {
-                        moves.Add(forward[cursor]);
-                        cursor = parent[cursor];
-                    }
-                    catalog.Add(new Pattern { State = state, Moves = moves.ToArray() });
-                }
+                    Type = drops[i].Type,
+                    Revealed = drops[i].Revealed,
+                });
             }
+            RevealReady();
         }
 
-        static Pattern FallbackPattern()
+        void Commit(List<Drop> drops, bool onEmpty)
         {
-            return new Pattern
-            {
-                State = StateOf(ColFrom(0, 0, 0, 0, 1, 1, 1, 1), ColFrom(1, 1, 1, 1, 0, 0, 0, 0), 0),
-                Moves = new[] { 0 * 3 + 2, 1 * 3 + 0, 2 * 3 + 1 },
-            };
+            if (drops.Count == 0) return;
+            queue.AddRange(drops);
+            chunkSize.Add(drops.Count);
+            chunkOnEmpty.Add(onEmpty);
         }
 
-        DealScreen MakeScreen(int colorA, int colorB, Random random, bool fallback = false)
+        bool ChunkFits()
         {
-            if (colorA == colorB || catalog.Count == 0)
-                return PureScreen(colorA);
-            int pick = 0;
-            if (!fallback && catalog.Count > 1)
-                pick = 1 + random.Next(catalog.Count - 1);
-            Pattern pattern = catalog[pick];
-            var from = new int[pattern.Moves.Length];
-            var to = new int[pattern.Moves.Length];
-            for (int i = 0; i < pattern.Moves.Length; i++)
+            if (nextChunk >= chunkSize.Count) return false;
+            int size = chunkSize[nextChunk];
+            if (queueHead + size > queue.Count) return false;
+            var incoming = new int[ColumnCount];
+            var newTop = new int[ColumnCount];
+            var touched = new bool[ColumnCount];
+            for (int i = 0; i < size; i++)
             {
-                from[i] = pattern.Moves[i] / 3;
-                to[i] = pattern.Moves[i] % 3;
+                Drop drop = queue[queueHead + i];
+                if (drop.Column < 0 || drop.Column >= ColumnCount) return false;
+                if (!IsOpen(drop.Column) || IsAdColumn(drop.Column)) return false;
+                incoming[drop.Column]++;
+                newTop[drop.Column] = drop.Type;
+                touched[drop.Column] = true;
             }
-            return new DealScreen
+            bool onEmpty = chunkOnEmpty[nextChunk];
+            for (int c = 0; c < ColumnCount; c++)
             {
-                ColorA = colorA,
-                ColorB = colorB,
-                Top0 = MapColumn(pattern.State, 0, colorA, colorB),
-                Top1 = MapColumn(pattern.State, 1, colorA, colorB),
-                MoveFrom = from,
-                MoveTo = to,
-            };
-        }
-
-        static DealScreen PureScreen(int color)
-        {
-            var row = new int[ColumnHeight];
-            for (int i = 0; i < ColumnHeight; i++)
-                row[i] = color;
-            return new DealScreen
-            {
-                ColorA = color,
-                ColorB = color,
-                Top0 = row,
-                Top1 = (int[])row.Clone(),
-                MoveFrom = new int[0],
-                MoveTo = new int[0],
-            };
-        }
-
-        static int[] MapColumn(long state, int index, int colorA, int colorB)
-        {
-            long col = StateCol(state, index);
-            int len = ColLen(col);
-            var colors = new int[len];
-            for (int i = 0; i < len; i++)
-                colors[i] = ColColorAt(col, i) == 0 ? colorA : colorB;
-            return colors;
-        }
-
-        bool Prove(DealScreen screen, List<int> groups)
-        {
-            var ghost = new PackBoard();
-            return ghost.Play(screen, groups);
-        }
-
-        /// <summary>
-        /// 前 4 组只进空着的第 3 列，每组 8 件同色，补满就装箱。第 4 箱打开第 4 列。
-        /// 后面 6 组两列一起补，左一色右一色。最后再把开局那两列倒开装箱。
-        /// </summary>
-        bool Play(DealScreen screen, List<int> groups)
-        {
-            if (groups == null || groups.Count != 10) return false;
-            PlaceTopFirst(0, screen.Top0);
-            PlaceTopFirst(1, screen.Top1);
-            EnqueueGroups(groups);
-
-            for (int n = 0; n < 4; n++)
-            {
-                for (int i = 0; i < ColumnHeight; i++)
+                if (!touched[c]) continue;
+                if (columns[c].Count + incoming[c] > ColumnHeight) return false;
+                if (onEmpty)
                 {
-                    if (!CanRefill || Refill() != 1) return false;
+                    if (columns[c].Count != 0) return false;
                 }
+                else if (columns[c].Count == 0 || columns[c][0].Type != newTop[c])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        bool PlayAll()
+        {
+            if (!scriptedPuzzle) return PlayPure();
+            if (plans.Count != GroupsToWin / 2) return false;
+            if (!SolveWave3(plans[0])) return false;
+            for (int w = 1; w < plans.Count; w++)
+            {
+                WavePlan plan = plans[w];
+                int expect = plan.Wide ? 16 : 9 + plan.Hidden;
+                if (plan.Wide && !IsOpen(ProgressColumn)) return false;
+                if (Refill() != expect) return false;
+                bool solved = plan.Wide ? SolveWave4(plan) : SolveWave3(plan);
+                if (!solved) return false;
+            }
+            return Won && ReserveCount == 0 && Column(AdColumn).Count == 0;
+        }
+
+        bool PlayPure()
+        {
+            if (PackAt(0).Column != 0) return false;
+            for (int i = 1; i < GroupsToWin; i++)
+            {
+                if (Refill() != ColumnHeight) return false;
                 if (PackAt(2).Column != 2) return false;
             }
-            if (!IsOpen(ProgressColumn)) return false;
-
-            for (int n = 0; n < 3; n++)
-            {
-                for (int i = 0; i < ColumnHeight; i++)
-                {
-                    if (!CanRefill || Refill() != 2) return false;
-                }
-                if (PackAt(2).Column != 2 || PackAt(3).Column != 3) return false;
-            }
-            if (ReserveCount != 0) return false;
-            if (!Matches(0, screen.Top0) || !Matches(1, screen.Top1)) return false;
-            if (Column(2).Count != 0) return false;
-
-            for (int m = 0; m < screen.MoveFrom.Length; m++)
-            {
-                if (PourCount(screen.MoveFrom[m], screen.MoveTo[m]) <= 0) return false;
-                Move(screen.MoveFrom[m], screen.MoveTo[m]);
-            }
-            int packed = 0;
-            if (!SweepPack(ref packed) || packed != 2) return false;
-            return Won;
+            return Won && ReserveCount == 0 && Column(AdColumn).Count == 0;
         }
 
-        bool SweepPack(ref int packed)
+        bool SolveWave3(WavePlan plan)
         {
-            for (int guard = 0; guard < 3; guard++)
-            {
-                int column = -1;
-                for (int c = 0; c < StartOpen; c++)
-                {
-                    if (!IsFullUniform(c)) continue;
-                    column = c;
-                    break;
-                }
-                if (column < 0) return true;
-                if (PackAt(column).Column < 0) return false;
-                packed++;
-            }
+            if (PourCount(plan.Pile, plan.Buffer) != 1) return false;
+            Move(plan.Pile, plan.Buffer);
+            if (PourCount(plan.Donor, plan.Pile) != plan.Keys) return false;
+            Move(plan.Donor, plan.Pile);
+            if (PackAt(plan.Pile).Column != plan.Pile) return false;
+            if (PourCount(plan.Buffer, plan.Donor) != 1) return false;
+            Move(plan.Buffer, plan.Donor);
+            if (Refill() != 7 - plan.Hidden) return false;
+            if (PackAt(plan.Donor).Column != plan.Donor) return false;
+            if (Column(plan.Pile).Count != 0 || Column(plan.Donor).Count != 0 || Column(plan.Buffer).Count != 0)
+                return false;
             return true;
         }
 
-        void Lay(DealScreen screen, List<int> groups)
+        bool SolveWave4(WavePlan plan)
         {
-            PlaceTopFirst(0, screen.Top0);
-            PlaceTopFirst(1, screen.Top1);
-            EnqueueGroups(groups);
-        }
-
-        void EnqueueGroups(List<int> groups)
-        {
-            for (int g = 0; g < 4; g++)
-            {
-                for (int i = 0; i < ColumnHeight; i++)
-                    reserve.Add(groups[g]);
-            }
-            for (int p = 0; p < 3; p++)
-            {
-                int left = groups[4 + p * 2];
-                int right = groups[4 + p * 2 + 1];
-                for (int i = 0; i < ColumnHeight; i++)
-                {
-                    reserve.Add(left);
-                    reserve.Add(right);
-                }
-            }
-        }
-
-        void PlaceTopFirst(int column, int[] topFirst)
-        {
-            for (int i = topFirst.Length - 1; i >= 0; i--)
-                PlaceIncoming(column, topFirst[i]);
-        }
-
-        bool Matches(int column, int[] topFirst)
-        {
-            List<Cell> list = columns[column];
-            if (list.Count != topFirst.Length) return false;
-            for (int i = 0; i < topFirst.Length; i++)
-            {
-                if (list[i].Type != topFirst[i]) return false;
-            }
-            return true;
-        }
-
-        static bool IsDealShape(long state)
-        {
-            return ColLen(StateCol(state, 0)) == ColumnHeight
-                && ColLen(StateCol(state, 1)) == ColumnHeight
-                && ColLen(StateCol(state, 2)) == 0;
-        }
-
-        static bool BothMixed(long state)
-        {
-            return !IsPure(StateCol(state, 0)) && !IsPure(StateCol(state, 1));
-        }
-
-        static bool IsPure(long col)
-        {
-            int len = ColLen(col);
-            if (len == 0) return false;
-            int color = ColColorAt(col, 0);
-            for (int i = 1; i < len; i++)
-            {
-                if (ColColorAt(col, i) != color) return false;
-            }
-            return true;
-        }
-
-        static long StateOf(long c0, long c1, long c2) => c0 | (c1 << ColBits) | (c2 << (ColBits * 2));
-
-        static long StateCol(long state, int index) => (state >> (index * ColBits)) & 0xFFF;
-
-        static int ColLen(long col) => (int)(col & 15);
-
-        static int ColColorAt(long col, int index) => (int)((col >> (4 + index)) & 1);
-
-        static long ColFrom(params int[] colors)
-        {
-            long packed = colors.Length;
-            for (int i = 0; i < colors.Length; i++)
-            {
-                if (colors[i] != 0) packed |= 1L << (4 + i);
-            }
-            return packed;
-        }
-
-        static int GroupOf(long col)
-        {
-            int len = ColLen(col);
-            if (len == 0) return 0;
-            int color = ColColorAt(col, 0);
-            int count = 1;
-            while (count < len && ColColorAt(col, count) == color) count++;
-            return count;
-        }
-
-        static long PushTop(long col, int color, int count)
-        {
-            int len = ColLen(col);
-            long packed = len + count;
-            for (int i = 0; i < count; i++)
-            {
-                if (color != 0) packed |= 1L << (4 + i);
-            }
-            for (int i = 0; i < len; i++)
-            {
-                if (ColColorAt(col, i) != 0) packed |= 1L << (4 + count + i);
-            }
-            return packed;
-        }
-
-        static long PopTop(long col, int count)
-        {
-            int len = ColLen(col);
-            long packed = len - count;
-            for (int i = 0; i < len - count; i++)
-            {
-                if (ColColorAt(col, i + count) != 0) packed |= 1L << (4 + i);
-            }
-            return packed;
-        }
-
-        /// <summary>
-        /// 把 held 顶上 k 件挪到 origin。只有倒回去刚好还是这整组时才算合法逆操作。
-        /// </summary>
-        static bool Reverse(long state, int held, int origin, int k, out long next)
-        {
-            next = state;
-            long source = StateCol(state, held);
-            long dest = StateCol(state, origin);
-            if (k <= 0 || k > GroupOf(source)) return false;
-            if (ColLen(dest) + k > ColumnHeight) return false;
-            int color = ColColorAt(source, 0);
-            long sourceAfter = PopTop(source, k);
-            long destAfter = PushTop(dest, color, k);
-            int space = ColumnHeight - ColLen(sourceAfter);
-            int group = GroupOf(destAfter);
-            if (group != k || space < group) return false;
-            if (ColLen(sourceAfter) > 0 && ColColorAt(sourceAfter, 0) != color) return false;
-            long c0 = StateCol(state, 0);
-            long c1 = StateCol(state, 1);
-            long c2 = StateCol(state, 2);
-            if (held == 0) c0 = sourceAfter;
-            else if (held == 1) c1 = sourceAfter;
-            else c2 = sourceAfter;
-            if (origin == 0) c0 = destAfter;
-            else if (origin == 1) c1 = destAfter;
-            else c2 = destAfter;
-            next = StateOf(c0, c1, c2);
+            int merge = 7 - plan.Hidden;
+            if (PourCount(plan.Pile, plan.Buffer) != 1) return false;
+            Move(plan.Pile, plan.Buffer);
+            if (PourCount(plan.Donor, plan.Pile) != plan.Keys) return false;
+            Move(plan.Donor, plan.Pile);
+            if (PackAt(plan.Pile).Column != plan.Pile) return false;
+            if (PourCount(plan.Buffer, plan.Donor) != 1) return false;
+            Move(plan.Buffer, plan.Donor);
+            if (PourCount(plan.Merge, plan.Donor) != merge) return false;
+            Move(plan.Merge, plan.Donor);
+            if (PackAt(plan.Donor).Column != plan.Donor) return false;
+            if (Column(plan.Pile).Count != 0 || Column(plan.Donor).Count != 0
+                || Column(plan.Buffer).Count != 0 || Column(plan.Merge).Count != 0)
+                return false;
             return true;
         }
 
@@ -818,27 +769,20 @@ namespace DressSort
             RevealReady();
         }
 
-        void PlaceIncoming(int column, int type)
-        {
-            columns[column].Insert(0, new Cell { Type = type, Revealed = true });
-        }
-
-        int Take()
-        {
-            int type = reserve[0];
-            reserve.RemoveAt(0);
-            return type;
-        }
 
         void RevealReady()
         {
             for (int c = 0; c < ColumnCount; c++)
             {
-                if (!IsFullUniform(c)) continue;
                 List<Cell> list = columns[c];
+                if (list.Count == 0) continue;
+                bool all = IsFullUniform(c);
+                int top = GroupSize(c);
                 for (int i = 0; i < list.Count; i++)
                 {
+                    if (!all && i >= top) continue;
                     Cell cell = list[i];
+                    if (cell.Revealed) continue;
                     cell.Revealed = true;
                     list[i] = cell;
                 }

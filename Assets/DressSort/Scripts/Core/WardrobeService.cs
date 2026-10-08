@@ -294,6 +294,14 @@ namespace DressSort
             Save();
         }
 
+        /// <summary>GM 给一种材料。数量只增不减。</summary>
+        public void AddMaterial(CraftMat mat, int amount)
+        {
+            if (amount <= 0) return;
+            data.materials[(int)mat] += amount;
+            Save();
+        }
+
         public bool HasBlueprint(ItemDef item) => item != null && data.blueprints.Contains(item.id);
 
         public bool AddBlueprint(ItemDef item)
@@ -302,6 +310,23 @@ namespace DressSort
             data.blueprints.Add(item.id);
             Save();
             return true;
+        }
+
+        /// <summary>GM 一次发多张有配方的图纸。已经有的跳过，只存一次档。</summary>
+        public int GrantBlueprints(List<ItemDef> items)
+        {
+            if (items == null) return 0;
+            int added = 0;
+            for (int i = 0; i < items.Count; i++)
+            {
+                ItemDef item = items[i];
+                if (item == null || string.IsNullOrEmpty(item.id) || HasBlueprint(item)) continue;
+                if (CraftCatalog.RecipeOf(item.id) == null) continue;
+                data.blueprints.Add(item.id);
+                added++;
+            }
+            if (added > 0) Save();
+            return added;
         }
 
         /// <summary>拿到的全部图纸，没做过的排在前面。</summary>

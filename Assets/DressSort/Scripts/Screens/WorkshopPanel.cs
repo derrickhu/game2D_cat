@@ -17,6 +17,9 @@ namespace DressSort
         int tab;
         readonly List<RectTransform> cards = new List<RectTransform>();
         Coroutine toastRoutine;
+        GameObject gmLayer;
+        Text[] gmMatCounts;
+        RectTransform gmPrints;
 
         protected override void Build()
         {
@@ -39,6 +42,7 @@ namespace DressSort
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
             hud.Wire(() => app.Show(ScreenId.Home), OnTab);
+            EnsureGmButton();
         }
 
         public override void OnShow()
@@ -51,6 +55,7 @@ namespace DressSort
 
         public override void OnHide()
         {
+            CloseGm();
             StopAllCoroutines();
             toastRoutine = null;
         }
@@ -59,6 +64,8 @@ namespace DressSort
         {
             tab = index;
             Refresh();
+            if (gmLayer != null)
+                RebuildPrints();
         }
 
         /// <summary>打开时直接停在有能做的图纸的那一页。</summary>
@@ -212,6 +219,176 @@ namespace DressSort
             yield return new WaitForSeconds(1.8f);
             hud.ShowToast("");
             toastRoutine = null;
+        }
+
+        void EnsureGmButton()
+        {
+            if (hud.transform.Find("Btn_GM") != null) return;
+            UiKit.Button(hud.transform, "GM", new Vector2(1f, 1f),
+                new Vector2(-100f, -88f), new Vector2(140f, 56f), Chip.White, 24, OpenGm);
+        }
+
+        void OpenGm()
+        {
+            if (gmLayer != null) return;
+            var go = new GameObject("GmGrant", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(root, false);
+            var rect = (RectTransform)go.transform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            rect.SetAsLastSibling();
+            var dim = go.GetComponent<Image>();
+            dim.sprite = UiKit.SoftRect;
+            dim.type = Image.Type.Sliced;
+            dim.color = new Color(0.2f, 0.12f, 0.14f, 0.45f);
+            dim.raycastTarget = true;
+            gmLayer = go;
+
+            Image board = UiKit.Icon(go.transform, "Board", UiKit.Rounded, new Vector2(0.5f, 0.5f),
+                Vector2.zero, new Vector2(960f, 1560f));
+            board.type = Image.Type.Sliced;
+            board.color = new Color(1f, 0.97f, 0.93f, 1f);
+            board.raycastTarget = true;
+
+            UiKit.Label(board.transform, "Title", "发放", new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 700f), new Vector2(400f, 64f), 40, Palette.Ink);
+
+            gmMatCounts = new Text[CraftCatalog.MatCount];
+            for (int m = 0; m < CraftCatalog.MatCount; m++)
+            {
+                int index = m;
+                int col = m % 4;
+                int row = m / 4;
+                float x = -330f + col * 220f;
+                float y = 560f - row * 140f;
+                UiKit.Label(board.transform, "Mat_" + m, CraftCatalog.MatNames[m], new Vector2(0.5f, 0.5f),
+                    new Vector2(x - 36f, y + 28f), new Vector2(150f, 40f), 24, Palette.Ink);
+                gmMatCounts[m] = UiKit.Label(board.transform, "Have_" + m, "", new Vector2(0.5f, 0.5f),
+                    new Vector2(x - 36f, y - 8f), new Vector2(150f, 36f), 26, Palette.Caption);
+                UiKit.Button(board.transform, "+10", new Vector2(0.5f, 0.5f),
+                    new Vector2(x + 64f, y + 8f), new Vector2(88f, 56f), Chip.White, 24, () => GiveMat(index));
+            }
+            PaintMats();
+
+            for (int i = 0; i < WorkshopHud.TabNames.Length; i++)
+            {
+                int index = i;
+                UiKit.Button(board.transform, WorkshopHud.TabNames[i], new Vector2(0.5f, 0.5f),
+                    new Vector2((i - 1) * 200f, 300f), new Vector2(180f, 56f), Chip.White, 26, () => OnTab(index));
+            }
+            UiKit.Button(board.transform, "发放本页全部", new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 220f), new Vector2(440f, 64f), Chip.Teal, 28, GivePage);
+
+            var vpGo = new GameObject("Prints", typeof(RectTransform), typeof(Image), typeof(RectMask2D),
+                typeof(ScrollRect));
+            vpGo.transform.SetParent(board.transform, false);
+            var vp = (RectTransform)vpGo.transform;
+            vp.anchorMin = new Vector2(0.5f, 0.5f);
+            vp.anchorMax = new Vector2(0.5f, 0.5f);
+            vp.pivot = new Vector2(0.5f, 1f);
+            vp.sizeDelta = new Vector2(880f, 640f);
+            vp.anchoredPosition = new Vector2(0f, 150f);
+            var hit = vpGo.GetComponent<Image>();
+            hit.color = new Color(1f, 1f, 1f, 0.01f);
+            hit.raycastTarget = true;
+
+            gmPrints = UiKit.Rect(vp, "Rows", new Vector2(0.5f, 1f), Vector2.zero, new Vector2(880f, 0f));
+            gmPrints.pivot = new Vector2(0.5f, 1f);
+            var scroll = vpGo.GetComponent<ScrollRect>();
+            scroll.content = gmPrints;
+            scroll.viewport = vp;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 30f;
+            RebuildPrints();
+
+            UiKit.Button(board.transform, "关闭", new Vector2(0.5f, 0.5f),
+                new Vector2(0f, -700f), new Vector2(280f, 72f), Chip.White, 32, CloseGm);
+        }
+
+        void PaintMats()
+        {
+            if (gmMatCounts == null) return;
+            for (int m = 0; m < gmMatCounts.Length; m++)
+            {
+                if (gmMatCounts[m] != null)
+                    gmMatCounts[m].text = app.Wardrobe.MaterialCount((CraftMat)m).ToString();
+            }
+        }
+
+        List<ItemDef> Craftables()
+        {
+            var list = new List<ItemDef>();
+            foreach (ItemDef item in app.Database.ItemsInSlot(Slots[tab]))
+            {
+                if (item != null && CraftCatalog.RecipeOf(item.id) != null)
+                    list.Add(item);
+            }
+            return list;
+        }
+
+        void RebuildPrints()
+        {
+            if (gmPrints == null) return;
+            for (int i = gmPrints.childCount - 1; i >= 0; i--)
+                UiKit.Discard(gmPrints.GetChild(i));
+            List<ItemDef> list = Craftables();
+            const float rowH = 76f;
+            for (int i = 0; i < list.Count; i++)
+            {
+                ItemDef item = list[i];
+                float y = -12f - rowH * 0.5f - i * rowH;
+                UiKit.Label(gmPrints, "Name", item.displayName, new Vector2(0f, 1f),
+                    new Vector2(220f, y), new Vector2(400f, 64f), 30, Palette.Ink, TextAnchor.MiddleLeft);
+                if (app.Wardrobe.HasBlueprint(item))
+                {
+                    UiKit.Label(gmPrints, "Owned", "已有", new Vector2(1f, 1f),
+                        new Vector2(-110f, y), new Vector2(160f, 56f), 28, Palette.Caption);
+                }
+                else
+                {
+                    UiKit.Button(gmPrints, "发放", new Vector2(1f, 1f),
+                        new Vector2(-110f, y), new Vector2(160f, 56f), Chip.Pink, 28, () => GivePrint(item));
+                }
+            }
+            gmPrints.sizeDelta = new Vector2(880f, Mathf.Max(24f, 24f + list.Count * rowH));
+            gmPrints.anchoredPosition = Vector2.zero;
+        }
+
+        void GiveMat(int index)
+        {
+            app.Wardrobe.AddMaterial((CraftMat)index, 10);
+            PaintMats();
+            hud.SetStock(app.Wardrobe);
+            Refresh();
+        }
+
+        void GivePrint(ItemDef item)
+        {
+            if (!app.Wardrobe.AddBlueprint(item)) return;
+            Refresh();
+            RebuildPrints();
+            Toast("拿到图纸「" + item.displayName + "」");
+        }
+
+        void GivePage()
+        {
+            int added = app.Wardrobe.GrantBlueprints(Craftables());
+            Refresh();
+            RebuildPrints();
+            Toast(added == 0 ? "本页图纸都有了" : "发放了 " + added + " 张图纸");
+        }
+
+        void CloseGm()
+        {
+            if (gmLayer == null) return;
+            UiKit.Discard(gmLayer.transform);
+            gmLayer = null;
+            gmMatCounts = null;
+            gmPrints = null;
         }
     }
 }

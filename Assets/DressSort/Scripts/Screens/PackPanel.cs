@@ -150,9 +150,10 @@ namespace DressSort
             Sfx.Play(SfxId.Shuffle);
             board = new PackBoard(palette.Length, Random.Range(1, 999999));
             hud.ClearBox();
+            hud.LayoutBins(board.CurrentSeats);
             view.Bind(board, palette, mystery);
             RefreshChrome();
-            hud.ShowToast("先点一列，再点另一列。最上面连着的同色会一起倒");
+            hud.ShowToast("先把顶上那件挪开，问号会翻成同色。排满一列就能装箱");
         }
 
         void OnLane(int column)
@@ -167,7 +168,6 @@ namespace DressSort
                         if (board == null || board.IsOpen(column)) return;
                         board.UnlockAd(column);
                         view.Refresh();
-                        Sfx.Play(SfxId.Unlock);
                         hud.ShowToast("这一列临时解锁了");
                     }, () =>
                     {
@@ -177,7 +177,7 @@ namespace DressSort
                     return;
                 }
                 Sfx.Play(SfxId.Deny);
-                hud.ShowToast("装 1 箱后解锁");
+                hud.ShowToast(column == PackBoard.SecondColumn ? "装 2 箱后解锁" : "装 1 箱后解锁");
                 return;
             }
 
@@ -214,8 +214,13 @@ namespace DressSort
         {
             yield return view.PlayPack(packed, slot, icon);
             RefreshChrome();
-            if (packed.Shipped && board.IsOpen(PackBoard.ProgressColumn) && board.BoxesDone == 1)
-                hud.ShowToast("新的一列开了");
+            if (packed.Shipped && !packed.Won)
+            {
+                if (board.BoxesDone == 1)
+                    hud.ShowToast("第 1 箱装满了，新的一列开了");
+                else if (board.BoxesDone == 2)
+                    hud.ShowToast("第 2 箱装满了，又开了一列");
+            }
             if (packed.Won)
             {
                 bool granted = app.Wardrobe.ClaimPack();
@@ -235,7 +240,7 @@ namespace DressSort
                 if (board.ReserveCount == 0)
                     hud.ShowToast("衣服已经发完了");
                 else
-                    hud.ShowToast("列上没有空位");
+                    hud.ShowToast("先把能接上的倒开，再补充");
                 return;
             }
             StartCoroutine(RefillRoutine());
@@ -267,6 +272,8 @@ namespace DressSort
             if (hud == null || board == null) return;
             hud.SetProgress(board.BoxesDone, PackBoard.BoxesToWin, mystery);
             hud.SetPile(board.ReserveCount);
+            hud.SetActions(board.CanPack, board.CanRefill);
+            hud.SetBoxCount(board.BoxFilled, board.CurrentSeats, board.BoxesDone, board.Won);
         }
 
         ItemDef[] PickPalette()
