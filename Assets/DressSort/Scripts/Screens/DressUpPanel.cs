@@ -26,7 +26,7 @@ namespace DressSort
                 : DressUpHud.Assemble((RectTransform)transform, app.Database);
             if (hud == null)
             {
-                Debug.LogError("[叠叠裙] 装扮预制没有 DressUpHud，先跑「重建装扮预制」");
+                Debug.LogError("[一裙又一裙] 装扮预制没有 DressUpHud，先跑「重建装扮预制」");
                 return;
             }
 

@@ -7,7 +7,7 @@ namespace DressSort
 {
     /// <summary>
     /// 首页侧边入口打开的弹窗：遮罩 + 奶油底板 + 吊牌标题 + 关闭钮。
-    /// 外观全在 Resources/Prefabs 里的预制上（「叠叠裙/重建签到排行游戏圈预制」用切图拼出来），
+    /// 外观全在 Resources/Prefabs 里的预制上（「一裙又一裙/重建签到排行游戏圈预制」用切图拼出来），
     /// 这里只填数据、换状态切图。
     /// </summary>
     public class PopupView : MonoBehaviour
@@ -26,7 +26,7 @@ namespace DressSort
             GameObject prefab = Resources.Load<GameObject>("Prefabs/" + prefabName);
             if (prefab == null)
             {
-                Debug.LogError("[叠叠裙] 缺少弹窗预制 Resources/Prefabs/" + prefabName + "，先跑「重建签到排行游戏圈预制」");
+                Debug.LogError("[一裙又一裙] 缺少弹窗预制 Resources/Prefabs/" + prefabName + "，先跑「重建签到排行游戏圈预制」");
                 return null;
             }
             GameObject go = Instantiate(prefab, layer);

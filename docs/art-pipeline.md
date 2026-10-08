@@ -1,4 +1,4 @@
-# 叠叠裙美术管线
+# 一裙又一裙美术管线
 
 从提示词到 Unity 里可用的 Sprite，全程只有两条命令。
 
@@ -14,7 +14,7 @@
 /usr/bin/python3 Tools/artpipe.py v7
 
 # 3. 打成 ScriptableObject 并建场景（Unity 菜单）
-叠叠裙 / 重建资源与场景
+一裙又一裙 / 重建资源与场景
 ```
 
 v7 原图在仓库外 `../game_assets/game2D_cat/assets/raw/dresssort/v7/`。

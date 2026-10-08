@@ -89,7 +89,7 @@ namespace DressSort
 
             if (database == null)
             {
-                Debug.LogError("[叠叠裙] 没有接上 GameDatabase，先跑菜单里的「重建资源与场景」");
+                Debug.LogError("[一裙又一裙] 没有接上 GameDatabase，先跑菜单里的「重建资源与场景」");
                 enabled = false;
                 return;
             }
@@ -99,6 +99,8 @@ namespace DressSort
             {
                 Sfx.Install();
                 CdnPortraits.Warm();
+                Analytics.Ensure();
+                StartCoroutine(BootAnalytics());
             }
             BindChrome(database);
             UiKit.Skin = database;
@@ -115,6 +117,14 @@ namespace DressSort
         }
 
         public void SetDatabase(GameDatabase value) => database = value;
+
+        /// <summary>先登录再记 session_start。失败也记一次匿名会话，首页人数不会缺。</summary>
+        IEnumerator BootAnalytics()
+        {
+            string err = null;
+            yield return Backend.EnsureToken(e => err = e);
+            Analytics.BindUser(string.IsNullOrEmpty(err) ? Backend.UserId : "");
+        }
 
         static void BindChrome(GameDatabase db)
         {

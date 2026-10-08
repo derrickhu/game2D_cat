@@ -7,7 +7,7 @@ Background is milk-and-water pale `#F7FBFC`. Soft tiny hearts far in the distanc
 Top-left: a small gold-coin yellow star and the number 12 in purple-black ink.
 Top-right: a simple round settings gear.
 
-Below the top bar: a white rounded title plaque with a thin black outline. The only words on the plaque are the three Chinese characters 叠叠裙, large rounded type, pool-teal `#2A9B96`.
+Below the top bar: a white rounded title plaque with a thin black outline. The only words on the plaque are the Chinese title 一裙又一裙, large rounded type, pool-teal `#2A9B96`.
 
 The girl fills the middle of the screen, full body, plenty of margin.
 

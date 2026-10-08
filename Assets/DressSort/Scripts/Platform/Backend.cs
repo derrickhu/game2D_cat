@@ -63,6 +63,8 @@ namespace DressSort
 
         static StoredToken _tok;
 
+        public static string UserId => _tok != null ? (_tok.userId ?? "") : "";
+
         static bool UseWx => WxBridge.IsMiniGame && !Application.isEditor;
         static string PlatformCode => UseWx ? "wx" : "anon";
 

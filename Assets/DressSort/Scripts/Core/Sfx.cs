@@ -274,7 +274,7 @@ namespace DressSort
                     ctx.Play();
                 }
             });
-            ctx.OnError(e => Debug.LogWarning("[叠叠裙] " + name + " 音乐拉取失败 " + e.errCode));
+            ctx.OnError(e => Debug.LogWarning("[一裙又一裙] " + name + " 音乐拉取失败 " + e.errCode));
             Streams[name] = ctx;
             return ctx;
         }

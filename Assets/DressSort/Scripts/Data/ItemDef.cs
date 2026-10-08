@@ -10,7 +10,7 @@ namespace DressSort
     }
 
     /// <summary>一件可收集的装扮。</summary>
-    [CreateAssetMenu(menuName = "叠叠裙/物品", fileName = "Item")]
+    [CreateAssetMenu(menuName = "一裙又一裙/物品", fileName = "Item")]
     public class ItemDef : ScriptableObject
     {
         public string id;

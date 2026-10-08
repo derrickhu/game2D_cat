@@ -34,7 +34,7 @@ namespace DressSort.EditorTools
             };
         }
 
-        [MenuItem("叠叠裙/重建关卡预制", priority = 6)]
+        [MenuItem("一裙又一裙/重建关卡预制", priority = 6)]
         public static void Rebuild()
         {
             Directory.CreateDirectory(Path.Combine(Application.dataPath, "DressSort/Prefabs/Game"));
@@ -53,7 +53,7 @@ namespace DressSort.EditorTools
             Object.DestroyImmediate(root);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[叠叠裙] 关卡预制已写入 Prefabs/Game/GameScreen 和 Resources/Prefabs/GameScreen");
+            Debug.Log("[一裙又一裙] 关卡预制已写入 Prefabs/Game/GameScreen 和 Resources/Prefabs/GameScreen");
         }
 
         public static void BindGameSprites(GameDatabase database)

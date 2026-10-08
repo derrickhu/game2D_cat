@@ -35,7 +35,7 @@ namespace DressSort
 
             if (hud == null)
             {
-                Debug.LogError("[叠叠裙] 首页预制没有 HomeHud");
+                Debug.LogError("[一裙又一裙] 首页预制没有 HomeHud");
                 return;
             }
 

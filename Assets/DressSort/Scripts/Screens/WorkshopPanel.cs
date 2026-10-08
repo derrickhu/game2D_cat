@@ -33,7 +33,7 @@ namespace DressSort
                 : WorkshopHud.Assemble(root, app.Database);
             if (hud == null)
             {
-                Debug.LogError("[叠叠裙] 工坊预制没有 WorkshopHud");
+                Debug.LogError("[一裙又一裙] 工坊预制没有 WorkshopHud");
                 return;
             }
             var rect = (RectTransform)hud.transform;

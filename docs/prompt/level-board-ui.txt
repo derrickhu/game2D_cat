@@ -1,7 +1,7 @@
-叠叠裙 · 对局页统一控件（B 衣橱 + D 跑道）
+一裙又一裙 · 对局页统一控件（B 衣橱 + D 跑道）
 
 关卡页用预制 GameScreen：底图（自带横杆）、衣架、齿轮、步数胶囊、底栏三钮都在预制里摆好。
-换关只换底图或衣架图，不改布局。菜单：叠叠裙 / 重建关卡预制。
+换关只换底图或衣架图，不改布局。菜单：一裙又一裙 / 重建关卡预制。
 
 母版目录（仓库外）：
 /Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/level-board-ui/

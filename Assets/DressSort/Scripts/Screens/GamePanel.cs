@@ -31,7 +31,7 @@ namespace DressSort
 
             if (hud == null)
             {
-                Debug.LogError("[叠叠裙] 关卡预制没有 GameHud");
+                Debug.LogError("[一裙又一裙] 关卡预制没有 GameHud");
                 return;
             }
 
@@ -52,7 +52,13 @@ namespace DressSort
                 () => { CancelSwap(); hud.ShowPause(true); },
                 () => hud.ShowPause(false),
                 OnRestart,
-                () => { hud.ShowPause(false); app.Show(ScreenId.Home); });
+                () =>
+                {
+                    hud.ShowPause(false);
+                    if (level != null && !finished)
+                        Analytics.LevelFail("quit_to_home", LevelProgress());
+                    app.Show(ScreenId.Home);
+                });
 
             board = BoardView.Create(hud.boardRoot != null ? hud.boardRoot : root,
                 new BoardView.Layout { overlap = 0.70f });
@@ -79,6 +85,7 @@ namespace DressSort
                     hud.ShowToast("这一关的配置不完整");
                 return;
             }
+            TrackLevelStart();
             Deal(level.seed);
         }
 
@@ -200,6 +207,9 @@ namespace DressSort
         void Complete()
         {
             Sfx.Play(SfxId.Win);
+            int spare = Mathf.Max(0, level.moveLimit - logic.Steps);
+            int stars = 1 + Mathf.Clamp(spare / Mathf.Max(1, level.moveLimit / 3), 0, 2);
+            Analytics.LevelClear(stars);
             if (app.GmPlay)
             {
                 LevelDef gmNext = app.LevelAt(level.index + 1);
@@ -211,12 +221,10 @@ namespace DressSort
                 }
                 app.CurrentLevel = gmNext;
                 level = gmNext;
+                TrackLevelStart();
                 Deal(level.seed);
                 return;
             }
-
-            int spare = Mathf.Max(0, level.moveLimit - logic.Steps);
-            int stars = 1 + Mathf.Clamp(spare / Mathf.Max(1, level.moveLimit / 3), 0, 2);
 
             app.Wardrobe.ReportCleared(level.index, stars);
             RankService.Submit(app.Wardrobe.LevelsCleared);
@@ -255,6 +263,7 @@ namespace DressSort
             }
             app.CurrentLevel = next;
             level = next;
+            TrackLevelStart();
             Deal(level.seed);
             CraftView.ShowGain(this, root, app.Database, gained);
         }
@@ -370,6 +379,9 @@ namespace DressSort
         {
             if (board.Busy) return;
             hud.ShowPause(false);
+            if (level != null && !finished)
+                Analytics.LevelFail("restart", LevelProgress());
+            TrackLevelStart();
             Deal(level.seed);
             Sfx.Play(SfxId.Shuffle);
             hud.ShowToast("重新开始");
@@ -383,6 +395,18 @@ namespace DressSort
             if (hud.movesLabel != null)
                 hud.movesLabel.text = "剩余 " + Mathf.Max(0, level.moveLimit - logic.Steps) + " 步";
             hud.SetCounts(swapsLeft, shufflesLeft);
+        }
+
+        void TrackLevelStart()
+        {
+            if (level == null) return;
+            Analytics.LevelStart(level.index, "第" + level.index + "关");
+        }
+
+        float LevelProgress()
+        {
+            if (level == null || level.moveLimit <= 0 || logic == null) return 0f;
+            return Mathf.Clamp01((float)logic.Steps / level.moveLimit);
         }
     }
 }

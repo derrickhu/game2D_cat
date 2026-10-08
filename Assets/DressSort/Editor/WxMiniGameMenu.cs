@@ -18,7 +18,7 @@ namespace DressSort.EditorTools
         const string DefaultAppId = "wxd7e8bab5c9f43673";
         const string LegacyAppId = "wxad27f529c95e582c";
 
-        [MenuItem("叠叠裙/微信小游戏/接入 SDK", priority = 20)]
+        [MenuItem("一裙又一裙/微信小游戏/接入 SDK", priority = 20)]
         public static void InstallSdk()
         {
             if (CopySdkIfNeeded())
@@ -26,10 +26,10 @@ namespace DressSort.EditorTools
             PatchCopiedSdkConfig();
             EnsureConfig();
             ActivateWeChatSubplatform();
-            Debug.Log("[叠叠裙] 微信 SDK 已接入。等脚本编译完后，顶栏会出现「微信小游戏」。");
+            Debug.Log("[一裙又一裙] 微信 SDK 已接入。等脚本编译完后，顶栏会出现「微信小游戏」。");
         }
 
-        [MenuItem("叠叠裙/微信小游戏/打开转换面板", priority = 21)]
+        [MenuItem("一裙又一裙/微信小游戏/打开转换面板", priority = 21)]
         public static void OpenConvertWindow()
         {
             if (!Prepare()) return;
@@ -37,26 +37,26 @@ namespace DressSort.EditorTools
                 InvokeWx("WeChatWASM.WXEditorWin", "Open", null);
         }
 
-        [MenuItem("叠叠裙/微信小游戏/生成并转换", priority = 22)]
+        [MenuItem("一裙又一裙/微信小游戏/生成并转换", priority = 22)]
         public static void ConvertNow()
         {
             if (!Prepare()) return;
-            Debug.Log("[叠叠裙] 开始转换微信小游戏，第一次编 WASM 可能要十几分钟。产物在 wechat-minigame/minigame/");
+            Debug.Log("[一裙又一裙] 开始转换微信小游戏，第一次编 WASM 可能要十几分钟。产物在 wechat-minigame/minigame/");
             object result = InvokeWx("WeChatWASM.WXConvertCore", "DoExport", new object[] { true });
             bool ok = VerifyExportedAppId();
             PatchLoadingVideo();
-            Debug.Log("[叠叠裙] 转换结果：" + (result ?? "未找到转换接口，请用「打开转换面板」手动点生成并转换")
+            Debug.Log("[一裙又一裙] 转换结果：" + (result ?? "未找到转换接口，请用「打开转换面板」手动点生成并转换")
                 + (ok ? "，AppID 已核对为 " + DefaultAppId : "，AppID 核对失败，请看上面的警告"));
         }
 
-        [MenuItem("叠叠裙/微信小游戏/核对导出 AppID", priority = 24)]
+        [MenuItem("一裙又一裙/微信小游戏/核对导出 AppID", priority = 24)]
         public static void VerifyAppIdMenu()
         {
             EnsureConfig();
             VerifyExportedAppId();
         }
 
-        [MenuItem("叠叠裙/微信小游戏/切到 720x1280 预览", priority = 23)]
+        [MenuItem("一裙又一裙/微信小游戏/切到 720x1280 预览", priority = 23)]
         public static void SelectPreviewSize()
         {
             WxGameViewSize.Select();
@@ -104,7 +104,7 @@ namespace DressSort.EditorTools
                 CopyDirectory(src, dst);
                 PatchManifest();
                 PatchCopiedSdkConfig();
-                Debug.Log("[叠叠裙] 已拷贝微信 SDK → " + dst);
+                Debug.Log("[一裙又一裙] 已拷贝微信 SDK → " + dst);
                 return true;
             }
             return false;
@@ -142,7 +142,7 @@ namespace DressSort.EditorTools
                     ?? Type.GetType("WeChatWASM.WXEditorScriptObject");
                 if (t == null)
                 {
-                    Debug.LogWarning("[叠叠裙] 微信 SDK 还没编译完，等域重载后再点一次「接入 SDK」写配置。");
+                    Debug.LogWarning("[一裙又一裙] 微信 SDK 还没编译完，等域重载后再点一次「接入 SDK」写配置。");
                     return;
                 }
                 config = ScriptableObject.CreateInstance(t);
@@ -180,7 +180,7 @@ namespace DressSort.EditorTools
             }
             catch (Exception e)
             {
-                Debug.LogWarning("[叠叠裙] 切换 MiniGame 平台失败，请在 Build Settings 里把 MiniGame / 微信小游戏点成 Active。 " + e.Message);
+                Debug.LogWarning("[一裙又一裙] 切换 MiniGame 平台失败，请在 Build Settings 里把 MiniGame / 微信小游戏点成 Active。 " + e.Message);
             }
 
             // ProjectSettings.activeSubplatform=1 才是微信；0 时转换 SDK 不编译
@@ -197,7 +197,7 @@ namespace DressSort.EditorTools
             }
 
             PlayerSettings.companyName = "RosaGames";
-            PlayerSettings.productName = "叠叠裙";
+            PlayerSettings.productName = "一裙又一裙";
             PlayerSettings.defaultScreenWidth = ScreenFit.PreviewW;
             PlayerSettings.defaultScreenHeight = ScreenFit.PreviewH;
             PlayerSettings.defaultWebScreenWidth = ScreenFit.PreviewW;
@@ -224,7 +224,7 @@ namespace DressSort.EditorTools
                     "bgImageSrc: Assets/DressSort/Art/Loading/loading.jpg");
             if (patched == text) return;
             File.WriteAllText(path, patched);
-            Debug.Log("[叠叠裙] 已把 SDK 自带的 MiniGameConfig 从墨字防线改成叠叠裙。");
+            Debug.Log("[一裙又一裙] 已把 SDK 自带的 MiniGameConfig 从墨字防线改成一裙又一裙。");
         }
 
         static bool VerifyExportedAppId()
@@ -235,7 +235,7 @@ namespace DressSort.EditorTools
             string gameJs = Path.Combine(minigame, "game.js");
             if (!File.Exists(configPath))
             {
-                Debug.LogWarning("[叠叠裙] 还没有导出 wechat-minigame/minigame/project.config.json，先转换一次。");
+                Debug.LogWarning("[一裙又一裙] 还没有导出 wechat-minigame/minigame/project.config.json，先转换一次。");
                 return false;
             }
 
@@ -249,7 +249,7 @@ namespace DressSort.EditorTools
                     json, "\"projectname\"\\s*:\\s*\"[^\"]*\"", "\"projectname\": \"dress-sort\"");
                 File.WriteAllText(configPath, json);
                 ok = false;
-                Debug.LogWarning("[叠叠裙] 导出的 project.config.json AppID 不对，已改成 " + DefaultAppId);
+                Debug.LogWarning("[一裙又一裙] 导出的 project.config.json AppID 不对，已改成 " + DefaultAppId);
             }
 
             if (File.Exists(gameJs))
@@ -264,7 +264,7 @@ namespace DressSort.EditorTools
                         js, "APPID:\\s*['\"][^'\"]*['\"]", "APPID: '" + DefaultAppId + "'");
                     File.WriteAllText(gameJs, js);
                     ok = false;
-                    Debug.LogWarning("[叠叠裙] 导出的 game.js APPID 不对，已改成 " + DefaultAppId);
+                    Debug.LogWarning("[一裙又一裙] 导出的 game.js APPID 不对，已改成 " + DefaultAppId);
                 }
             }
 
@@ -285,7 +285,7 @@ namespace DressSort.EditorTools
             PatchLoadingVideo();
 
             if (ok)
-                Debug.Log("[叠叠裙] 导出 AppID 正确：" + DefaultAppId + "，请用开发者工具打开 "
+                Debug.Log("[一裙又一裙] 导出 AppID 正确：" + DefaultAppId + "，请用开发者工具打开 "
                     + minigame + "，不要打开 black-rosa 那个窗口。");
             return ok;
         }
@@ -303,7 +303,7 @@ namespace DressSort.EditorTools
             string gameJs = Path.Combine(minigame, "game.js");
             if (!File.Exists(src))
             {
-                Debug.LogWarning("[叠叠裙] 找不到 Assets/DressSort/Art/Loading/loading.mp4，封面还是静图。");
+                Debug.LogWarning("[一裙又一裙] 找不到 Assets/DressSort/Art/Loading/loading.mp4，封面还是静图。");
                 return;
             }
 
@@ -321,7 +321,7 @@ namespace DressSort.EditorTools
                     File.WriteAllText(gameJs, patched);
             }
 
-            Debug.Log("[叠叠裙] 已写入封面视频 images/loading.mp4");
+            Debug.Log("[一裙又一裙] 已写入封面视频 images/loading.mp4");
         }
 
         static object InvokeWx(string typeName, string method, object[] args)

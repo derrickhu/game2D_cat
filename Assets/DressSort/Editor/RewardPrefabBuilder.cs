@@ -11,7 +11,7 @@ namespace DressSort.EditorTools
         const string ResourcePrefab = "Assets/DressSort/Resources/Prefabs/RewardScreen.prefab";
         const string DatabasePath = "Assets/DressSort/Data/GameDatabase.asset";
 
-        [MenuItem("叠叠裙/重建领奖预制", priority = 8)]
+        [MenuItem("一裙又一裙/重建领奖预制", priority = 8)]
         public static void Rebuild()
         {
             Directory.CreateDirectory(Path.Combine(Application.dataPath, "DressSort/Prefabs/Reward"));
@@ -30,7 +30,7 @@ namespace DressSort.EditorTools
             Object.DestroyImmediate(root);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[叠叠裙] 领奖预制已写入 Prefabs/Reward/RewardScreen 和 Resources/Prefabs/RewardScreen");
+            Debug.Log("[一裙又一裙] 领奖预制已写入 Prefabs/Reward/RewardScreen 和 Resources/Prefabs/RewardScreen");
         }
     }
 }

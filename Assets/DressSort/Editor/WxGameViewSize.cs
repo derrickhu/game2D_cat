@@ -31,7 +31,7 @@ namespace DressSort.EditorTools
             }
             catch (Exception e)
             {
-                Debug.LogWarning("[叠叠裙] 无法设置 Game 竖屏预设: " + e.Message);
+                Debug.LogWarning("[一裙又一裙] 无法设置 Game 竖屏预设: " + e.Message);
             }
         }
 

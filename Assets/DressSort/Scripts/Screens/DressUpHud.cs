@@ -6,7 +6,7 @@ namespace DressSort
 {
     /// <summary>
     /// 装扮页预制：试衣间底图、人偶槽、顶栏，和底部带蕾丝边的衣柜面板（页签 + 可滚动卡片 + 保存）。
-    /// 由「叠叠裙/重建装扮预制」生成，在预制里改位置即可，DressUpPanel 只填数据。
+    /// 由「一裙又一裙/重建装扮预制」生成，在预制里改位置即可，DressUpPanel 只填数据。
     /// </summary>
     public class DressUpHud : MonoBehaviour
     {

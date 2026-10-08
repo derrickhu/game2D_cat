@@ -26,7 +26,7 @@ namespace DressSort.EditorTools
         static Sprite medal1, medal2, medal3, badge, plate, ring, row, rowMine;
         static Sprite btnGreen, btnOrange, btnPurple, energy, club;
 
-        [MenuItem("叠叠裙/重建签到排行游戏圈预制", priority = 6)]
+        [MenuItem("一裙又一裙/重建签到排行游戏圈预制", priority = 6)]
         public static void Rebuild()
         {
             Directory.CreateDirectory(Path.Combine(Application.dataPath, "DressSort/Prefabs/Social"));
@@ -40,7 +40,7 @@ namespace DressSort.EditorTools
             Save(BuildEnergy(), "EnergyAdPopup");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[叠叠裙] 签到 / 排行榜 / 游戏圈预制已写入 Resources/Prefabs");
+            Debug.Log("[一裙又一裙] 签到 / 排行榜 / 游戏圈预制已写入 Resources/Prefabs");
         }
 
         static void LoadSprites()
@@ -76,7 +76,7 @@ namespace DressSort.EditorTools
         static Sprite Load(string pathNoExt)
         {
             var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(Art + pathNoExt + ".png");
-            if (sprite == null) Debug.LogWarning("[叠叠裙] 缺切图 " + pathNoExt);
+            if (sprite == null) Debug.LogWarning("[一裙又一裙] 缺切图 " + pathNoExt);
             return sprite;
         }
 

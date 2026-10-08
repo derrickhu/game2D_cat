@@ -135,7 +135,7 @@ namespace DressSort
             if (!ok)
             {
                 FailedAt[name] = Time.unscaledTime;
-                Debug.LogWarning("[叠叠裙] 立绘没拉到 " + name + " " + req.error);
+                Debug.LogWarning("[一裙又一裙] 立绘没拉到 " + name + " " + req.error);
             }
             req.Dispose();
 

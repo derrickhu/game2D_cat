@@ -19,7 +19,7 @@ namespace DressSort.EditorTools
         const string ShotDir = "Screenshots";
         const string DatabasePath = "Assets/DressSort/Data/GameDatabase.asset";
 
-        [MenuItem("叠叠裙/跑自检并截图", priority = 2)]
+        [MenuItem("一裙又一裙/跑自检并截图", priority = 2)]
         public static void Run()
         {
             var log = new StringBuilder();

@@ -22,8 +22,15 @@ namespace DressSort
             Sfx.Play(SfxId.Tap);
             if (watchButton != null)
                 watchButton.interactable = false;
+            if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
+                Analytics.AdRequest("energy", WxBridge.RewardedAdUnitId);
             WxBridge.ShowRewarded(() =>
             {
+                if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
+                {
+                    Analytics.AdShow("energy", WxBridge.RewardedAdUnitId);
+                    Analytics.AdClose("energy", WxBridge.RewardedAdUnitId, true);
+                }
                 app.Wardrobe.GainEnergy(WardrobeService.EnergyPerLevel);
                 Sfx.Play(SfxId.Heart);
                 changed?.Invoke();
@@ -32,6 +39,8 @@ namespace DressSort
                 follow?.Invoke();
             }, () =>
             {
+                if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
+                    Analytics.AdError("energy", WxBridge.RewardedAdUnitId, "not_ended");
                 if (watchButton != null)
                     watchButton.interactable = true;
                 Sfx.Play(SfxId.Deny);

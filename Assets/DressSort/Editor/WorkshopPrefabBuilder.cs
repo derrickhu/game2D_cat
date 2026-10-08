@@ -11,7 +11,7 @@ namespace DressSort.EditorTools
         const string ResourcePrefab = "Assets/DressSort/Resources/Prefabs/WorkshopScreen.prefab";
         const string DatabasePath = "Assets/DressSort/Data/GameDatabase.asset";
 
-        [MenuItem("叠叠裙/重建工坊预制", priority = 8)]
+        [MenuItem("一裙又一裙/重建工坊预制", priority = 8)]
         public static void Rebuild()
         {
             Directory.CreateDirectory(Path.Combine(Application.dataPath, "DressSort/Prefabs/Workshop"));
@@ -30,7 +30,7 @@ namespace DressSort.EditorTools
             Object.DestroyImmediate(root);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[叠叠裙] 工坊预制已写入 Prefabs/Workshop/WorkshopScreen 和 Resources/Prefabs/WorkshopScreen");
+            Debug.Log("[一裙又一裙] 工坊预制已写入 Prefabs/Workshop/WorkshopScreen 和 Resources/Prefabs/WorkshopScreen");
         }
 
         public static void BindSprites(GameDatabase database)

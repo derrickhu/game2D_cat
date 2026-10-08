@@ -110,7 +110,7 @@ namespace DressSort.EditorTools
                 if (scene.path == ScenePath) return;
                 if (!File.Exists(ScenePath)) return;
 
-                // 编辑器还停在旧的动物场景时，自动切到叠叠裙
+                // 编辑器还停在旧的动物场景时，自动切到一裙又一裙
                 if (string.IsNullOrEmpty(scene.path) || scene.path.Contains("AnimalSort"))
                     EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 
@@ -130,7 +130,7 @@ namespace DressSort.EditorTools
             RebuildAll();
         }
 
-        [MenuItem("叠叠裙/重建资源与场景", priority = 0)]
+        [MenuItem("一裙又一裙/重建资源与场景", priority = 0)]
         public static void RebuildAll()
         {
             Directory.CreateDirectory(ItemDir);
@@ -248,22 +248,22 @@ namespace DressSort.EditorTools
 
             AssetDatabase.SaveAssets();
             BuildScene(database);
-            Debug.Log($"[叠叠裙] 重建完成：{items.Count} 件物品，{LevelCatalog.Count} 关");
+            Debug.Log($"[一裙又一裙] 重建完成：{items.Count} 件物品，{LevelCatalog.Count} 关");
         }
 
-        [MenuItem("叠叠裙/绑定背景", priority = 2)]
+        [MenuItem("一裙又一裙/绑定背景", priority = 2)]
         public static void BindBackgroundsMenu()
         {
             var database = AssetDatabase.LoadAssetAtPath<GameDatabase>(DatabasePath);
             if (!TryBindBackgrounds(database))
             {
-                Debug.LogWarning("[叠叠裙] 还没有背景图，确认 Assets/DressSort/Art/Ui/Bgs/ 里有 bg_stage");
+                Debug.LogWarning("[一裙又一裙] 还没有背景图，确认 Assets/DressSort/Art/Ui/Bgs/ 里有 bg_stage");
                 return;
             }
-            Debug.Log("[叠叠裙] 已绑定五套背景，当前用秀台");
+            Debug.Log("[一裙又一裙] 已绑定五套背景，当前用秀台");
         }
 
-        [MenuItem("叠叠裙/打开场景", priority = 1)]
+        [MenuItem("一裙又一裙/打开场景", priority = 1)]
         public static void OpenScene()
         {
             if (!File.Exists(ScenePath))
@@ -468,7 +468,7 @@ namespace DressSort.EditorTools
         {
             var sprite = TryLoadSprite(relative);
             if (sprite == null)
-                Debug.LogWarning("[叠叠裙] 缺图：" + relative);
+                Debug.LogWarning("[一裙又一裙] 缺图：" + relative);
             return sprite;
         }
     }

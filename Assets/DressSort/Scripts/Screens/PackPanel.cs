@@ -31,7 +31,7 @@ namespace DressSort
                 : PackHud.Assemble((RectTransform)transform, app.Database);
             if (hud == null)
             {
-                Debug.LogError("[叠叠裙] 装箱预制没有 PackHud");
+                Debug.LogError("[一裙又一裙] 装箱预制没有 PackHud");
                 return;
             }
 
@@ -163,14 +163,23 @@ namespace DressSort
             {
                 if (board.IsAdColumn(column))
                 {
+                    if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
+                        Analytics.AdRequest("pack_column", WxBridge.RewardedAdUnitId);
                     WxBridge.ShowRewarded(() =>
                     {
+                        if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
+                        {
+                            Analytics.AdShow("pack_column", WxBridge.RewardedAdUnitId);
+                            Analytics.AdClose("pack_column", WxBridge.RewardedAdUnitId, true);
+                        }
                         if (board == null || board.IsOpen(column)) return;
                         board.UnlockAd(column);
                         view.Refresh();
                         hud.ShowToast("这一列临时解锁了");
                     }, () =>
                     {
+                        if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
+                            Analytics.AdError("pack_column", WxBridge.RewardedAdUnitId, "not_ended");
                         Sfx.Play(SfxId.Deny);
                         hud.ShowToast("广告没看完");
                     });

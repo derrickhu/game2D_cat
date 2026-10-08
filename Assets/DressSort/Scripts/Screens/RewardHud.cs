@@ -6,7 +6,7 @@ namespace DressSort
 {
     /// <summary>
     /// 领奖页预制：红幕、礼盒、光芒、名字牌和收下按钮。
-    /// 由「叠叠裙/重建领奖预制」生成，在预制里改位置即可，RewardPanel 只播动画和填文案。
+    /// 由「一裙又一裙/重建领奖预制」生成，在预制里改位置即可，RewardPanel 只播动画和填文案。
     /// </summary>
     public class RewardHud : MonoBehaviour
     {

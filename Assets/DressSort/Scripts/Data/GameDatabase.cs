@@ -7,7 +7,7 @@ namespace DressSort
     /// 全部内容的索引。所有资源引用集中在这一个资产上，
     /// 以后换成 Addressables 只要改这里的取图方式。
     /// </summary>
-    [CreateAssetMenu(menuName = "叠叠裙/数据库", fileName = "GameDatabase")]
+    [CreateAssetMenu(menuName = "一裙又一裙/数据库", fileName = "GameDatabase")]
     public class GameDatabase : ScriptableObject
     {
         public List<ItemDef> items = new List<ItemDef>();

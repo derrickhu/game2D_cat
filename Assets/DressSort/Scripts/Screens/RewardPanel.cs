@@ -68,7 +68,7 @@ namespace DressSort
                 : RewardHud.Assemble((RectTransform)transform, app.Database);
             if (hud == null)
             {
-                Debug.LogError("[叠叠裙] 领奖预制没有 RewardHud，先跑「重建领奖预制」");
+                Debug.LogError("[一裙又一裙] 领奖预制没有 RewardHud，先跑「重建领奖预制」");
                 return;
             }
 

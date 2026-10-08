@@ -85,6 +85,18 @@ namespace DressSort
 #endif
         }
 
+        /// <summary>切到后台时收口本局。编辑器里没有，返回 false。</summary>
+        public static bool OnHide(Action hide)
+        {
+#if UNITY_MINIGAME || WEIXINMINIGAME || UNITY_WEIXINMINIGAME || MINIGAME_SUBPLATFORM_WEIXIN
+            if (Application.isEditor) return false;
+            WeChatWASM.WX.OnHide(_ => hide());
+            return true;
+#else
+            return false;
+#endif
+        }
+
         /// <summary>真机上才有微信原生的授权按钮和游戏圈按钮。</summary>
         public static bool CanAskProfile
         {
