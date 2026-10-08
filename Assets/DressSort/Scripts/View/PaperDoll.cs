@@ -16,8 +16,10 @@ namespace DressSort
         [SerializeField] Image head;
         [SerializeField] WingMotes motes;
 
-        const float WingAnchorY = 0.33f;
-        const float WingWidthRatio = 1.55f;
+        // 翼根贴在肩背。立绘肩线大约在画布从上往下 36% 的地方。
+        const float WingRootFromTop = 0.36f;
+        // 翅膀比立绘画布再宽一圈，左右露出肩膀。高度跟着每张图自己的比例走。
+        const float WingWidthOverSlot = 1.18f;
         // 对齐画布的基准高度。更长的裙子只在下面多出一截，不能把整个人缩进这个高度里。
         const float CanonH = 1084f;
 
@@ -43,9 +45,8 @@ namespace DressSort
 
         void BuildLayers(Vector2 size)
         {
-            float wingWidth = size.x * WingWidthRatio;
             wings = UiKit.Icon(transform, "Wings", null, new Vector2(0.5f, 1f),
-                new Vector2(0f, -size.y * WingAnchorY), new Vector2(wingWidth, wingWidth * 0.62f));
+                new Vector2(0f, -size.y * WingRootFromTop), new Vector2(size.x * WingWidthOverSlot, size.y * 0.8f));
             hairBack = UiKit.Icon(transform, "HairBack", null, new Vector2(0.5f, 0.5f), Vector2.zero, size);
             body = UiKit.Icon(transform, "Body", null, new Vector2(0.5f, 0.5f), Vector2.zero, size);
             head = UiKit.Icon(transform, "Head", null, new Vector2(0.5f, 0.5f), Vector2.zero, size);
@@ -70,19 +71,7 @@ namespace DressSort
         public void Show(ItemDef dress, ItemDef wingItem, ItemDef hair)
         {
             bool headless = dress != null && dress.layeredWithHair;
-            if (wings != null)
-            {
-                wings.sprite = wingItem != null ? wingItem.worn : null;
-                wings.enabled = wings.sprite != null;
-                var wr = wings.rectTransform;
-                float pw = ((RectTransform)transform).rect.width;
-                if (pw < 8f) pw = 640f;
-                wr.anchorMin = new Vector2(0.5f, 1f - WingAnchorY);
-                wr.anchorMax = new Vector2(0.5f, 1f - WingAnchorY);
-                wr.pivot = new Vector2(0.5f, 0.5f);
-                wr.anchoredPosition = Vector2.zero;
-                wr.sizeDelta = new Vector2(pw * WingWidthRatio, pw * WingWidthRatio * 0.62f);
-            }
+            LayoutWings(wingItem);
             ShowArt(hairBack, hair != null ? hair.wornBack : null);
             ShowArt(body, dress != null ? dress.worn : null);
             ShowArt(head, headless && hair != null ? hair.worn : null);
@@ -96,6 +85,52 @@ namespace DressSort
             {
                 motes.Play(wingItem);
                 motes.transform.SetAsLastSibling();
+            }
+        }
+
+        // 翼根在贴图里的位置（从上往下）。三对轮廓不一样，根不在同一高度。
+        static float RootInSprite(string id)
+        {
+            if (id == "wing_aqua") return 0.40f;
+            if (id == "wing_rose") return 0.46f;
+            if (id == "wing_wisteria") return 0.56f;
+            return 0.50f;
+        }
+
+        void LayoutWings(ItemDef wingItem)
+        {
+            if (wings == null) return;
+            wings.sprite = wingItem != null ? wingItem.worn : null;
+            wings.enabled = wings.sprite != null;
+            var parent = (RectTransform)transform;
+            Canvas.ForceUpdateCanvases();
+            float slotH = parent.rect.height;
+            if (slotH < 8f)
+                slotH = 778f;
+
+            float aspect = 1.1f;
+            if (wings.sprite != null)
+            {
+                Rect sp = wings.sprite.rect;
+                aspect = sp.width / Mathf.Max(1f, sp.height);
+            }
+
+            float slotW = slotH * 864f / CanonH;
+            float wingW = slotW * WingWidthOverSlot;
+            float wingH = wingW / Mathf.Max(0.05f, aspect);
+            float rootFrac = RootInSprite(wingItem != null ? wingItem.id : null);
+            float centerFromTop = slotH * WingRootFromTop + (0.5f - rootFrac) * wingH;
+            var wr = wings.rectTransform;
+            wr.anchorMin = new Vector2(0.5f, 1f);
+            wr.anchorMax = new Vector2(0.5f, 1f);
+            wr.pivot = new Vector2(0.5f, 0.5f);
+            wr.sizeDelta = new Vector2(wingW, wingH);
+            wr.anchoredPosition = new Vector2(0f, -centerFromTop);
+
+            if (motes != null)
+            {
+                float rootY = slotH * 0.5f - centerFromTop;
+                motes.SetArea(new Vector2(0f, rootY), wingW, wingH);
             }
         }
 

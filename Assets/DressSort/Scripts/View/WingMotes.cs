@@ -30,9 +30,19 @@ namespace DressSort
         string playingId;
         bool playing;
         bool placed;
+        Vector2 areaRoot;
+        float areaW;
+        float areaH;
 
         static Sprite heartSprite;
         static Sprite sparkSprite;
+
+        public void SetArea(Vector2 root, float width, float height)
+        {
+            areaRoot = root;
+            areaW = width;
+            areaH = height;
+        }
 
         public void Play(ItemDef wing)
         {
@@ -164,8 +174,11 @@ namespace DressSort
         void Respawn(int i, float width, float height, bool scatter)
         {
             bool left = (i & 1) == 0;
-            float x = (left ? -1f : 1f) * Random.Range(0.26f, 0.46f) * width;
-            float y = Random.Range(-0.04f, 0.18f) * height;
+            float spanW = areaW > 8f ? areaW : width;
+            float spanH = areaH > 8f ? areaH : height * 0.55f;
+            Vector2 root = areaW > 8f ? areaRoot : new Vector2(0f, height * 0.14f);
+            float x = root.x + (left ? -1f : 1f) * Random.Range(0.18f, 0.46f) * spanW;
+            float y = root.y + Random.Range(-0.28f, 0.22f) * spanH;
             origin[i] = new Vector2(x, y);
             life[i] = Random.Range(0.9f, 1.7f);
             age[i] = scatter ? Random.Range(0f, life[i]) : 0f;
