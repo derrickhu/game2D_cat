@@ -113,6 +113,8 @@ namespace DressSort
         public Sprite rewardSparkle;
         public Sprite boardLaneSolved;
         public Sprite boardCheckSolved;
+        public Sprite boardPuff;
+        public Sprite boardBurst;
         public int boardBgBand = 20;
 
         /// <summary>棋盘主题按这个顺序每 boardBgBand 关换一次，走完一轮从头再来。</summary>

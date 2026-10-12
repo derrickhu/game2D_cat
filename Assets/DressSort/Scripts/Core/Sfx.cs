@@ -30,6 +30,17 @@ namespace DressSort
         Pack,
         Heart,
         Stuck,
+        Whoosh,
+        Land,
+        Drop,
+        Clear2,
+        Clear3,
+        Clear4,
+        Finale,
+        Confetti,
+        DealIn,
+        StepsWarn,
+        HardLevel,
     }
 
     public enum BgmId
@@ -57,6 +68,8 @@ namespace DressSort
             "lock_open", "cover_slide", "alarm", "alarm_off", "undo",
             "shuffle", "swap", "win", "gift_land", "gift_pop",
             "claim", "craft", "equip", "popup", "pack", "heart", "stuck",
+            "dress_whoosh", "dress_land", "dress_drop", "column_clear_2", "column_clear_3", "column_clear_4",
+            "level_finale", "confetti_pop", "deal_in", "steps_warn", "hard_level",
         };
 
         static AudioSource oneShot;
@@ -94,6 +107,18 @@ namespace DressSort
             if (clip != null)
                 oneShot.PlayOneShot(clip, Gain(id));
             ApplyBgm();
+        }
+
+        /// <summary>连着叠好的列一列比一列高：C、D、E、G。</summary>
+        public static void PlayClear(int combo)
+        {
+            switch (Mathf.Clamp(combo, 1, 4))
+            {
+                case 1: Play(SfxId.Clear); break;
+                case 2: Play(SfxId.Clear2); break;
+                case 3: Play(SfxId.Clear3); break;
+                default: Play(SfxId.Clear4); break;
+            }
         }
 
         public static void SetBgm(BgmId id)
@@ -150,6 +175,9 @@ namespace DressSort
             if (name == currentTrack && BedPlaying())
             {
                 SetBedVolume(vol);
+                // 上一拍没真正响起来（文件还在下，或被系统拦了），这次点击再试。
+                if (!StreamAudible())
+                    KickBed();
                 return;
             }
             StopBed();
@@ -179,6 +207,23 @@ namespace DressSort
             return music != null && music.clip != null && music.isPlaying;
         }
 
+        static bool StreamAudible()
+        {
+#if UNITY_MINIGAME || WEIXINMINIGAME || UNITY_WEIXINMINIGAME || MINIGAME_SUBPLATFORM_WEIXIN
+            if (!Application.isEditor)
+                return streamAudible;
+#endif
+            return music != null && music.isPlaying;
+        }
+
+        static void KickBed()
+        {
+#if UNITY_MINIGAME || WEIXINMINIGAME || UNITY_WEIXINMINIGAME || MINIGAME_SUBPLATFORM_WEIXIN
+            if (!Application.isEditor && stream != null)
+                stream.Play();
+#endif
+        }
+
         static void SetBedVolume(float vol)
         {
 #if UNITY_MINIGAME || WEIXINMINIGAME || UNITY_WEIXINMINIGAME || MINIGAME_SUBPLATFORM_WEIXIN
@@ -201,6 +246,7 @@ namespace DressSort
                 stream.volume = 0f;
                 stream = null;
                 streamOn = false;
+                streamAudible = false;
             }
 #endif
             if (music != null && music.isPlaying)
@@ -228,13 +274,14 @@ namespace DressSort
         }
 
 #if UNITY_MINIGAME || WEIXINMINIGAME || UNITY_WEIXINMINIGAME || MINIGAME_SUBPLATFORM_WEIXIN
-        // 微信播放器不带 Unity 的网络音频模块。长音乐交给 InnerAudioContext：
-        // needDownload 让它整首下完落盘再播，下次秒开。每首只建一个，切走时暂停不销毁。
+        // 微信播放器不带 Unity 的网络音频模块。长音乐交给 InnerAudioContext，直接播云上的地址。
+        // 每首只建一个，切走时暂停不销毁。
         static readonly Dictionary<string, WeChatWASM.WXInnerAudioContext> Streams =
             new Dictionary<string, WeChatWASM.WXInnerAudioContext>();
         static readonly HashSet<string> Ready = new HashSet<string>();
         static WeChatWASM.WXInnerAudioContext stream;
         static bool streamOn;
+        static bool streamAudible;
         static float streamVol;
 
         static void PlayStream(string name, float vol)
@@ -243,7 +290,8 @@ namespace DressSort
             streamOn = true;
             streamVol = vol;
             stream.volume = vol;
-            if (Ready.Contains(name)) stream.Play();
+            // 必须赶在这次点击里调用。等下载回调再播，iOS 会当成自动播放直接丢掉。
+            stream.Play();
             WarmOthers(name);
         }
 
@@ -263,7 +311,8 @@ namespace DressSort
                 src = url,
                 loop = true,
                 volume = 0f,
-                needDownload = true,
+                // 直接播网络地址。走缓存时缓存目录还没配好，下载会失败，音乐就一直不出声。
+                needDownload = false,
             });
             ctx.OnCanplay(() =>
             {
@@ -274,7 +323,17 @@ namespace DressSort
                     ctx.Play();
                 }
             });
-            ctx.OnError(e => Debug.LogWarning("[一裙又一裙] " + name + " 音乐拉取失败 " + e.errCode));
+            ctx.OnPlay(() =>
+            {
+                if (stream == ctx)
+                    streamAudible = true;
+            });
+            ctx.OnError(e =>
+            {
+                if (stream == ctx)
+                    streamAudible = false;
+                Debug.LogWarning("[一裙又一裙] " + name + " 音乐拉取失败 " + e.errCode);
+            });
             Streams[name] = ctx;
             return ctx;
         }
@@ -291,9 +350,20 @@ namespace DressSort
                     return 0.5f;
                 case SfxId.Win:
                 case SfxId.GiftPop:
-                    return 0.9f;
+                case SfxId.Finale:
                 case SfxId.Clear:
-                    return 0.8f;
+                case SfxId.Clear2:
+                case SfxId.Clear3:
+                case SfxId.Clear4:
+                    return 1f;
+                case SfxId.Whoosh:
+                    return 0.55f;
+                case SfxId.Drop:
+                    return 0.6f;
+                case SfxId.Land:
+                case SfxId.Confetti:
+                case SfxId.HardLevel:
+                    return 0.85f;
                 default:
                     return 0.74f;
             }

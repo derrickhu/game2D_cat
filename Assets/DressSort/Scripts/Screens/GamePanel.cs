@@ -8,6 +8,7 @@ namespace DressSort
     {
         GameHud hud;
         BoardView board;
+        BoardFx fx;
         SortBoard logic;
         LevelDef level;
 
@@ -63,6 +64,8 @@ namespace DressSort
             board = BoardView.Create(hud.boardRoot != null ? hud.boardRoot : root,
                 new BoardView.Layout { overlap = 0.70f });
             board.AttachHud(hud);
+            fx = BoardFx.Create(hud.transform, app.Database);
+            board.AttachFx(fx);
             board.OnColumnClicked = OnColumnClicked;
             board.OnItemClicked = OnSwapPick;
         }
@@ -86,7 +89,7 @@ namespace DressSort
                 return;
             }
             TrackLevelStart();
-            Deal(level.seed);
+            Deal(level.seed, true);
         }
 
         public SortBoard Logic => logic;
@@ -105,9 +108,15 @@ namespace DressSort
             UpdateHud();
         }
 
-        void Deal(int seed)
+        /// <summary>intro：新进一关才放难关开场，洗牌和重开只重新发牌。</summary>
+        void Deal(int seed, bool intro = false)
         {
             finished = false;
+            if (fx != null)
+            {
+                fx.Clear();
+                fx.ClearBanners();
+            }
             shufflesLeft = level.shuffles;
             swapsLeft = level.swaps;
             if (board != null)
@@ -134,9 +143,19 @@ namespace DressSort
             }
 
             board.Bind(logic, level.palette, level.mystery);
-            UpdateHud();
+            UpdateHud(false);
             if (hud != null)
-                hud.ShowToast(LevelCatalog.IntroFor(level));
+                hud.ShowToast(LevelCatalog.IntroFor(level), true);
+
+            bool hard = intro && LevelCatalog.IsHard(level) && fx != null && isActiveAndEnabled;
+            if (!Application.isPlaying || !isActiveAndEnabled) return;
+            board.PlayDealIn(hard ? 1.35f : 0f);
+            if (hard)
+            {
+                Sfx.Play(SfxId.HardLevel);
+                WxBridge.Vibrate(WxBridge.Buzz.Heavy);
+                fx.StartCoroutine(fx.Splash("高能预警", "这关步数要省着用"));
+            }
         }
 
         void OnColumnClicked(int column)
@@ -145,6 +164,7 @@ namespace DressSort
             if (!logic.CanPlay(column))
             {
                 Sfx.Play(SfxId.Deny);
+                board.Deny(column);
                 if (hud != null)
                 {
                     if (logic.IsCovered(column))
@@ -162,6 +182,8 @@ namespace DressSort
                 }
                 return;
             }
+            if (logic.Steps == 0 && hud != null)
+                hud.ShowToast("");
             StartCoroutine(PlayRoutine(column));
         }
 
@@ -182,8 +204,8 @@ namespace DressSort
             if (logic.IsWin())
             {
                 finished = true;
-                hud.ShowToast("整理完成！");
-                yield return new WaitForSeconds(0.45f);
+                hud.ShowToast("");
+                yield return board.Finale("整理完成！");
                 Complete();
                 yield break;
             }
@@ -206,7 +228,6 @@ namespace DressSort
 
         void Complete()
         {
-            Sfx.Play(SfxId.Win);
             int spare = Mathf.Max(0, level.moveLimit - logic.Steps);
             int stars = 1 + Mathf.Clamp(spare / Mathf.Max(1, level.moveLimit / 3), 0, 2);
             Analytics.LevelClear(stars);
@@ -222,7 +243,7 @@ namespace DressSort
                 app.CurrentLevel = gmNext;
                 level = gmNext;
                 TrackLevelStart();
-                Deal(level.seed);
+                Deal(level.seed, true);
                 return;
             }
 
@@ -264,7 +285,7 @@ namespace DressSort
             app.CurrentLevel = next;
             level = next;
             TrackLevelStart();
-            Deal(level.seed);
+            Deal(level.seed, true);
             CraftView.ShowGain(this, root, app.Database, gained);
         }
 
@@ -369,8 +390,8 @@ namespace DressSort
             if (logic.IsWin())
             {
                 finished = true;
-                hud.ShowToast("整理完成！");
-                yield return new WaitForSeconds(0.45f);
+                hud.ShowToast("");
+                yield return board.Finale("整理完成！");
                 Complete();
             }
         }
@@ -387,13 +408,12 @@ namespace DressSort
             hud.ShowToast("重新开始");
         }
 
-        void UpdateHud()
+        void UpdateHud(bool animate = true)
         {
             if (hud == null || level == null) return;
             if (hud.levelLabel != null)
                 hud.levelLabel.text = (app.GmPlay ? "GM 第 " : "第 ") + level.index + " 关";
-            if (hud.movesLabel != null)
-                hud.movesLabel.text = "剩余 " + Mathf.Max(0, level.moveLimit - logic.Steps) + " 步";
+            hud.SetSteps(Mathf.Max(0, level.moveLimit - logic.Steps), animate && Application.isPlaying);
             hud.SetCounts(swapsLeft, shufflesLeft);
         }
 

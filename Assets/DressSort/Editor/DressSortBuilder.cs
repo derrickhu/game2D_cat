@@ -33,6 +33,7 @@ namespace DressSort.EditorTools
             public string label;
             public Color accent;
             public bool fromStart;
+            public bool wardrobeOnly;
         }
 
         // 游戏内资源只用短 id，对齐工具的长文件名不许进 Portraits / Icons。
@@ -68,6 +69,38 @@ namespace DressSort.EditorTools
             new DressInfo { id = "blueberry", label = "蓝莓背心裙", accent = new Color32(0x3A, 0x4E, 0xB8, 0xFF) },
             new DressInfo { id = "rose_velvet", label = "玫瑰丝绒裙", accent = new Color32(0xB8, 0x2A, 0x50, 0xFF) },
             new DressInfo { id = "honey_bow", label = "蜂蜜蝴蝶结裙", accent = new Color32(0xF2, 0xB8, 0x3A, 0xFF) },
+            // 工坊新裙子。还没有棋盘色块小图，只进衣柜和图纸。
+            new DressInfo { id = "apple_denim", label = "苹果牛仔裙", accent = new Color32(0x6A, 0x8E, 0xC8, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "berry_buns", label = "草莓奶油裙", accent = new Color32(0xE8, 0x5A, 0x6A, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "black_gold", label = "墨金礼服", accent = new Color32(0x2A, 0x22, 0x28, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "camellia", label = "山茶红裙", accent = new Color32(0xD0, 0x30, 0x3A, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "candy_berry", label = "草莓糖裙", accent = new Color32(0xF0, 0x8A, 0xA8, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "candy_blueberry", label = "蓝莓糖裙", accent = new Color32(0x3A, 0x5E, 0xC8, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "candy_grape", label = "葡萄汽水裙", accent = new Color32(0x7A, 0x4E, 0xC8, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "coral_pearl", label = "珊瑚珍珠裙", accent = new Color32(0xF0, 0x80, 0x78, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "cream_cat", label = "奶油猫裙", accent = new Color32(0xE8, 0xD8, 0xF0, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "festival_hydrangea", label = "绣球对半裙", accent = new Color32(0xE8, 0x8A, 0xB8, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "festival_lantern", label = "灯笼万寿菊裙", accent = new Color32(0xE0, 0x40, 0x30, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "festival_matcha", label = "抹茶樱裙", accent = new Color32(0x8A, 0xC0, 0x70, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "fruit_mango", label = "芒果树莓裙", accent = new Color32(0xF0, 0xB0, 0x30, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "fruit_melon", label = "西瓜糖裙", accent = new Color32(0xE8, 0x50, 0x68, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "fruit_plum", label = "李子杏橙裙", accent = new Color32(0x8A, 0x48, 0xB0, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "glacier_gold", label = "冰川金星裙", accent = new Color32(0x7E, 0xC8, 0xE8, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "honey_amber", label = "蜂蜜琥珀裙", accent = new Color32(0xE8, 0xA0, 0x30, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "ivory_pearl", label = "象牙珍珠裙", accent = new Color32(0xF4, 0xE6, 0xC8, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "macaron_lemon", label = "柠檬马卡龙裙", accent = new Color32(0xF0, 0xD0, 0x48, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "macaron_pistachio", label = "开心果马卡龙裙", accent = new Color32(0x8E, 0xC8, 0x78, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "macaron_sky", label = "天空可可裙", accent = new Color32(0x70, 0xB8, 0xE0, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "mint_latte", label = "薄荷拿铁裙", accent = new Color32(0x7E, 0xC8, 0xA8, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "rose_wine", label = "酒红玫瑰裙", accent = new Color32(0xA0, 0x28, 0x48, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "ruby_heart", label = "红宝石心裙", accent = new Color32(0xD0, 0x28, 0x40, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "sakura_bloom", label = "樱花绽放裙", accent = new Color32(0xF0, 0xA0, 0xB8, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "sapphire_star", label = "蓝宝石星裙", accent = new Color32(0x30, 0x58, 0xC0, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "sea_coral", label = "海沫珊瑚裙", accent = new Color32(0xF0, 0x78, 0x70, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "sea_navy", label = "海军橘子裙", accent = new Color32(0x2A, 0x3A, 0x78, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "sea_peach", label = "海玻璃蜜桃裙", accent = new Color32(0xF0, 0xA0, 0x80, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "sunflower", label = "向日葵裙", accent = new Color32(0xF0, 0xC0, 0x30, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "wisteria_jewel", label = "紫藤珠宝裙", accent = new Color32(0xA0, 0x70, 0xD0, 0xFF), wardrobeOnly = true },
         };
 
         /// <summary>身上穿着的这一头。杏橙、紫藤、雾蓝改到任务里领。奶茶长发给图纸，粉红马尾留给活动。</summary>
@@ -90,6 +123,13 @@ namespace DressSort.EditorTools
             ("hair_baguette", "奶油金"),
             ("hair_denim", "雾蓝"),
             ("hair_pink", "粉红马尾"),
+            ("hair_berry", "草莓丸子"),
+            ("hair_ink", "墨金丸子"),
+            ("hair_coral", "珊瑚侧环"),
+            ("hair_matcha", "抹茶辫"),
+            ("hair_glacier", "冰川辫"),
+            ("hair_sakura", "樱花丸子"),
+            ("hair_jewel", "紫藤珠辫"),
         };
 
         [InitializeOnLoadMethod]
@@ -150,7 +190,7 @@ namespace DressSort.EditorTools
                 Sprite body = TryLoadSprite("Portraits/body_" + info.id);
                 item.worn = body != null ? body : LoadSprite("Portraits/portrait_" + info.id);
                 item.accent = info.accent;
-                item.boardEligible = true;
+                item.boardEligible = !info.wardrobeOnly;
                 item.unlockedFromStart = info.fromStart;
                 item.layeredWithHair = body != null;
                 EditorUtility.SetDirty(item);
@@ -343,7 +383,7 @@ namespace DressSort.EditorTools
                 Sprite body = TryLoadSprite("Portraits/body_" + info.id);
                 item.worn = body != null ? body : LoadSprite("Portraits/portrait_" + info.id);
                 item.layeredWithHair = body != null;
-                item.boardEligible = true;
+                item.boardEligible = !info.wardrobeOnly;
                 item.unlockedFromStart = info.fromStart;
                 EditorUtility.SetDirty(item);
                 if (!database.items.Contains(item))

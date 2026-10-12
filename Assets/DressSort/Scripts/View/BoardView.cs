@@ -38,6 +38,15 @@ namespace DressSort
             public float arc;
             public bool scale;
             public EaseKind ease;
+            /// <summary>飞行途中转的总角度，360 就是翻一整圈。</summary>
+            public float spin;
+            /// <summary>飞到一半时顺着飞行方向拉长一点。</summary>
+            public bool stretch;
+            /// <summary>飞的时候身后留几道残影。</summary>
+            public bool trail;
+            /// <summary>走到这个进度算「落地」，触发 onLand。默认 1。</summary>
+            public float landAt;
+            public System.Action onLand;
         }
 
         Layout layout;
@@ -76,8 +85,34 @@ namespace DressSort
         static readonly Color SolvedWash = new Color(1f, 1f, 1f, 0.34f);
         static readonly Color LaneIdle = new Color(1f, 1f, 1f, 0.34f);
         static readonly Color LanePick = new Color(1f, 0.82f, 0.86f, 0.78f);
+        static readonly Color LanePress = new Color(1f, 1f, 1f, 0.72f);
+        static readonly Color MintRing = new Color32(0x7F, 0xE0, 0xB8, 0xFF);
+        static readonly Color GoldRing = new Color32(0xFF, 0xD3, 0x4E, 0xFF);
+
+        static readonly string[] ComboWords = { "好看！", "精彩！", "太好了！", "绝了！" };
+        static readonly Color[] ComboColors =
+        {
+            new Color32(0xFF, 0x7A, 0x9C, 0xFF),
+            new Color32(0xFF, 0xA2, 0x3A, 0xFF),
+            new Color32(0xB0, 0x6C, 0xFF, 0xFF),
+            new Color32(0xFF, 0x4D, 0x5E, 0xFF),
+        };
+
+        BoardFx fx;
+        int moveCount;
+        int lastClearMove = -99;
+        int combo;
+        readonly List<float> pressValue = new List<float>();
+        int pressedColumn = -1;
+        float idleClock;
+        Coroutine denyRoutine;
+        readonly List<RectTransform> denyRects = new List<RectTransform>();
+        readonly List<Vector2> denyHomes = new List<Vector2>();
+        readonly Dictionary<RectTransform, Coroutine> squishes = new Dictionary<RectTransform, Coroutine>();
 
         public bool Busy { get; private set; }
+
+        public void AttachFx(BoardFx next) => fx = next;
         public System.Action<int> OnColumnClicked;
 
         /// <summary>「交换」选格模式：点列时回调具体是哪一格。</summary>
@@ -85,15 +120,27 @@ namespace DressSort
         bool pickMode;
 
         /// <summary>记下按下的位置，Button 抬起时据此换算点中的是哪一格。</summary>
-        class LaneTap : MonoBehaviour, UnityEngine.EventSystems.IPointerDownHandler
+        class LaneTap : MonoBehaviour, UnityEngine.EventSystems.IPointerDownHandler,
+            UnityEngine.EventSystems.IPointerUpHandler, UnityEngine.EventSystems.IPointerExitHandler
         {
             public Vector2 screen;
             public Camera eventCamera;
+            public BoardView owner;
+            public int column;
 
             public void OnPointerDown(UnityEngine.EventSystems.PointerEventData data)
             {
                 screen = data.position;
                 eventCamera = data.pressEventCamera;
+                if (owner != null) owner.pressedColumn = column;
+            }
+
+            public void OnPointerUp(UnityEngine.EventSystems.PointerEventData data) => Release();
+            public void OnPointerExit(UnityEngine.EventSystems.PointerEventData data) => Release();
+
+            void Release()
+            {
+                if (owner != null && owner.pressedColumn == column) owner.pressedColumn = -1;
             }
         }
 
@@ -149,6 +196,9 @@ namespace DressSort
                 float tallest = MaxStackHeight / (layout.overlap * (board.ColumnHeight - 1) + 1f);
                 layout.itemSize = Mathf.Min(152f, size, tallest);
             }
+            moveCount = 0;
+            lastClearMove = -99;
+            combo = 0;
             BuildLanes();
             Refresh();
         }
@@ -195,6 +245,8 @@ namespace DressSort
             laneSparkles.Clear();
             laneBacks.Clear();
             laneTaps.Clear();
+            pressValue.Clear();
+            pressedColumn = -1;
             coverViews.Clear();
             coverCounts.Clear();
 
@@ -252,7 +304,11 @@ namespace DressSort
                     new Vector2(x, hangerTop - laneHeight * 0.5f),
                     new Vector2(Mathf.Max(GameHud.HangerWidth, layout.itemSize) + 12f, laneHeight),
                     () => OnLaneClicked(index));
-                laneTaps.Add(hit.gameObject.AddComponent<LaneTap>());
+                LaneTap tap = hit.gameObject.AddComponent<LaneTap>();
+                tap.owner = this;
+                tap.column = c;
+                laneTaps.Add(tap);
+                pressValue.Add(0f);
                 laneRoots.Add(hit.transform as RectTransform);
                 laneItems.Add(new List<Image>());
                 BuildCover(c, x, washTop, washBottom);
@@ -691,6 +747,10 @@ namespace DressSort
         /// <summary>整盘重画，用在发牌、洗牌、撤回之后。</summary>
         public void Refresh()
         {
+            StopDeny();
+            foreach (Coroutine running in squishes.Values)
+                if (running != null) StopCoroutine(running);
+            squishes.Clear();
             for (int c = 0; c < board.ColumnCount; c++)
             {
                 HideSparkles(c);
@@ -786,6 +846,8 @@ namespace DressSort
 
         void Update()
         {
+            UpdatePress();
+            UpdateIdleHeld();
             if (laneSparkles.Count == 0) return;
             sparkleClock += Time.deltaTime;
             for (int c = 0; c < laneSparkles.Count; c++)
@@ -802,6 +864,198 @@ namespace DressSort
                     spark.rectTransform.localRotation = Quaternion.Euler(0f, 0f, sparkleClock * 50f + i * 40f);
                 }
             }
+        }
+
+        /// <summary>手指按住哪列，那列底色亮一下、衣架往下沉一点；松手弹回。</summary>
+        void UpdatePress()
+        {
+            float dt = Time.deltaTime;
+            for (int c = 0; c < pressValue.Count; c++)
+            {
+                float target = c == pressedColumn && !pickMode ? 1f : 0f;
+                float before = pressValue[c];
+                if (Mathf.Approximately(before, target)) continue;
+                float now = Mathf.MoveTowards(before, target, dt * (target > before ? 14f : 7f));
+                pressValue[c] = now;
+                if (c < laneBacks.Count && laneBacks[c] != null)
+                    laneBacks[c].color = Color.Lerp(LaneIdle, LanePress, now);
+                Image hanger = hud != null ? hud.Hanger(c) : null;
+                if (hanger != null)
+                    hanger.rectTransform.localScale = new Vector3(1f + now * 0.06f, 1f - now * 0.1f, 1f);
+            }
+        }
+
+        /// <summary>手里那件没事的时候轻轻上下浮、左右晃，告诉玩家「我在这儿」。</summary>
+        void UpdateIdleHeld()
+        {
+            if (heldItem == null || Busy || denyRoutine != null) return;
+            idleClock += Time.deltaTime;
+            RectTransform rect = heldItem.rectTransform;
+            rect.anchoredPosition = new Vector2(0f, Mathf.Sin(idleClock * 2.6f) * 7f);
+            rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(idleClock * 1.7f) * 3f);
+        }
+
+        // ------------------------------------------------------------ 小动作
+
+        void Squish(RectTransform rect, float amount, float duration = 0.34f, float delay = 0f)
+        {
+            if (rect == null) return;
+            if (squishes.TryGetValue(rect, out Coroutine running) && running != null)
+                StopCoroutine(running);
+            squishes[rect] = StartCoroutine(SquishRoutine(rect, amount, duration, delay));
+        }
+
+        IEnumerator SquishRoutine(RectTransform rect, float amount, float duration, float delay)
+        {
+            if (delay > 0f)
+                yield return new WaitForSeconds(delay);
+            float t = 0f;
+            while (t < duration && rect != null)
+            {
+                t += Time.deltaTime;
+                float s = Ease.Spring(t / duration, 2.2f, 4.5f) * amount;
+                rect.localScale = new Vector3(1f + s, 1f - s, 1f);
+                yield return null;
+            }
+            if (rect != null)
+            {
+                rect.localScale = Vector3.one;
+                squishes.Remove(rect);
+            }
+        }
+
+        void StopSquish(RectTransform rect)
+        {
+            if (rect == null) return;
+            if (squishes.TryGetValue(rect, out Coroutine running) && running != null)
+                StopCoroutine(running);
+            squishes.Remove(rect);
+            rect.localScale = Vector3.one;
+        }
+
+        IEnumerator Hop(RectTransform rect, Vector2 home, float delay, float height, float grow, float duration)
+        {
+            if (delay > 0f)
+                yield return new WaitForSeconds(delay);
+            StopSquish(rect);
+            float t = 0f;
+            while (t < duration && rect != null)
+            {
+                t += Time.deltaTime;
+                float k = Mathf.Clamp01(t / duration);
+                float up = Mathf.Sin(k * Mathf.PI);
+                rect.anchoredPosition = home + new Vector2(0f, up * height);
+                // 起跳前压扁、空中拉长、落地再压一下
+                float s = k < 0.15f ? -k / 0.15f * 0.12f : k > 0.85f ? (k - 0.85f) / 0.15f * 0.1f : -up * 0.08f;
+                rect.localScale = new Vector3((1f + up * grow) * (1f - s), (1f + up * grow) * (1f + s), 1f);
+                yield return null;
+            }
+            if (rect != null)
+            {
+                rect.anchoredPosition = home;
+                Squish(rect, 0.1f, 0.24f);
+            }
+        }
+
+        void SpawnGhost(Image source)
+        {
+            if (source == null || source.sprite == null) return;
+            RectTransform from = source.rectTransform;
+            Image ghost = UiKit.Icon(from.parent, "Ghost", source.sprite, from.anchorMin,
+                from.anchoredPosition, from.sizeDelta);
+            ghost.preserveAspect = true;
+            RectTransform rect = ghost.rectTransform;
+            rect.anchorMax = from.anchorMax;
+            rect.pivot = from.pivot;
+            rect.anchoredPosition = from.anchoredPosition;
+            rect.localRotation = from.localRotation;
+            rect.localScale = from.localScale;
+            rect.SetSiblingIndex(Mathf.Max(0, from.GetSiblingIndex()));
+            StartCoroutine(FadeGhost(ghost));
+        }
+
+        IEnumerator FadeGhost(Image ghost)
+        {
+            float t = 0f;
+            const float life = 0.18f;
+            while (t < life && ghost != null)
+            {
+                t += Time.deltaTime;
+                float k = t / life;
+                ghost.color = new Color(1f, 0.92f, 0.96f, 0.42f * (1f - k));
+                ghost.rectTransform.localScale *= 1f - Time.deltaTime * 1.2f;
+                yield return null;
+            }
+            UiKit.Discard(ghost);
+        }
+
+        Vector3 WorldOf(RectTransform parentSpace, Vector2 anchored)
+        {
+            Rect r = parentSpace.rect;
+            Vector2 local = new Vector2(anchored.x, r.yMax + anchored.y);
+            return parentSpace.TransformPoint(local);
+        }
+
+        void StopDeny()
+        {
+            if (denyRoutine != null)
+            {
+                StopCoroutine(denyRoutine);
+                denyRoutine = null;
+            }
+            for (int i = 0; i < denyRects.Count; i++)
+            {
+                if (denyRects[i] == null) continue;
+                denyRects[i].anchoredPosition = denyHomes[i];
+                denyRects[i].localRotation = Quaternion.identity;
+            }
+            denyRects.Clear();
+            denyHomes.Clear();
+        }
+
+        /// <summary>点了不能放的列：那列左右甩两下，手里那件摇头。</summary>
+        public void Deny(int column)
+        {
+            if (Busy) return;
+            StopDeny();
+            if (column >= 0 && column < laneItems.Count)
+            {
+                foreach (Image view in laneItems[column])
+                    if (view != null) denyRects.Add(view.rectTransform);
+                if (column < padlocks.Count && padlocks[column] != null && padlocks[column].gameObject.activeSelf)
+                    denyRects.Add(padlocks[column].rectTransform);
+                if (column < coverViews.Count && coverViews[column] != null && coverViews[column].gameObject.activeSelf)
+                    denyRects.Add(coverViews[column].rectTransform);
+            }
+            foreach (RectTransform rect in denyRects)
+                denyHomes.Add(rect.anchoredPosition);
+            WxBridge.Vibrate(WxBridge.Buzz.Light);
+            denyRoutine = StartCoroutine(DenyRoutine());
+        }
+
+        IEnumerator DenyRoutine()
+        {
+            float t = 0f;
+            const float duration = 0.34f;
+            RectTransform held = heldItem != null ? heldItem.rectTransform : null;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float fall = 1f - Mathf.Clamp01(t / duration);
+                float wave = Mathf.Sin(t * 58f) * fall;
+                for (int i = 0; i < denyRects.Count; i++)
+                {
+                    if (denyRects[i] == null) continue;
+                    denyRects[i].anchoredPosition = denyHomes[i] + new Vector2(wave * 13f, 0f);
+                }
+                if (held != null)
+                    held.localRotation = Quaternion.Euler(0f, 0f, wave * 14f);
+                yield return null;
+            }
+            if (held != null)
+                held.localRotation = Quaternion.identity;
+            denyRoutine = null;
+            StopDeny();
         }
 
         void SnapSolvedChrome()
@@ -832,6 +1086,7 @@ namespace DressSort
 
         IEnumerator PlayRoutine(int column)
         {
+            StopDeny();
             Busy = true;
 
             Image incoming = heldItem;
@@ -841,7 +1096,9 @@ namespace DressSort
                 yield break;
             }
             Sfx.Play(SfxId.Lift);
+            Sfx.Play(SfxId.Whoosh);
             heldItem = null;
+            moveCount++;
 
             List<Image> views = laneItems[column];
             Vector3 incomingWorld = incoming.rectTransform.position;
@@ -863,31 +1120,49 @@ namespace DressSort
             Vector2 itemSize = new Vector2(layout.itemSize, layout.itemSize);
             Vector2 holdSize = itemSize * 1.15f;
 
+            Vector2 landing = SlotPosition(column, 0);
+            RectTransform incomingRect = incoming.rectTransform;
+            float spinSign = landing.x >= incomingRect.anchoredPosition.x ? -1f : 1f;
             motions.Add(new Motion
             {
-                rect = incoming.rectTransform,
-                from = incoming.rectTransform.anchoredPosition,
-                to = SlotPosition(column, 0),
+                rect = incomingRect,
+                from = incomingRect.anchoredPosition,
+                to = landing,
                 sizeFrom = holdSize,
                 sizeTo = itemSize,
                 delay = 0f,
-                duration = 0.28f,
+                duration = 0.3f,
                 arc = 42f,
                 scale = true,
                 ease = EaseKind.OutBack,
+                spin = 360f * spinSign,
+                stretch = true,
+                trail = true,
+                landAt = 0.72f,
+                onLand = () =>
+                {
+                    Sfx.Play(SfxId.Land);
+                    WxBridge.Vibrate(WxBridge.Buzz.Light);
+                    Squish(incomingRect, 0.24f, 0.36f);
+                    if (fx != null)
+                        fx.Puff(WorldOf(root, landing + new Vector2(0f, -layout.itemSize * 0.3f)), layout.itemSize);
+                },
             });
 
             for (int r = 1; r < views.Count; r++)
             {
+                RectTransform rect = views[r].rectTransform;
+                float ripple = Mathf.Lerp(0.16f, 0.06f, r / Mathf.Max(1f, views.Count - 1f));
                 motions.Add(new Motion
                 {
-                    rect = views[r].rectTransform,
-                    from = views[r].rectTransform.anchoredPosition,
+                    rect = rect,
+                    from = rect.anchoredPosition,
                     to = SlotPosition(column, r),
-                    delay = 0.03f + r * 0.012f,
-                    duration = 0.18f,
+                    delay = 0.17f + r * 0.025f,
+                    duration = 0.15f,
                     arc = 0f,
-                    ease = EaseKind.OutQuad,
+                    ease = EaseKind.OutBack,
+                    onLand = () => Squish(rect, ripple, 0.3f),
                 });
             }
 
@@ -899,22 +1174,38 @@ namespace DressSort
             outgoing.rectTransform.pivot = new Vector2(0.5f, 0.5f);
             outgoing.rectTransform.position = world;
             outgoing.rectTransform.sizeDelta = itemSize;
+            RectTransform outgoingRect = outgoing.rectTransform;
             motions.Add(new Motion
             {
-                rect = outgoing.rectTransform,
-                from = outgoing.rectTransform.anchoredPosition,
+                rect = outgoingRect,
+                from = outgoingRect.anchoredPosition,
                 to = Vector2.zero,
                 sizeFrom = itemSize,
                 sizeTo = holdSize,
-                delay = 0.12f,
+                delay = 0.16f,
                 duration = 0.3f,
                 arc = -38f,
                 scale = true,
                 ease = EaseKind.OutCubic,
+                spin = -360f * spinSign,
+                stretch = true,
+                trail = true,
+                landAt = 0.82f,
+                onLand = () =>
+                {
+                    Sfx.Play(SfxId.Drop);
+                    Squish(outgoingRect, 0.28f, 0.4f);
+                    if (fx != null)
+                    {
+                        fx.RingWave(holdRoot.position, layout.itemSize * 1.4f, new Color(1f, 1f, 1f, 0.8f), 0.32f);
+                        fx.Puff(holdRoot.TransformPoint(new Vector3(0f, -layout.itemSize * 0.45f, 0f)),
+                            layout.itemSize * 0.8f);
+                    }
+                },
             });
 
             yield return RunMotions(motions);
-            Sfx.Play(SfxId.Place);
+            idleClock = 0f;
 
             heldItem = outgoing;
             if (board.LastSettles != null && board.LastSettles.Length > 0)
@@ -951,9 +1242,12 @@ namespace DressSort
                 Busy = false;
                 yield break;
             }
+            StopDeny();
             Image outgoing = views[row];
             heldItem = null;
+            moveCount++;
             Sfx.Play(SfxId.Swap);
+            Sfx.Play(SfxId.Whoosh);
 
             board.Swap(column, row);
 
@@ -973,24 +1267,38 @@ namespace DressSort
             outgoing.rectTransform.position = world;
             outgoing.rectTransform.SetAsLastSibling();
 
+            RectTransform inRect = incoming.rectTransform;
+            RectTransform outRect = outgoing.rectTransform;
+            Vector2 slot = SlotPosition(column, row);
             var motions = new List<Motion>
             {
                 new Motion
                 {
-                    rect = incoming.rectTransform,
-                    from = incoming.rectTransform.anchoredPosition,
-                    to = SlotPosition(column, row),
+                    rect = inRect,
+                    from = inRect.anchoredPosition,
+                    to = slot,
                     sizeFrom = holdSize,
                     sizeTo = itemSize,
                     duration = 0.32f,
                     arc = 60f,
                     scale = true,
                     ease = EaseKind.OutBack,
+                    spin = -360f,
+                    stretch = true,
+                    trail = true,
+                    landAt = 0.72f,
+                    onLand = () =>
+                    {
+                        Sfx.Play(SfxId.Land);
+                        WxBridge.Vibrate(WxBridge.Buzz.Light);
+                        Squish(inRect, 0.24f, 0.36f);
+                        if (fx != null) fx.Puff(WorldOf(root, slot), layout.itemSize);
+                    },
                 },
                 new Motion
                 {
-                    rect = outgoing.rectTransform,
-                    from = outgoing.rectTransform.anchoredPosition,
+                    rect = outRect,
+                    from = outRect.anchoredPosition,
                     to = Vector2.zero,
                     sizeFrom = itemSize,
                     sizeTo = holdSize,
@@ -999,10 +1307,21 @@ namespace DressSort
                     arc = 60f,
                     scale = true,
                     ease = EaseKind.OutCubic,
+                    spin = 360f,
+                    stretch = true,
+                    trail = true,
+                    landAt = 0.82f,
+                    onLand = () =>
+                    {
+                        Sfx.Play(SfxId.Drop);
+                        Squish(outRect, 0.28f, 0.4f);
+                        if (fx != null)
+                            fx.RingWave(holdRoot.position, layout.itemSize * 1.4f, new Color(1f, 1f, 1f, 0.8f), 0.32f);
+                    },
                 },
             };
             yield return RunMotions(motions);
-            Sfx.Play(SfxId.Place);
+            idleClock = 0f;
 
             heldItem = outgoing;
             if (board.LastSettles != null && board.LastSettles.Length > 0)
@@ -1071,15 +1390,28 @@ namespace DressSort
             for (int r = 0; r < views.Count; r++)
             {
                 bool isOdd = r == views.Count - 1;
+                RectTransform rect = views[r].rectTransform;
+                Vector2 to = SlotPosition(column, r);
                 motions.Add(new Motion
                 {
-                    rect = views[r].rectTransform,
-                    from = views[r].rectTransform.anchoredPosition,
-                    to = SlotPosition(column, r),
+                    rect = rect,
+                    from = rect.anchoredPosition,
+                    to = to,
                     delay = isOdd ? 0f : 0.04f + r * 0.018f,
                     duration = isOdd ? 0.34f : 0.2f,
                     arc = isOdd ? 58f : 0f,
                     ease = isOdd ? EaseKind.OutBack : EaseKind.OutQuad,
+                    spin = isOdd ? 360f : 0f,
+                    trail = isOdd,
+                    landAt = isOdd ? 0.75f : 1f,
+                    onLand = isOdd
+                        ? (System.Action)(() =>
+                        {
+                            Sfx.Play(SfxId.Land);
+                            Squish(rect, 0.22f, 0.34f);
+                            if (fx != null) fx.Puff(WorldOf(root, to), layout.itemSize * 0.8f);
+                        })
+                        : () => Squish(rect, 0.08f, 0.24f),
                 });
             }
         }
@@ -1104,52 +1436,244 @@ namespace DressSort
             wash.color = clear;
         }
 
+        /// <summary>
+        /// 一列叠好：光柱冲上去、整列自下而上跳一遍、勾带着星爆和光环弹出来、彩纸喷一把、飘夸奖字。
+        /// 两步之内接着又叠好一列算连击，和弦一档比一档高、字越夸越大。
+        /// </summary>
         IEnumerator Celebrate(int column)
         {
-            Sfx.Play(SfxId.Clear);
+            combo = moveCount - lastClearMove <= 2 ? combo + 1 : 1;
+            lastClearMove = moveCount;
+            Sfx.PlayClear(combo);
+            WxBridge.Vibrate(WxBridge.Buzz.Medium);
+
             Image wash = column < laneWashes.Count ? laneWashes[column] : null;
             Image check = column < laneChecks.Count ? laneChecks[column] : null;
             List<Image> views = laneItems[column];
+            Vector2 top = SlotPosition(column, 0);
+            Vector2 bottom = SlotPosition(column, Mathf.Max(0, views.Count - 1));
+            Vector2 middle = (top + bottom) * 0.5f;
 
             if (check != null)
                 check.transform.localScale = Vector3.zero;
 
+            Image pillar = null;
+            if (wash != null)
+            {
+                RectTransform w = wash.rectTransform;
+                pillar = UiKit.Slice(root, "Pillar", UiKit.Rounded, w.anchorMin, w.anchoredPosition,
+                    w.sizeDelta, new Color(1f, 1f, 1f, 0f));
+                pillar.pixelsPerUnitMultiplier = 0.4f;
+                pillar.rectTransform.pivot = new Vector2(0.5f, 0f);
+                pillar.rectTransform.anchoredPosition = w.anchoredPosition - new Vector2(0f, w.sizeDelta.y * 0.5f);
+                pillar.rectTransform.SetAsLastSibling();
+            }
+
+            if (fx != null)
+            {
+                fx.Shake(root, 7f + combo * 2f, 0.22f);
+                fx.Confetti(WorldOf(root, top), 14 + combo * 4, 1050f + combo * 80f, 0.7f);
+                fx.Sparkles(WorldOf(root, middle), 6, 380f, 48f);
+                int word = Mathf.Clamp(combo, 1, ComboWords.Length) - 1;
+                string text = combo >= 2 ? ComboWords[word] + " ×" + combo : ComboWords[word];
+                fx.FloatWord(WorldOf(root, middle + new Vector2(0f, 24f)), text, ComboColors[word],
+                    46 + Mathf.Min(combo, 4) * 4);
+            }
+
+            const float wave = 0.045f;
+            for (int i = views.Count - 1; i >= 0; i--)
+            {
+                if (views[i] == null) continue;
+                int order = views.Count - 1 - i;
+                StartCoroutine(Hop(views[i].rectTransform, SlotPosition(column, i), order * wave, 30f, 0.12f, 0.24f));
+            }
+
+            float checkAt = 0.1f + views.Count * wave * 0.5f;
+            bool checkPopped = false;
             float t = 0f;
-            const float duration = 0.38f;
+            float duration = Mathf.Max(0.5f, checkAt + 0.32f);
             while (t < duration)
             {
                 t += Time.deltaTime;
                 float k = Mathf.Clamp01(t / duration);
-                float ease = 1f - Mathf.Pow(1f - k, 3f);
                 if (wash != null)
-                    wash.color = new Color(1f, 1f, 1f, Mathf.Lerp(0f, SolvedWash.a, ease));
-                if (check != null)
                 {
-                    float pop = k < 0.6f
-                        ? Mathf.Lerp(0f, 1.18f, k / 0.6f)
-                        : Mathf.Lerp(1.18f, 1f, (k - 0.6f) / 0.4f);
-                    check.transform.localScale = Vector3.one * pop;
+                    float a = t < 0.12f ? Mathf.Lerp(0f, 0.95f, t / 0.12f) : Mathf.Lerp(0.95f, SolvedWash.a, (t - 0.12f) / 0.3f);
+                    wash.color = new Color(1f, 1f, 1f, a);
                 }
-                float punch = 1f + Mathf.Sin(k * Mathf.PI) * 0.08f;
-                for (int i = 0; i < views.Count; i++)
+                if (pillar != null)
                 {
-                    if (views[i] != null)
-                        views[i].rectTransform.localScale = Vector3.one * punch;
+                    float rise = Ease.OutCubic(Mathf.Clamp01(t / 0.22f));
+                    float fade = 1f - Mathf.Clamp01((t - 0.14f) / 0.3f);
+                    pillar.rectTransform.localScale = new Vector3(1f + rise * 0.18f, Mathf.Max(0.01f, rise), 1f);
+                    pillar.color = new Color(1f, 1f, 0.92f, 0.7f * fade);
+                }
+                if (check != null && t >= checkAt)
+                {
+                    if (!checkPopped)
+                    {
+                        checkPopped = true;
+                        if (fx != null)
+                        {
+                            Vector3 at = check.rectTransform.position;
+                            fx.Burst(at, 250f, 0.36f);
+                            fx.RingWave(at, 220f, MintRing, 0.42f);
+                            fx.Sparkles(at, 8, 520f, 52f);
+                        }
+                    }
+                    float c = Mathf.Clamp01((t - checkAt) / 0.3f);
+                    check.transform.localScale = Vector3.one * Mathf.Max(0f, Ease.OutBack(c, 3.2f));
+                    check.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Lerp(-35f, 0f, Ease.OutCubic(c)));
                 }
                 yield return null;
             }
 
+            if (pillar != null)
+                UiKit.Discard(pillar);
             if (wash != null)
                 wash.color = SolvedWash;
             if (check != null)
-                check.transform.localScale = Vector3.one;
-            for (int i = 0; i < views.Count; i++)
             {
-                if (views[i] != null)
-                    views[i].rectTransform.localScale = Vector3.one;
+                check.transform.localScale = Vector3.one;
+                check.transform.localRotation = Quaternion.identity;
+                check.transform.SetAsLastSibling();
+            }
+            if (fx == null)
+                BurstSparks(column);
+        }
+
+        /// <summary>开局发牌：每列从上往下掉进来，底下那件先到；最后手里那件弹出来。</summary>
+        public Coroutine PlayDealIn(float startDelay = 0f)
+        {
+            StopDeny();
+            return StartCoroutine(DealInRoutine(startDelay));
+        }
+
+        IEnumerator DealInRoutine(float startDelay)
+        {
+            Busy = true;
+            float longest = startDelay;
+            var routines = new List<Coroutine>();
+            for (int c = 0; c < laneItems.Count; c++)
+            {
+                List<Image> views = laneItems[c];
+                for (int r = views.Count - 1; r >= 0; r--)
+                {
+                    if (views[r] == null) continue;
+                    float delay = startDelay + c * 0.04f + (views.Count - 1 - r) * 0.03f;
+                    longest = Mathf.Max(longest, delay + 0.3f);
+                    routines.Add(StartCoroutine(DropIn(views[r], SlotPosition(c, r), delay)));
+                }
+            }
+            if (startDelay > 0f)
+                StartCoroutine(PlayLater(SfxId.DealIn, startDelay));
+            else
+                Sfx.Play(SfxId.DealIn);
+            if (heldItem != null)
+            {
+                RectTransform held = heldItem.rectTransform;
+                held.localScale = Vector3.zero;
+                float t = 0f;
+                float wait = Mathf.Max(0.1f, longest - 0.12f);
+                while (t < wait)
+                {
+                    t += Time.deltaTime;
+                    yield return null;
+                }
+                t = 0f;
+                while (t < 0.3f && held != null)
+                {
+                    t += Time.deltaTime;
+                    held.localScale = Vector3.one * Mathf.Max(0f, Ease.OutBack(t / 0.3f, 2.6f));
+                    yield return null;
+                }
+                if (held != null) held.localScale = Vector3.one;
+                if (fx != null && holdRoot != null)
+                    fx.Sparkles(holdRoot.position, 6, 300f, 44f);
+            }
+            for (int i = 0; i < routines.Count; i++)
+                yield return routines[i];
+            Busy = false;
+        }
+
+        IEnumerator PlayLater(SfxId id, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            Sfx.Play(id);
+        }
+
+        IEnumerator DropIn(Image view, Vector2 home, float delay)
+        {
+            RectTransform rect = view.rectTransform;
+            Color full = view.color;
+            full.a = 1f;
+            Color hidden = full;
+            hidden.a = 0f;
+            view.color = hidden;
+            rect.anchoredPosition = home + new Vector2(0f, 420f);
+            if (delay > 0f)
+                yield return new WaitForSeconds(delay);
+            float t = 0f;
+            const float duration = 0.3f;
+            while (t < duration && rect != null)
+            {
+                t += Time.deltaTime;
+                float k = Mathf.Clamp01(t / duration);
+                rect.anchoredPosition = home + new Vector2(0f, (1f - k * k) * 420f);
+                view.color = Color.Lerp(hidden, full, k * 3f);
+                yield return null;
+            }
+            if (rect == null) yield break;
+            rect.anchoredPosition = home;
+            view.color = full;
+            Squish(rect, 0.18f, 0.3f);
+        }
+
+        /// <summary>
+        /// 全部叠好后的收尾：每列从左到右依次跳一下、勾再弹一次，
+        /// 然后礼炮彩纸、大横幅和过关和弦一起上。
+        /// </summary>
+        public IEnumerator Finale(string banner)
+        {
+            Busy = true;
+            yield return new WaitForSeconds(0.12f);
+            for (int c = 0; c < laneItems.Count; c++)
+            {
+                List<Image> views = laneItems[c];
+                if (views.Count == 0) continue;
+                for (int r = 0; r < views.Count; r++)
+                {
+                    if (views[r] != null)
+                        StartCoroutine(Hop(views[r].rectTransform, SlotPosition(c, r), (views.Count - 1 - r) * 0.02f, 34f, 0.1f, 0.26f));
+                }
+                Image check = c < laneChecks.Count ? laneChecks[c] : null;
+                if (check != null)
+                {
+                    StartCoroutine(PopReveal(check.rectTransform));
+                    if (fx != null)
+                        fx.Sparkles(check.rectTransform.position, 5, 300f, 40f);
+                }
+                Sfx.Play(SfxId.Land);
+                yield return new WaitForSeconds(0.07f);
             }
 
-            BurstSparks(column);
+            Sfx.Play(SfxId.Finale);
+            Sfx.Play(SfxId.Confetti);
+            WxBridge.Vibrate(WxBridge.Buzz.Heavy);
+            if (fx != null)
+            {
+                Rect area = fx.Layer.rect;
+                fx.Shake(root, 12f, 0.3f);
+                Vector3 left = fx.Layer.TransformPoint(new Vector3(area.xMin + 40f, area.yMin + 260f, 0f));
+                Vector3 right = fx.Layer.TransformPoint(new Vector3(area.xMax - 40f, area.yMin + 260f, 0f));
+                fx.Confetti(left, 34, 2000f, 0.25f, 68f);
+                fx.Confetti(right, 34, 2000f, 0.25f, 112f);
+                StartCoroutine(fx.ConfettiRain(40, 0.9f));
+                yield return fx.Banner(banner, 0.75f);
+            }
+            else
+                yield return new WaitForSeconds(1f);
+            Busy = false;
         }
 
         void BurstSparks(int column)
@@ -1190,12 +1714,33 @@ namespace DressSort
             for (int i = 0; i < motions.Count; i++)
                 longest = Mathf.Max(longest, motions[i].delay + motions[i].duration);
 
+            var landed = new bool[motions.Count];
+            var ghostClock = new float[motions.Count];
             float t = 0f;
             while (t < longest)
             {
                 t += Time.deltaTime;
                 for (int i = 0; i < motions.Count; i++)
-                    ApplyMotion(motions[i], t);
+                {
+                    Motion m = motions[i];
+                    ApplyMotion(m, t);
+                    float k = m.duration <= 0f ? 1f : (t - m.delay) / m.duration;
+                    float landAt = m.landAt > 0f ? m.landAt : 1f;
+                    if (m.trail && k > 0.05f && k < landAt)
+                    {
+                        ghostClock[i] -= Time.deltaTime;
+                        if (ghostClock[i] <= 0f)
+                        {
+                            ghostClock[i] = 0.028f;
+                            SpawnGhost(m.rect != null ? m.rect.GetComponent<Image>() : null);
+                        }
+                    }
+                    if (!landed[i] && k >= landAt)
+                    {
+                        landed[i] = true;
+                        m.onLand?.Invoke();
+                    }
+                }
                 yield return null;
             }
 
@@ -1203,9 +1748,15 @@ namespace DressSort
             {
                 Motion m = motions[i];
                 if (m.rect == null) continue;
+                if (!landed[i])
+                    m.onLand?.Invoke();
                 m.rect.anchoredPosition = m.to;
                 if (m.scale)
                     m.rect.sizeDelta = m.sizeTo;
+                if (Mathf.Abs(m.spin) > 0.01f)
+                    m.rect.localRotation = Quaternion.identity;
+                if (m.stretch && !squishes.ContainsKey(m.rect))
+                    m.rect.localScale = Vector3.one;
             }
         }
 
@@ -1216,6 +1767,14 @@ namespace DressSort
             if (local < 0f) return;
             float k = m.duration <= 0f ? 1f : Mathf.Clamp01(local / m.duration);
             float e = SampleEase(m.ease, k);
+            if (Mathf.Abs(m.spin) > 0.01f)
+                m.rect.localRotation = Quaternion.Euler(0f, 0f, m.spin * e);
+            float landAt = m.landAt > 0f ? m.landAt : 1f;
+            if (m.stretch && k < landAt)
+            {
+                float s = Mathf.Sin(k / landAt * Mathf.PI) * 0.16f;
+                m.rect.localScale = new Vector3(1f - s, 1f + s, 1f);
+            }
             Vector2 p = Vector2.LerpUnclamped(m.from, m.to, e);
             if (Mathf.Abs(m.arc) > 0.01f)
             {

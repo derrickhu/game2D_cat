@@ -253,7 +253,12 @@ namespace DressSort
         public void SetSwapArmed(bool armed)
         {
             if (swapButton == null) return;
-            swapButton.transform.localScale = armed ? Vector3.one * 1.08f : Vector3.one;
+            float rest = armed ? 1.08f : 1f;
+            var press = swapButton.GetComponent<PressScale>();
+            if (press != null)
+                press.Rest = rest;
+            else
+                swapButton.transform.localScale = Vector3.one * rest;
         }
 
         static void Dim(Button button, bool ready)
@@ -320,12 +325,123 @@ namespace DressSort
             Bind(resumeButton, onResume);
             Sfx.BindSilent(restartButton, onRestart);
             Bind(mapButton, onMap);
+            PressScale.Attach(swapButton, 0.88f);
+            PressScale.Attach(undoButton, 0.88f);
+            PressScale.Attach(shuffleButton, 0.88f);
+            PressScale.Attach(gear, 0.86f);
+            PressScale.Attach(resumeButton, 0.94f);
+            PressScale.Attach(restartButton, 0.94f);
+            PressScale.Attach(mapButton, 0.94f);
         }
 
-        public void ShowToast(string message)
+        Coroutine toastRoutine;
+
+        /// <summary>提示弹出来，停一会儿自己淡掉；sticky 的一直留着，直到下一条把它顶掉。</summary>
+        public void ShowToast(string message, bool sticky = false)
         {
             if (toastLabel == null) return;
+            if (toastRoutine != null)
+                StopCoroutine(toastRoutine);
+            toastRoutine = null;
             toastLabel.text = message;
+            Color c = toastLabel.color;
+            c.a = 1f;
+            toastLabel.color = c;
+            toastLabel.rectTransform.localScale = Vector3.one;
+            if (string.IsNullOrEmpty(message) || !isActiveAndEnabled) return;
+            toastRoutine = StartCoroutine(ToastRoutine(sticky));
+        }
+
+        System.Collections.IEnumerator ToastRoutine(bool sticky)
+        {
+            RectTransform rect = toastLabel.rectTransform;
+            float t = 0f;
+            while (t < 0.22f)
+            {
+                t += Time.deltaTime;
+                rect.localScale = Vector3.one * Mathf.Max(0.01f, Ease.OutBack(t / 0.22f, 2.4f));
+                yield return null;
+            }
+            rect.localScale = Vector3.one;
+            if (sticky)
+            {
+                toastRoutine = null;
+                yield break;
+            }
+            yield return new WaitForSeconds(2.2f);
+            t = 0f;
+            Color c = toastLabel.color;
+            while (t < 0.35f)
+            {
+                t += Time.deltaTime;
+                c.a = 1f - t / 0.35f;
+                toastLabel.color = c;
+                yield return null;
+            }
+            toastLabel.text = "";
+            c.a = 1f;
+            toastLabel.color = c;
+            toastRoutine = null;
+        }
+
+        static readonly Color StepsWarnInk = new Color32(0xFF, 0xE0, 0x3A, 0xFF);
+        int lastSteps = -1;
+        Coroutine stepsRoutine;
+
+        /// <summary>每走一步步数牌跳一下；剩 5 步以内字变黄、牌子一直轻轻跳，剩 5 步和最后 1 步各响一声提醒。</summary>
+        public void SetSteps(int left, bool animate)
+        {
+            if (movesLabel == null) return;
+            movesLabel.text = "剩余 " + left + " 步";
+            bool low = left <= 5;
+            movesLabel.color = low ? StepsWarnInk : Color.white;
+            if (animate && lastSteps >= 0 && left < lastSteps && (left == 5 || left == 1))
+                Sfx.Play(SfxId.StepsWarn);
+            bool changed = lastSteps != left;
+            lastSteps = left;
+            if (stepsPlate == null || !isActiveAndEnabled) return;
+            if (stepsRoutine != null)
+                StopCoroutine(stepsRoutine);
+            stepsRoutine = null;
+            stepsPlate.rectTransform.localScale = Vector3.one;
+            stepsPlate.rectTransform.localRotation = Quaternion.identity;
+            if ((animate && changed) || low)
+                stepsRoutine = StartCoroutine(StepsRoutine(animate && changed, low));
+        }
+
+        System.Collections.IEnumerator StepsRoutine(bool punch, bool low)
+        {
+            RectTransform rect = stepsPlate.rectTransform;
+            float t = 0f;
+            if (punch)
+            {
+                const float duration = 0.32f;
+                while (t < duration)
+                {
+                    t += Time.deltaTime;
+                    float k = t / duration;
+                    float s = Ease.Spring(k, 1.6f, 4f) * (low ? 0.22f : 0.14f);
+                    rect.localScale = new Vector3(1f + s, 1f + s, 1f);
+                    if (low)
+                        rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(k * Mathf.PI * 6f) * 6f * (1f - k));
+                    yield return null;
+                }
+                rect.localScale = Vector3.one;
+                rect.localRotation = Quaternion.identity;
+            }
+            if (!low)
+            {
+                stepsRoutine = null;
+                yield break;
+            }
+            t = 0f;
+            while (true)
+            {
+                t += Time.deltaTime;
+                float beat = Mathf.Pow(Mathf.Max(0f, Mathf.Sin(t * 5.2f)), 6f);
+                rect.localScale = Vector3.one * (1f + beat * 0.08f);
+                yield return null;
+            }
         }
 
         static Image Capsule(Transform parent, string name, Sprite sprite, Vector2 offset, Vector2 size)

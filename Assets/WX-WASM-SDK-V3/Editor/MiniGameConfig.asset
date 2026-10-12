@@ -15,10 +15,10 @@ MonoBehaviour:
   ProjectConf:
     projectName: dress-sort
     Appid: wxd7e8bab5c9f43673
-    CDN: 
+    CDN: https://726f-rosa-env-d7grf78r5dbd37323-1414200063.tcb.qcloud.la/dresssort/StreamingAssets
     assetLoadType: 1
     compressDataPackage: 1
-    VideoUrl: images/loading.mp4
+    VideoUrl: 
     relativeDST: wechat-minigame
     DST: /Users/rosa/rosa_games/game2D_cat/wechat-minigame
     StreamCDN: 

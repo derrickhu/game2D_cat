@@ -38,8 +38,24 @@ namespace DressSort
         };
 
         // 图纸按顺序发，发完的那类改送材料大礼包。画了新衣服接到对应队尾即可。
-        static readonly string[] DressBlueprints = { "honey_bow" };
-        static readonly string[] HairBlueprints = { "hair_milktea_long" };
+        static readonly string[] DressBlueprints =
+        {
+            "honey_bow",
+            "apple_denim", "berry_buns", "black_gold", "camellia",
+            "candy_berry", "candy_blueberry", "candy_grape", "coral_pearl",
+            "cream_cat", "festival_hydrangea", "festival_lantern", "festival_matcha",
+            "fruit_mango", "fruit_melon", "fruit_plum", "glacier_gold",
+            "honey_amber", "ivory_pearl", "macaron_lemon", "macaron_pistachio",
+            "macaron_sky", "mint_latte", "rose_wine", "ruby_heart",
+            "sakura_bloom", "sapphire_star", "sea_coral", "sea_navy",
+            "sea_peach", "sunflower", "wisteria_jewel",
+        };
+        static readonly string[] HairBlueprints =
+        {
+            "hair_milktea_long",
+            "hair_berry", "hair_ink", "hair_coral", "hair_matcha",
+            "hair_glacier", "hair_sakura", "hair_jewel",
+        };
         static readonly string[] WingBlueprints = { "wing_aqua", "wing_rose", "wing_wisteria" };
 
         static int[] Need(int cloth = 0, int hair = 0, int red = 0, int yellow = 0, int blue = 0,
@@ -74,6 +90,37 @@ namespace DressSort
             { "blueberry", Need(cloth: 8, blue: 4, red: 1) },
             { "rose_velvet", Need(cloth: 8, red: 4, blue: 1, lace: 2) },
             { "honey_bow", Need(cloth: 8, yellow: 4, red: 1, black: 1) },
+            { "apple_denim", Need(cloth: 8, blue: 3, red: 2) },
+            { "berry_buns", Need(cloth: 8, red: 4, lace: 2) },
+            { "black_gold", Need(cloth: 8, black: 4, yellow: 2, lace: 2) },
+            { "camellia", Need(cloth: 8, red: 4, yellow: 1, lace: 2) },
+            { "candy_berry", Need(cloth: 8, red: 3, yellow: 2, lace: 1) },
+            { "candy_blueberry", Need(cloth: 8, blue: 3, red: 2, yellow: 1) },
+            { "candy_grape", Need(cloth: 8, blue: 2, red: 2, yellow: 2) },
+            { "coral_pearl", Need(cloth: 8, red: 3, lace: 3) },
+            { "cream_cat", Need(cloth: 8, blue: 1, lace: 2) },
+            { "festival_hydrangea", Need(cloth: 8, red: 2, blue: 2, lace: 1) },
+            { "festival_lantern", Need(cloth: 8, red: 4, yellow: 3) },
+            { "festival_matcha", Need(cloth: 8, yellow: 2, blue: 1, red: 2, lace: 1) },
+            { "fruit_mango", Need(cloth: 8, yellow: 3, red: 2, blue: 1) },
+            { "fruit_melon", Need(cloth: 8, red: 3, blue: 1, black: 1) },
+            { "fruit_plum", Need(cloth: 8, blue: 2, red: 2, yellow: 2) },
+            { "glacier_gold", Need(cloth: 8, blue: 3, yellow: 3, lace: 2) },
+            { "honey_amber", Need(cloth: 8, yellow: 4, red: 2) },
+            { "ivory_pearl", Need(cloth: 8, lace: 4, yellow: 1) },
+            { "macaron_lemon", Need(cloth: 8, yellow: 3, blue: 1, lace: 1) },
+            { "macaron_pistachio", Need(cloth: 8, yellow: 2, blue: 1, red: 2, lace: 1) },
+            { "macaron_sky", Need(cloth: 8, blue: 3, red: 1, black: 1, lace: 1) },
+            { "mint_latte", Need(cloth: 8, blue: 2, yellow: 1, red: 1, lace: 1) },
+            { "rose_wine", Need(cloth: 8, red: 4, black: 1, lace: 2) },
+            { "ruby_heart", Need(cloth: 8, red: 5, yellow: 1, lace: 1) },
+            { "sakura_bloom", Need(cloth: 8, red: 3, lace: 2) },
+            { "sapphire_star", Need(cloth: 8, blue: 4, yellow: 2, lace: 1) },
+            { "sea_coral", Need(cloth: 8, red: 2, yellow: 2, blue: 2) },
+            { "sea_navy", Need(cloth: 8, blue: 4, yellow: 2) },
+            { "sea_peach", Need(cloth: 8, red: 2, blue: 2, lace: 1) },
+            { "sunflower", Need(cloth: 8, yellow: 4, blue: 1) },
+            { "wisteria_jewel", Need(cloth: 8, blue: 2, red: 2, yellow: 2, lace: 2) },
             { "hair_milktea", Need(hair: 5, red: 1, yellow: 1, black: 1) },
             { "hair_wisteria", Need(hair: 5, red: 1, blue: 2) },
             { "hair_caramel", Need(hair: 5, red: 1, yellow: 1, black: 1) },
@@ -81,6 +128,13 @@ namespace DressSort
             { "hair_denim", Need(hair: 5, blue: 2, black: 1) },
             { "hair_apricot", Need(hair: 5, red: 2, yellow: 2) },
             { "hair_milktea_long", Need(hair: 9, red: 1, yellow: 2, black: 2) },
+            { "hair_berry", Need(hair: 5, red: 3) },
+            { "hair_ink", Need(hair: 5, black: 3, yellow: 1) },
+            { "hair_coral", Need(hair: 5, red: 2, yellow: 1) },
+            { "hair_matcha", Need(hair: 5, yellow: 2, blue: 1) },
+            { "hair_glacier", Need(hair: 5, blue: 2, yellow: 1) },
+            { "hair_sakura", Need(hair: 5, red: 2, lace: 1) },
+            { "hair_jewel", Need(hair: 5, blue: 2, red: 1, yellow: 1) },
             { "wing_aqua", Need(cloth: 4, blue: 3, yellow: 1, lace: 4, star: 5) },
             { "wing_rose", Need(cloth: 4, red: 3, yellow: 1, lace: 4, star: 5) },
             { "wing_wisteria", Need(cloth: 4, red: 2, blue: 3, lace: 4, star: 5) },

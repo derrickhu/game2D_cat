@@ -53,6 +53,33 @@ namespace DressSort
             eventSystem.AddComponent(t);
         }
 
+        public enum Buzz { Light, Medium, Heavy }
+
+#if UNITY_MINIGAME || WEIXINMINIGAME || UNITY_WEIXINMINIGAME || MINIGAME_SUBPLATFORM_WEIXIN
+        static float _lastBuzz = -1f;
+#endif
+
+        /// <summary>短震。连点时 60ms 内只震一次，免得手机嗡成一片。</summary>
+        public static void Vibrate(Buzz strength)
+        {
+#if UNITY_MINIGAME || WEIXINMINIGAME || UNITY_WEIXINMINIGAME || MINIGAME_SUBPLATFORM_WEIXIN
+            if (Application.isEditor) return;
+            float now = Time.unscaledTime;
+            if (now - _lastBuzz < 0.06f) return;
+            _lastBuzz = now;
+            try
+            {
+                WeChatWASM.WX.VibrateShort(new WeChatWASM.VibrateShortOption
+                {
+                    type = strength == Buzz.Heavy ? "heavy" : strength == Buzz.Medium ? "medium" : "light",
+                });
+            }
+            catch (Exception)
+            {
+            }
+#endif
+        }
+
         public static void ShowShareMenu()
         {
             var wx = WxType();

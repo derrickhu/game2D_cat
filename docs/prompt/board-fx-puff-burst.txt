@@ -1,0 +1,7 @@
+叠叠裙关卡反馈贴图（内置 GenerateImage，1:1），参考图只给画法：Art/Ui/Game/check_solved.png
+
+【落位烟尘 fx_puff】
+A 2x2 grid of four separate cartoon dust puff clouds for a cute casual mobile game, each puff a small cluster of three to five round fluffy cream white bubbles with soft pale lavender shading on the lower edge, thin even dark plum outline, flat cel shading, same sticker art style as the reference check badge. Each puff is centered in its own quarter with wide empty space around it. Solid flat pure magenta background (#FF00FF) everywhere, no gradient, no shadow on the background. NO TEXT.
+
+【冲击星爆 fx_burst】
+A 2x2 grid of four separate cartoon impact star bursts for a cute casual mobile game, each one a chunky eight-point starburst shape like a comic pop flash, filled with warm butter yellow like a fresh lemon, a smaller cream white starburst inside, thin even dark plum outline, flat cel shading, same sticker art style as the reference check badge. Each burst is centered in its own quarter with wide empty space around it. Solid flat pure magenta background (#FF00FF) everywhere, no gradient. NO TEXT.

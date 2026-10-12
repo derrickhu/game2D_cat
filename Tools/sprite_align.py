@@ -29,6 +29,11 @@ BASELINE_DIRS = [
     ART / "Cast" / "fullbody",
     ART / "Portraits",
 ]
+# 进游戏的默认形象：开局穿着的泳池水手裙 + 奶茶棕。对齐时这张固定当参考底图。
+DEFAULT_BODY = ART / "Portraits" / "body_teal_sailor.png"
+DEFAULT_HEAD = ART / "Portraits" / "head_milktea.png"
+DEFAULT_BASELINE_URL = "/api/default-baseline"
+DEFAULT_BASELINE_LABEL = "默认形象 · 泳池水手裙 + 奶茶棕"
 
 
 def sanitize_name(name: str) -> str:
@@ -76,6 +81,23 @@ def safe_under(path: Path, folder: Path) -> bool:
         return False
 
 
+def default_baseline_png() -> bytes:
+    """身体在下、头在上，和纸娃娃同一张 864×1084 画布顶对齐叠。"""
+    import io
+
+    from PIL import Image
+
+    body = Image.open(DEFAULT_BODY).convert("RGBA")
+    head = Image.open(DEFAULT_HEAD).convert("RGBA")
+    canvas = Image.new("RGBA", body.size, (0, 0, 0, 0))
+    canvas.alpha_composite(body, (0, 0))
+    x = (body.width - head.width) // 2
+    canvas.alpha_composite(head, (x, 0))
+    buf = io.BytesIO()
+    canvas.save(buf, format="PNG")
+    return buf.getvalue()
+
+
 def list_baselines():
     files = []
     prefer = []
@@ -98,7 +120,12 @@ def list_baselines():
          "full_denim.png"]
     )}
     prefer.sort(key=lambda x: order.get(Path(x["label"]).name, 99))
-    return prefer + files
+    pinned = {
+        "label": DEFAULT_BASELINE_LABEL,
+        "url": DEFAULT_BASELINE_URL,
+        "pinned": True,
+    }
+    return [pinned] + prefer + files
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -121,6 +148,14 @@ class Handler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/baselines":
             self._send(200, json.dumps({"files": list_baselines()}), "application/json")
+            return
+        if parsed.path == "/api/default-baseline":
+            try:
+                png = default_baseline_png()
+            except OSError as exc:
+                self._send(500, str(exc), "text/plain")
+                return
+            self._send(200, png, "image/png")
             return
         if parsed.path == "/api/exports":
             self._send(200, json.dumps({"files": list_exports()}), "application/json")

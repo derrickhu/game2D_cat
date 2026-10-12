@@ -97,7 +97,8 @@ namespace DressSort
             if (runner == null)
             {
                 var go = new GameObject("CdnAssets");
-                DontDestroyOnLoad(go);
+                if (Application.isPlaying)
+                    DontDestroyOnLoad(go);
                 runner = go.AddComponent<CdnAssets>();
             }
             while (running < MaxParallel && Pending.Count > 0)

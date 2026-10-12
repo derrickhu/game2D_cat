@@ -81,7 +81,7 @@
 <body>
   <aside>
     <h1>图层对齐</h1>
-    <p class="hint">一次导入多张切图，互相叠着对。导出每张都是和基准一样大的透明底 PNG。</p>
+    <p class="hint">参考底图固定为进游戏的默认形象：泳池水手裙叠奶茶棕。切图叠在这张上面。导出每张都是和基准一样大的透明底 PNG。</p>
 
     <label>基准图</label>
     <select id="baselineSelect"></select>
@@ -721,8 +721,14 @@
       const res = await fetch("/api/baselines");
       const data = await res.json();
       const sel = $("baselineSelect");
-      sel.innerHTML = data.files.map((f) => `<option value="${f.url}">${f.label}</option>`).join("");
-      if (data.files.length) await setBaselineFromUrl(data.files[0].url);
+      const files = data.files || [];
+      sel.innerHTML = files.map((f) => `<option value="${f.url}">${f.label}</option>`).join("");
+      const pinned = files.find((f) => f.pinned) || files[0];
+      if (pinned) {
+        sel.value = pinned.url;
+        await setBaselineFromUrl(pinned.url);
+        $("status").textContent = `基准已固定：${pinned.label}　${state.baseline.width}×${state.baseline.height}`;
+      }
       await refreshExports();
       draw();
     }

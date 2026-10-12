@@ -150,10 +150,13 @@ namespace DressSort
                 return "新机制：防尘罩里的列，叠好上面数字那么多列就会拉开";
             if (i == FirstWith(p => p.parcels > 0))
                 return "新机制：包裹落到最下面才会拆开";
-            if (i % 10 == 0 && i > Authored.Length)
+            if (IsHard(def))
                 return "难关来了，步数要省着用";
             return "点一列，手里这件插到最上";
         }
+
+        public static bool IsHard(LevelDef def) =>
+            def != null && def.index % 10 == 0 && def.index > Authored.Length;
 
         static int FirstWith(Predicate<Plan> match)
         {

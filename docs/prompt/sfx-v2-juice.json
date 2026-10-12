@@ -1,0 +1,68 @@
+{
+  "defaults": {
+    "bitrate": "96k",
+    "prompt_influence": 0.55
+  },
+  "sfx": [
+    {
+      "name": "ui_tap",
+      "text": "crisp plastic bubble button click with a tiny bright high tick, cute casual mobile game UI tap, sharp attack, dry, no reverb, no music, no voice",
+      "duration": 0.15,
+      "output": "../../Assets/DressSort/Resources/Audio/ui_tap.mp3"
+    },
+    {
+      "name": "dress_whoosh",
+      "text": "quick light silk fabric swish whoosh flying upward, airy and bright, short, cute mobile game, dry, no voice, no music",
+      "duration": 0.26,
+      "output": "../../Assets/DressSort/Resources/Audio/dress_whoosh.mp3"
+    },
+    {
+      "name": "dress_land",
+      "text": "soft round cartoon pop with a light plush thump, like a cute toy landing on a cushion, bouncy, sharp attack, dry, no voice, no music",
+      "duration": 0.18,
+      "output": "../../Assets/DressSort/Resources/Audio/dress_land.mp3"
+    },
+    {
+      "name": "dress_drop",
+      "text": "tiny bubbly boing pop dropping down, playful cartoon spring, very short, cute mobile game, dry, no voice, no music",
+      "duration": 0.2,
+      "output": "../../Assets/DressSort/Resources/Audio/dress_drop.mp3"
+    },
+    {
+      "name": "column_clear",
+      "text": "bright loud glockenspiel and celesta major chord stab C E G C played together, with a quick sparkling shimmer tail, cheerful success sting for a casual puzzle game, short room, no voice, no drums",
+      "duration": 0.9,
+      "output": "../../Assets/DressSort/Resources/Audio/column_clear.mp3"
+    },
+    {
+      "name": "level_finale",
+      "text": "cheerful short victory fanfare on bright glockenspiel, marimba and toy trumpet, rising C major arpeggio ending on a held happy chord, party popper burst at the start, cute casual puzzle game win, no voice, no lyrics",
+      "duration": 2.2,
+      "output": "../../Assets/DressSort/Resources/Audio/level_finale.mp3"
+    },
+    {
+      "name": "confetti_pop",
+      "text": "party popper bang followed by paper confetti rustle raining down, bright and festive, cute, no voice, no music",
+      "duration": 0.9,
+      "output": "../../Assets/DressSort/Resources/Audio/confetti_pop.mp3"
+    },
+    {
+      "name": "deal_in",
+      "text": "a rapid playful sequence of eight soft bubbly pops rising in pitch, like little toys hopping onto a shelf one by one, cute cartoon, dry, no voice, no music",
+      "duration": 0.9,
+      "output": "../../Assets/DressSort/Resources/Audio/deal_in.mp3"
+    },
+    {
+      "name": "steps_warn",
+      "text": "two quick soft wooden clock ticks, tick tock, clean and close, cute, dry, no alarm, no voice, no music",
+      "duration": 0.4,
+      "output": "../../Assets/DressSort/Resources/Audio/steps_warn.mp3"
+    },
+    {
+      "name": "hard_level",
+      "text": "short dramatic cartoon stinger, low taiko drum hit with a rising whoosh and a bright cymbal crash, playful tension for a casual game, no voice",
+      "duration": 1.0,
+      "output": "../../Assets/DressSort/Resources/Audio/hard_level.mp3"
+    }
+  ]
+}

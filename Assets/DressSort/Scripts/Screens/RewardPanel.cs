@@ -7,10 +7,12 @@ namespace DressSort
 {
     /// <summary>
     /// 过关领奖。外观在 Resources/Prefabs/RewardScreen，这里播开盒动画并填文案。
+    /// 直送弹出衣服；图纸是底图叠裙子小图；材料按个数各弹一个。
     /// </summary>
     public class RewardPanel : Panel
     {
         const float DressLift = 200f;
+        const float CardAspect = 470f / 630f;
 
         RewardHud hud;
         RectTransform stage;
@@ -34,6 +36,16 @@ namespace DressSort
         ItemDef reward;
         bool isBlueprint;
         bool revealed;
+
+        class Prize
+        {
+            public RectTransform rect;
+            public Image badge;
+            public bool card;
+            public Vector2 rest;
+        }
+
+        readonly List<Prize> prizes = new List<Prize>();
         float idle;
         float rainLeft;
         float rainClock;
@@ -108,11 +120,19 @@ namespace DressSort
             isBlueprint = reward == null && level != null && level.blueprint != null;
             if (isBlueprint)
                 reward = level.blueprint;
-            takeLabel.text = isBlueprint ? "去工坊看看" : "收下并试穿";
+            if (app.GmPlay)
+                takeLabel.text = "下一关";
+            else if (isBlueprint)
+                takeLabel.text = "去工坊看看";
+            else if (reward != null)
+                takeLabel.text = "收下并试穿";
+            else
+                takeLabel.text = "下一关";
             revealed = false;
             ClearBits();
+            BuildPrizes();
             ResetPose();
-            if (reward == null) return;
+            if (prizes.Count == 0) return;
             StartCoroutine(ShowRoutine());
         }
 
@@ -120,6 +140,7 @@ namespace DressSort
         {
             StopAllCoroutines();
             ClearBits();
+            ClearPrizes();
         }
 
         void ResetPose()
@@ -134,6 +155,8 @@ namespace DressSort
             lid.gameObject.SetActive(false);
             lid.color = Color.white;
             dress.gameObject.SetActive(false);
+            if (blueprintIcon != null)
+                blueprintIcon.gameObject.SetActive(false);
             rays.gameObject.SetActive(false);
             rays.rectTransform.localScale = Vector3.zero;
             plate.localScale = Vector3.zero;
@@ -143,11 +166,18 @@ namespace DressSort
             takeButton.gameObject.SetActive(false);
             popperLeft.rectTransform.localScale = Vector3.zero;
             popperRight.rectTransform.localScale = Vector3.zero;
+            Vector2 mouth = new Vector2(0f, baseSize.y * 0.72f);
+            for (int i = 0; i < prizes.Count; i++)
+            {
+                prizes[i].rect.gameObject.SetActive(false);
+                prizes[i].rect.localScale = Vector3.one * 0.15f;
+                prizes[i].rect.anchoredPosition = mouth;
+            }
         }
 
         void OnTap()
         {
-            if (revealed || reward == null) return;
+            if (revealed || prizes.Count == 0) return;
             ApplyReveal();
         }
 
@@ -156,7 +186,7 @@ namespace DressSort
             yield return Drop();
             yield return Wiggle();
             OpenLid();
-            yield return RiseDress();
+            yield return RisePrizes();
             FinishReveal();
             yield return PopIn(plate, 0.28f);
             yield return PopIn((RectTransform)takeButton.transform, 0.28f);
@@ -249,26 +279,32 @@ namespace DressSort
             rays.rectTransform.localScale = Vector3.one;
         }
 
-        IEnumerator RiseDress()
+        IEnumerator RisePrizes()
         {
-            DressUp();
-            dress.gameObject.SetActive(true);
-            RectTransform rect = dress.rectTransform;
+            for (int i = 0; i < prizes.Count; i++)
+                StartCoroutine(RiseOne(prizes[i], i * 0.08f));
+            float wait = 0.55f + Mathf.Max(0, prizes.Count - 1) * 0.08f;
+            yield return new WaitForSeconds(wait);
+        }
+
+        IEnumerator RiseOne(Prize prize, float delay)
+        {
+            if (delay > 0f)
+                yield return new WaitForSeconds(delay);
+            if (prize.rect == null) yield break;
+            prize.rect.gameObject.SetActive(true);
             Vector2 from = new Vector2(0f, baseSize.y * 0.72f);
-            Vector2 to = DressRest();
-            const float duration = 0.55f;
+            const float duration = 0.5f;
             for (float t = 0f; t < duration; t += Time.deltaTime)
             {
                 float e = EaseOutBack(t / duration);
-                rect.anchoredPosition = Vector2.LerpUnclamped(from, to, e);
-                rect.localScale = Vector3.one * Mathf.LerpUnclamped(0.15f, 1f, e);
+                prize.rect.anchoredPosition = Vector2.LerpUnclamped(from, prize.rest, e);
+                prize.rect.localScale = Vector3.one * Mathf.LerpUnclamped(0.15f, 1f, e);
                 yield return null;
             }
-            rect.anchoredPosition = to;
-            rect.localScale = Vector3.one;
+            prize.rect.anchoredPosition = prize.rest;
+            prize.rect.localScale = Vector3.one;
         }
-
-        Vector2 DressRest() => new Vector2(0f, baseSize.y + DressLift);
 
         IEnumerator PopIn(RectTransform rect, float duration)
         {
@@ -284,7 +320,7 @@ namespace DressSort
         /// <summary>自检脚本和点击跳过：直接摆到揭开后的样子。</summary>
         public void ApplyReveal()
         {
-            if (reward == null) return;
+            if (prizes.Count == 0) return;
             bool stillClosed = closed != null && closed.gameObject.activeSelf;
             StopAllCoroutines();
             gift.anchoredPosition = Vector2.zero;
@@ -295,10 +331,13 @@ namespace DressSort
             lid.gameObject.SetActive(false);
             rays.gameObject.SetActive(true);
             rays.rectTransform.localScale = Vector3.one;
-            DressUp();
-            dress.gameObject.SetActive(true);
-            dress.rectTransform.anchoredPosition = DressRest();
-            dress.rectTransform.localScale = Vector3.one;
+            dress.gameObject.SetActive(false);
+            for (int i = 0; i < prizes.Count; i++)
+            {
+                prizes[i].rect.gameObject.SetActive(true);
+                prizes[i].rect.anchoredPosition = prizes[i].rest;
+                prizes[i].rect.localScale = Vector3.one;
+            }
             if (popperLeft.rectTransform.localScale.x < 0.5f)
                 FirePoppers();
             popperLeft.rectTransform.localScale = Vector3.one;
@@ -317,43 +356,170 @@ namespace DressSort
         {
             if (revealed) return;
             revealed = true;
-            if (isBlueprint)
+            string mats = CraftCatalog.Describe(app.PendingMaterials);
+            if (isBlueprint && reward != null)
             {
                 nameLabel.text = "获得图纸「" + reward.displayName + "」";
-                string mats = CraftCatalog.Describe(app.PendingMaterials);
                 hintLabel.text = string.IsNullOrEmpty(mats) ? "材料够了就能在工坊制作" : "还获得 " + mats;
             }
-            else
+            else if (reward != null)
             {
-                app.Wardrobe.Unlock(reward);
+                if (!app.GmPlay)
+                    app.Wardrobe.Unlock(reward);
                 nameLabel.text = "解锁了「" + reward.displayName + "」";
                 hintLabel.text = reward.slot == ItemSlot.Wings ? "翅膀已收进衣柜" : "已经放进衣柜";
             }
+            else
+            {
+                nameLabel.text = "获得材料";
+                hintLabel.text = mats;
+            }
         }
 
-        /// <summary>直送的是衣服本身；图纸是一张图纸卡，衣服小图印在卡上。</summary>
-        void DressUp()
+        /// <summary>直送一件衣服。图纸是底图，裙子小图叠在格子中间。材料按份数各一个。</summary>
+        void BuildPrizes()
         {
-            Sprite card = Db != null ? Db.craftCard : null;
-            bool useCard = isBlueprint && card != null;
-            dress.sprite = useCard ? card : reward.ResolveIcon();
-            dress.color = Color.white;
-            blueprintIcon.gameObject.SetActive(useCard);
-            if (useCard)
-                blueprintIcon.sprite = reward.ResolveIcon();
+            ClearPrizes();
+            if (isBlueprint && reward != null)
+            {
+                Sprite card = Db != null ? Db.craftCard : null;
+                Sprite icon = reward.ResolveIcon();
+                if (card != null)
+                    SpawnPrize(card, icon, true);
+                else
+                    SpawnPrize(icon, null, false);
+            }
+            else if (reward != null)
+            {
+                SpawnPrize(reward.ResolveIcon(), null, false);
+            }
+
+            if (reward == null || isBlueprint)
+                SpawnMaterials();
+            LayoutPrizes();
+        }
+
+        void SpawnMaterials()
+        {
+            int[] mats = app.PendingMaterials;
+            if (mats == null) return;
+            for (int m = 0; m < mats.Length && m < CraftCatalog.MatCount; m++)
+            {
+                Sprite icon = CraftView.MatIcon(Db, m);
+                for (int n = 0; n < mats[m]; n++)
+                    SpawnPrize(icon, null, false);
+            }
+        }
+
+        void SpawnPrize(Sprite sprite, Sprite badge, bool card)
+        {
+            Image image = UiKit.Icon(gift, card ? "Blueprint" : "Prize", sprite, new Vector2(0.5f, 0.5f),
+                Vector2.zero, Vector2.one * 200f);
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            if (image.sprite == null)
+            {
+                image.sprite = UiKit.Circle;
+                image.color = Palette.Lemon;
+            }
+            var prize = new Prize { rect = image.rectTransform, card = card };
+            if (badge != null)
+            {
+                Image mark = UiKit.Icon(image.transform, "Dress", badge, new Vector2(0.5f, 0.5f),
+                    Vector2.zero, Vector2.one * 100f);
+                mark.preserveAspect = true;
+                mark.raycastTarget = false;
+                prize.badge = mark;
+            }
+            prizes.Add(prize);
+        }
+
+        void LayoutPrizes()
+        {
+            int n = prizes.Count;
+            if (n == 0) return;
+            float cardH = n <= 1 ? 460f : n <= 3 ? 320f : n <= 6 ? 240f : 180f;
+            float mat = cardH * 0.62f;
+            var widths = new float[n];
+            float width = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                widths[i] = prizes[i].card ? cardH * CardAspect : mat;
+                width += widths[i];
+            }
+            float gap = n <= 1 ? 0f : 18f;
+            width += gap * (n - 1);
+            const float limit = 980f;
+            if (n > 1 && width > limit)
+            {
+                float scale = limit / width;
+                cardH *= scale;
+                mat *= scale;
+                gap *= scale;
+                for (int i = 0; i < n; i++)
+                    widths[i] *= scale;
+                width = limit;
+            }
+            float x = -width * 0.5f;
+            float lift = baseSize.y + (n <= 1 ? DressLift : 140f);
+            for (int i = 0; i < n; i++)
+            {
+                float h = prizes[i].card ? cardH : mat;
+                prizes[i].rect.sizeDelta = new Vector2(widths[i], h);
+                if (prizes[i].badge != null)
+                {
+                    float mark = h * (200f / 630f);
+                    prizes[i].badge.rectTransform.sizeDelta = new Vector2(mark, mark);
+                    prizes[i].badge.rectTransform.anchoredPosition = new Vector2(0f, h * (165f / 630f));
+                }
+                float arc = n <= 1 ? 0f : Mathf.Sin((i + 0.5f) / n * Mathf.PI) * 28f;
+                prizes[i].rest = new Vector2(x + widths[i] * 0.5f, lift + arc);
+                x += widths[i] + gap;
+            }
+        }
+
+        void ClearPrizes()
+        {
+            for (int i = 0; i < prizes.Count; i++)
+            {
+                if (prizes[i].rect == null) continue;
+                if (Application.isPlaying)
+                    Destroy(prizes[i].rect.gameObject);
+                else
+                    DestroyImmediate(prizes[i].rect.gameObject);
+            }
+            prizes.Clear();
         }
 
         void OnTake()
         {
             Sfx.Play(SfxId.Claim);
+            if (app.GmPlay)
+            {
+                LevelDef done = app.PendingLevel;
+                LevelDef next = done != null ? app.LevelAt(done.index + 1) : null;
+                if (next == null)
+                {
+                    app.Notice = done != null ? "GM 第 " + done.index + " 关过了" : "GM 过关";
+                    app.Show(ScreenId.Home);
+                    return;
+                }
+                app.CurrentLevel = next;
+                app.Show(ScreenId.Game);
+                return;
+            }
             if (isBlueprint)
             {
                 app.Show(ScreenId.Workshop);
                 return;
             }
             if (reward != null)
+            {
                 app.Wardrobe.Equip(reward);
-            app.Show(ScreenId.DressUp);
+                app.Show(ScreenId.DressUp);
+                return;
+            }
+            app.ContinueAfterClear();
         }
 
         void Update()
@@ -362,10 +528,15 @@ namespace DressSort
             if (rays.gameObject.activeSelf)
                 rays.rectTransform.Rotate(0f, 0f, -18f * dt);
 
-            if (revealed && dress.gameObject.activeSelf)
+            if (revealed && prizes.Count > 0)
             {
                 idle += dt;
-                dress.rectTransform.anchoredPosition = DressRest() + new Vector2(0f, Mathf.Sin(idle * 2.2f) * 10f);
+                float bob = Mathf.Sin(idle * 2.2f) * 10f;
+                for (int i = 0; i < prizes.Count; i++)
+                {
+                    if (prizes[i].rect == null) continue;
+                    prizes[i].rect.anchoredPosition = prizes[i].rest + new Vector2(0f, bob);
+                }
             }
 
             if (rainLeft > 0f)

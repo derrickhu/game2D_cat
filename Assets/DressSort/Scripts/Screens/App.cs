@@ -224,6 +224,11 @@ namespace DressSort
             }
             if (db.gameAlarm == null)
                 db.gameAlarm = LoadUiSprite(ui + "Game/alarm");
+            if (db.boardPuff == null || db.boardBurst == null)
+            {
+                db.boardPuff = LoadUiSprite(ui + "Game/fx_puff");
+                db.boardBurst = LoadUiSprite(ui + "Game/fx_burst");
+            }
             if (db.mysteryItem == null)
                 db.mysteryItem = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemDef>(
                     "Assets/DressSort/Data/Items/mystery.asset");
@@ -476,7 +481,8 @@ namespace DressSort
 
         void ApplyShow(ScreenId id)
         {
-            if (id != ScreenId.Game)
+            // 领奖页还算这一局。GM 开盒预览时不能在这里把标记清掉，否则收下就变正常关。
+            if (id != ScreenId.Game && id != ScreenId.Reward)
                 GmPlay = false;
             if (panels.TryGetValue(current, out Panel previous) && previous != null)
             {
@@ -498,6 +504,27 @@ namespace DressSort
                 next.gameObject.SetActive(true);
                 next.OnShow();
             }
+        }
+
+        /// <summary>材料结算点「下一关」。体力不够或全部通关就回首页。</summary>
+        public void ContinueAfterClear()
+        {
+            LevelDef next = NextLevel;
+            if (next == null)
+            {
+                Notice = "全部 " + LevelCount + " 关都通关啦";
+                Show(ScreenId.Home);
+                return;
+            }
+            if (!Wardrobe.SpendEnergy())
+            {
+                Notice = "体力不够了";
+                OfferEnergyAd = true;
+                Show(ScreenId.Home);
+                return;
+            }
+            CurrentLevel = next;
+            Show(ScreenId.Game);
         }
 
         public bool StartLevel(LevelDef level)

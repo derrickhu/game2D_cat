@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b087983e010c9483cb7da0ebf73a9ba9, type: 3}
+  m_Name: festival_matcha
+  m_EditorClassIdentifier: 
+  id: festival_matcha
+  displayName: "\u62B9\u8336\u6A31\u88D9"
+  slot: 0
+  icon: {fileID: 21300000, guid: 32b233b934c8458a8ab5db5d8c4d0cc4, type: 3}
+  worn: {fileID: 21300000, guid: 99d9bde88dc248e7b0325297a3cf7830, type: 3}
+  wornBack: {fileID: 0}
+  boardEligible: 0
+  accent: {r: 1, g: 0.24, b: 0.55, a: 1}
+  unlockedFromStart: 0
+  layeredWithHair: 1

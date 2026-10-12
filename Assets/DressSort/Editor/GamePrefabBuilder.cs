@@ -93,6 +93,8 @@ namespace DressSort.EditorTools
             database.boardBgBand = 20;
             database.boardLaneSolved = Load("Ui/Game/lane_solved");
             database.boardCheckSolved = Load("Ui/Game/check_solved");
+            database.boardPuff = Load("Ui/Game/fx_puff");
+            database.boardBurst = Load("Ui/Game/fx_burst");
             EditorUtility.SetDirty(database);
         }
 

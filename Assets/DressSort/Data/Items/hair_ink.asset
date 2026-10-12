@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b087983e010c9483cb7da0ebf73a9ba9, type: 3}
+  m_Name: hair_ink
+  m_EditorClassIdentifier: 
+  id: hair_ink
+  displayName: "\u58A8\u91D1\u4E38\u5B50"
+  slot: 2
+  icon: {fileID: 21300000, guid: 3921d57b2c4148b3a8bb66a652497a58, type: 3}
+  worn: {fileID: 21300000, guid: a1726ed42b164b38aee55104f61000eb, type: 3}
+  wornBack: {fileID: 0}
+  boardEligible: 0
+  accent: {r: 0.9411765, g: 0.78431374, b: 0.2901961, a: 1}
+  unlockedFromStart: 0
+  layeredWithHair: 0

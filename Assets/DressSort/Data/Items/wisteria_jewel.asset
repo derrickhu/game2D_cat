@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b087983e010c9483cb7da0ebf73a9ba9, type: 3}
+  m_Name: wisteria_jewel
+  m_EditorClassIdentifier: 
+  id: wisteria_jewel
+  displayName: "\u7D2B\u85E4\u73E0\u5B9D\u88D9"
+  slot: 0
+  icon: {fileID: 21300000, guid: 05dea8188f8545c8bf35a8fd50932ddc, type: 3}
+  worn: {fileID: 21300000, guid: c8b6f11a4fa74ef38257d0b502f7ecf8, type: 3}
+  wornBack: {fileID: 0}
+  boardEligible: 0
+  accent: {r: 1, g: 0.24, b: 0.55, a: 1}
+  unlockedFromStart: 0
+  layeredWithHair: 1
