@@ -18,7 +18,7 @@ MonoBehaviour:
     CDN: https://726f-rosa-env-d7grf78r5dbd37323-1414200063.tcb.qcloud.la/dresssort/StreamingAssets
     assetLoadType: 1
     compressDataPackage: 1
-    VideoUrl: 
+    VideoUrl: images/loading.mp4
     relativeDST: wechat-minigame
     DST: /Users/rosa/rosa_games/game2D_cat/wechat-minigame
     StreamCDN: 

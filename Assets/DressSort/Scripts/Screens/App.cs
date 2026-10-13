@@ -232,14 +232,8 @@ namespace DressSort
             if (db.mysteryItem == null)
                 db.mysteryItem = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemDef>(
                     "Assets/DressSort/Data/Items/mystery.asset");
-            if (db.packCarpet == null)
-                db.packCarpet = Resources.Load<Sprite>("Pack/bg_carpet");
-            if (db.packLane == null)
+            if (db.packBtn == null || db.packCheck == null)
             {
-                db.packLane = LoadUiSprite(ui + "Pack/lane");
-                db.packLaneOn = LoadUiSprite(ui + "Pack/lane_on");
-                db.packLaneReady = LoadUiSprite(ui + "Pack/lane_ready");
-                db.packBox = LoadUiSprite(ui + "Pack/box");
                 db.packBtn = LoadUiSprite(ui + "Pack/btn_pack");
                 db.packRefill = LoadUiSprite(ui + "Pack/btn_refill");
                 db.packLock = LoadUiSprite(ui + "Pack/lock");

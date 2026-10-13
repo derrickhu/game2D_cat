@@ -59,7 +59,7 @@ namespace DressSort
             Ensure();
             if (!_ready || !string.IsNullOrEmpty(_user)) return;
             _user = userId ?? "";
-            Track("login", _user.Length > 0 ? "user_set" : "anon");
+            Track("login", "", "", "result", _user.Length > 0 ? "user_set" : "anon");
             SessionStart();
             Flush();
         }

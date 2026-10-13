@@ -80,11 +80,6 @@ namespace DressSort
         public Sprite gameKey;
         public Sprite gameAlarm;
         public Sprite gameBubble;
-        public Sprite packLane;
-        public Sprite packLaneOn;
-        public Sprite packLaneReady;
-        public Sprite packCarpet;
-        public Sprite packBox;
         public Sprite packBtn;
         public Sprite packRefill;
         public Sprite packLock;

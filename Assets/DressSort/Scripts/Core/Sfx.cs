@@ -41,6 +41,12 @@ namespace DressSort
         DealIn,
         StepsWarn,
         HardLevel,
+        Gate,
+        Hop,
+        Seat,
+        CarDepart,
+        CarArrive,
+        StageReward,
     }
 
     public enum BgmId
@@ -70,6 +76,7 @@ namespace DressSort
             "claim", "craft", "equip", "popup", "pack", "heart", "stuck",
             "dress_whoosh", "dress_land", "dress_drop", "column_clear_2", "column_clear_3", "column_clear_4",
             "level_finale", "confetti_pop", "deal_in", "steps_warn", "hard_level",
+            "pack_gate", "pack_hop", "pack_seat", "car_depart", "car_arrive", "pack_reward",
         };
 
         static AudioSource oneShot;
@@ -357,7 +364,11 @@ namespace DressSort
                 case SfxId.Clear4:
                     return 1f;
                 case SfxId.Whoosh:
+                case SfxId.Hop:
                     return 0.55f;
+                case SfxId.StageReward:
+                case SfxId.Seat:
+                    return 1f;
                 case SfxId.Drop:
                     return 0.6f;
                 case SfxId.Land:

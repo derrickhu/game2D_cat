@@ -1,0 +1,50 @@
+{
+  "defaults": {
+    "bitrate": "96k",
+    "prompt_influence": 0.55
+  },
+  "sfx": [
+    {
+      "name": "pack_gate",
+      "text": "cute toy machine starting up, quick rising mechanical whirr with a bright little bell ding at the end, playful casual mobile game, dry, no voice, no music",
+      "duration": 0.7,
+      "output": "../../Assets/DressSort/Resources/Audio/pack_gate.mp3",
+      "notes": "点补充：衣物门启动"
+    },
+    {
+      "name": "pack_hop",
+      "text": "tiny soft rubber ball bounce tock with a light plush pop, cartoon, bright and very short, sharp attack, dry, no voice, no music",
+      "duration": 0.16,
+      "output": "../../Assets/DressSort/Resources/Audio/pack_hop.mp3",
+      "notes": "补充时每件衣服弹进列里"
+    },
+    {
+      "name": "pack_seat",
+      "text": "bright cheerful two-note marimba ding going up with a soft bubble pop, a cute passenger sitting down, casual puzzle game reward tick, dry, no voice",
+      "duration": 0.45,
+      "output": "../../Assets/DressSort/Resources/Audio/pack_seat.mp3",
+      "notes": "一列衣服坐进车窗"
+    },
+    {
+      "name": "car_depart",
+      "text": "cartoon toy bus honks a cute double horn toot beep beep then the small engine revs up and drives away quickly to the side, playful, short room, no voice, no music",
+      "duration": 1.6,
+      "output": "../../Assets/DressSort/Resources/Audio/car_depart.mp3",
+      "notes": "一辆车坐满开走"
+    },
+    {
+      "name": "car_arrive",
+      "text": "cartoon toy bus rolls in quickly and stops with a short soft brake squeak and a tiny cute bell ding, playful, dry, no voice, no music",
+      "duration": 1.1,
+      "output": "../../Assets/DressSort/Resources/Audio/car_arrive.mp3",
+      "notes": "下一辆车开进来"
+    },
+    {
+      "name": "pack_reward",
+      "text": "short cheerful fanfare on bright brass and glockenspiel rising to a major chord with sparkling chimes, casual mobile game stage reward, short room, no voice",
+      "duration": 1.8,
+      "output": "../../Assets/DressSort/Resources/Audio/pack_reward.mp3",
+      "notes": "阶段奖励弹窗"
+    }
+  ]
+}

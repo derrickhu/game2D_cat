@@ -1,23 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Events;
 
 namespace DressSort
 {
     /// <summary>
-    /// 活动页。外观在 Resources/Prefabs/PackScreen，这里负责发牌、点选、装箱和广告解锁。
+    /// 活动页「衣服排排上车」：发牌、点选、上车、补充、每辆车的奖励，以及三处激励视频——
+    /// 第 7 列临时解锁、领奖翻倍、堵住时加一列或收起顶上的衣服。
     /// </summary>
     public class PackPanel : Panel
     {
-        const int PaletteSize = 4;
-
         PackHud hud;
         PackView view;
+        BoardFx fx;
         PackBoard board;
         ItemDef[] palette = new ItemDef[0];
-        Sprite mystery;
-        bool stuckNoted;
+        bool popupOpen;
+        bool boardHinted;
+        int runId;
 
         protected override void Build()
         {
@@ -25,264 +26,323 @@ namespace DressSort
             if (frameBg != null)
                 frameBg.gameObject.SetActive(false);
 
-            GameObject prefab = Resources.Load<GameObject>("Prefabs/PackScreen");
-            hud = prefab != null
-                ? Instantiate(prefab, transform).GetComponent<PackHud>()
-                : PackHud.Assemble((RectTransform)transform, app.Database);
-            if (hud == null)
-            {
-                Debug.LogError("[一裙又一裙] 装箱预制没有 PackHud");
-                return;
-            }
-
-            var rect = (RectTransform)hud.transform;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            rect.SetAsFirstSibling();
-            if (hud.topBar != null)
-                hud.topBar.SetParent(root, false);
-
-            view = hud.GetComponent<PackView>();
-            if (view == null)
-                view = PackView.Attach(hud);
-            ApplyPackArt();
-            hud.FitOnCarpet();
-            hud.FitChrome();
-            hud.Wire(() => app.Show(ScreenId.Home), Restart, OnPack, OnRefill, OnLane);
+            hud = PackHud.Assemble((RectTransform)transform, root, app.Database);
+            hud.transform.SetAsFirstSibling();
+            fx = BoardFx.Create(hud.fxLayer, app.Database);
+            view = PackView.Attach(hud, fx);
+            hud.Wire(() => app.Show(ScreenId.Home), Restart, OnBoard, OnRefill, OnLane);
         }
-
-        void ApplyPackArt()
-        {
-            if (hud == null) return;
-            if (hud.backdrop == null)
-            {
-                Transform found = hud.transform.Find("Backdrop");
-                if (found != null)
-                    hud.backdrop = found.GetComponent<Image>();
-            }
-
-            Sprite carpet = Resources.Load<Sprite>("Pack/bg_carpet");
-            if (carpet == null && app.Database != null)
-                carpet = app.Database.packCarpet;
-            Sprite lane = hud.laneSprite;
-            Sprite laneOn = hud.laneOnSprite;
-            Sprite laneReady = hud.laneReadySprite;
-#if UNITY_EDITOR
-            // 编辑器里直接读磁盘上的新图。导入没跟上时，预制还指着旧房间。
-            Sprite looseCarpet = LoadLoose("DressSort/Resources/Pack/bg_carpet.jpg");
-            if (looseCarpet != null) carpet = looseCarpet;
-            Sprite looseLane = LoadLoose("DressSort/Art/Ui/Pack/lane.png");
-            Sprite looseOn = LoadLoose("DressSort/Art/Ui/Pack/lane_on.png");
-            Sprite looseReady = LoadLoose("DressSort/Art/Ui/Pack/lane_ready.png");
-            if (looseLane != null) lane = looseLane;
-            if (looseOn != null) laneOn = looseOn;
-            if (looseReady != null) laneReady = looseReady;
-#endif
-            hud.laneSprite = lane;
-            hud.laneOnSprite = laneOn;
-            hud.laneReadySprite = laneReady;
-            Sprite heap = Resources.Load<Sprite>("Pack/heap");
-            Sprite openBin = Resources.Load<Sprite>("Pack/bin_open");
-            Sprite shutBin = Resources.Load<Sprite>("Pack/bin_shut");
-#if UNITY_EDITOR
-            Sprite looseHeap = LoadLoose("DressSort/Resources/Pack/heap.png");
-            Sprite looseOpen = LoadLoose("DressSort/Resources/Pack/bin_open.png");
-            Sprite looseShut = LoadLoose("DressSort/Resources/Pack/bin_shut.png");
-            if (looseHeap != null) heap = looseHeap;
-            if (looseOpen != null) openBin = looseOpen;
-            if (looseShut != null) shutBin = looseShut;
-#endif
-            hud.heapSprite = heap;
-            hud.binOpen = openBin;
-            hud.binShut = shutBin;
-            if (hud.backdrop != null && carpet != null)
-            {
-                hud.backdrop.sprite = carpet;
-                hud.backdrop.color = Color.white;
-                hud.backdrop.type = Image.Type.Simple;
-                hud.backdrop.preserveAspect = false;
-            }
-            for (int i = 0; i < hud.laneFaces.Length; i++)
-            {
-                if (hud.laneFaces[i] == null || lane == null) continue;
-                hud.laneFaces[i].sprite = lane;
-                hud.laneFaces[i].type = Image.Type.Simple;
-                hud.laneFaces[i].color = Color.white;
-            }
-        }
-
-#if UNITY_EDITOR
-        static Sprite LoadLoose(string underAssets)
-        {
-            string full = System.IO.Path.Combine(Application.dataPath, underAssets);
-            if (!System.IO.File.Exists(full)) return null;
-            byte[] bytes = System.IO.File.ReadAllBytes(full);
-            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-            if (!tex.LoadImage(bytes)) return null;
-            tex.name = System.IO.Path.GetFileNameWithoutExtension(full);
-            return Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
-        }
-#endif
 
         public override void OnShow()
         {
             if (hud == null) return;
-            ApplyPackArt();
-            hud.FitOnCarpet();
-            hud.FitChrome();
+            hud.Fit();
             Restart();
         }
+
+        public override void OnHide()
+        {
+            StopAllCoroutines();
+            ClearPopups();
+            if (fx != null) fx.Clear();
+        }
+
+        void ClearPopups()
+        {
+            popupOpen = false;
+            if (hud == null || hud.popupLayer == null) return;
+            for (int i = hud.popupLayer.childCount - 1; i >= 0; i--)
+                UiKit.Discard(hud.popupLayer.GetChild(i));
+        }
+
+        bool Locked => board == null || view.Busy || popupOpen;
 
         void Restart()
         {
             if (view != null && view.Busy) return;
             palette = PickPalette();
-            mystery = app.Database.mysteryItem != null ? app.Database.mysteryItem.ResolveIcon() : null;
             if (palette.Length == 0)
             {
                 Sfx.Play(SfxId.Deny);
-                hud.ShowToast("还没有可以装箱的裙子");
+                hud.ShowToast("还没有可以整理的裙子");
                 return;
             }
-            stuckNoted = false;
-            Sfx.Play(SfxId.Shuffle);
+            StopAllCoroutines();
+            runId++;
+            ClearPopups();
+            boardHinted = false;
+            fx.Clear();
+            fx.ClearBanners();
             board = new PackBoard(palette.Length, Random.Range(1, 999999));
-            hud.ClearBox();
-            hud.LayoutBins(board.CurrentSeats);
-            view.Bind(board, palette, mystery);
+            hud.ShowCar(0);
+            hud.SetProgress(0, 0, board.CurrentSeats);
+            view.Bind(board, palette);
             RefreshChrome();
-            hud.ShowToast("先把顶上那件挪开，问号会翻成同色。排满一列就能装箱");
+            StartCoroutine(IntroRoutine());
         }
+
+        IEnumerator IntroRoutine()
+        {
+            Sfx.Play(SfxId.DealIn);
+            yield return view.PlayIntro();
+            RefreshChrome();
+            hud.ShowToast("同款排满一列，点「上车」送走", 3f);
+        }
+
+        // ------------------------------------------------------------ 点列
 
         void OnLane(int column)
         {
-            if (board == null || view.Busy || board.Won) return;
+            if (Locked || board.Won) return;
             if (!board.IsOpen(column))
             {
+                fx.Shake(hud.lanes[column].rectTransform, 8f, 0.2f);
                 if (board.IsAdColumn(column))
                 {
-                    if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
-                        Analytics.AdRequest("pack_column", WxBridge.RewardedAdUnitId);
-                    WxBridge.ShowRewarded(() =>
+                    WatchAd("pack_column", () =>
                     {
-                        if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
-                        {
-                            Analytics.AdShow("pack_column", WxBridge.RewardedAdUnitId);
-                            Analytics.AdClose("pack_column", WxBridge.RewardedAdUnitId, true);
-                        }
-                        if (board == null || board.IsOpen(column)) return;
-                        board.UnlockAd(column);
+                        if (board == null || !board.UnlockAd()) return;
                         view.Refresh();
-                        hud.ShowToast("这一列临时解锁了");
-                    }, () =>
-                    {
-                        if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
-                            Analytics.AdError("pack_column", WxBridge.RewardedAdUnitId, "not_ended");
-                        Sfx.Play(SfxId.Deny);
-                        hud.ShowToast("广告没看完");
+                        RefreshChrome();
+                        hud.ShowToast("多了一条衣架，可以随便放");
                     });
                     return;
                 }
                 Sfx.Play(SfxId.Deny);
-                hud.ShowToast(column == PackBoard.SecondColumn ? "装 2 箱后解锁" : "装 1 箱后解锁");
+                hud.ShowToast(column == PackBoard.SecondUnlock ? "送走 2 辆车后解锁" : "送走 1 辆车后解锁");
                 return;
             }
-
+            if (board.Selected < 0 && board.IsFullUniform(column))
+            {
+                Sfx.Play(SfxId.Tap);
+                hud.ShowToast("这一列排满了，点「上车」");
+                return;
+            }
             StartCoroutine(MoveRoutine(column));
         }
 
         IEnumerator MoveRoutine(int column)
         {
-            yield return view.PlayMove(column);
+            int run = runId;
+            yield return view.PlayTap(column);
+            if (run != runId) yield break;
             if (!string.IsNullOrEmpty(view.Blocked))
                 hud.ShowToast(view.Blocked);
             RefreshChrome();
+            if (board.CanBoard && !boardHinted)
+            {
+                boardHinted = true;
+                hud.ShowToast("排满啦，点「上车」");
+            }
             Notice();
         }
 
-        void OnPack()
+        // ------------------------------------------------------------ 上车
+
+        void OnBoard()
         {
-            if (board == null || view.Busy || board.Won) return;
-            if (!board.CanPack)
+            if (Locked || board.Won) return;
+            if (!board.CanBoard)
             {
                 Sfx.Play(SfxId.Deny);
-                hud.ShowToast("还没有排满的一列");
+                fx.Shake((RectTransform)hud.boardButton.transform, 8f, 0.2f);
+                hud.ShowToast("先把一列排满同款");
                 return;
             }
-            int slot = board.BoxFilled;
-            PackBoard.PackResult packed = board.Pack();
-            Sprite icon = packed.Type >= 0 && packed.Type < palette.Length
-                ? palette[packed.Type].ResolveIcon()
-                : null;
-            StartCoroutine(PackRoutine(packed, slot, icon));
+            Sfx.Play(SfxId.Tap);
+            List<PackBoard.Boarding> list = board.BoardAll();
+            StartCoroutine(BoardRoutine(list));
         }
 
-        IEnumerator PackRoutine(PackBoard.PackResult packed, int slot, Sprite icon)
+        IEnumerator BoardRoutine(List<PackBoard.Boarding> list)
         {
-            yield return view.PlayPack(packed, slot, icon);
+            int run = runId;
             RefreshChrome();
-            if (packed.Shipped && !packed.Won)
+            yield return view.PlayBoard(list, CarReward);
+            if (run != runId) yield break;
+            RefreshChrome();
+            if (board.Won)
             {
-                if (board.BoxesDone == 1)
-                    hud.ShowToast("第 1 箱装满了，新的一列开了");
-                else if (board.BoxesDone == 2)
-                    hud.ShowToast("第 2 箱装满了，又开了一列");
-            }
-            if (packed.Won)
-            {
-                bool granted = app.Wardrobe.ClaimPack();
-                Sfx.Play(SfxId.Win);
-                hud.ShowToast(granted ? "整理完成，体力 +2" : "整理完成，今天的体力已经领过");
+                yield return view.PlayFinale();
+                yield return Ask("全部送达！", "四辆车都坐满了，明天还有新的奖励", null,
+                    "再来一局", Restart, null, null, true);
                 yield break;
+            }
+            if (board.Car > 0 && list.Count > 0 && list[list.Count - 1].CarDone)
+            {
+                string unlock = board.Car == 1 ? "第 5 条衣架开了" : board.Car == 2 ? "第 6 条衣架开了" : "";
+                if (!string.IsNullOrEmpty(unlock)) hud.ShowToast(unlock);
             }
             Notice();
         }
+
+        /// <summary>一辆车坐满开走后弹奖励。看广告翻倍，没看完按单倍。</summary>
+        IEnumerator CarReward(int car)
+        {
+            bool last = car >= PackBoard.CarCount - 1;
+            string title = last ? "满载而归！" : "第 " + (car + 1) + " 辆车出发！";
+            var items = StageItems(car);
+            if (app.Wardrobe.PackStageClaimed(car))
+            {
+                yield return Ask(title, "今天这辆的奖励已经领过", items, "继续", null, null, null, true);
+                yield break;
+            }
+            Sfx.Play(SfxId.StageReward);
+            fx.Confetti(hud.transform.position, 40, 1500f, 1f);
+            bool settled = false;
+            yield return Ask(title, "送达奖励", items, "领取", () =>
+            {
+                app.Wardrobe.ClaimPackStage(car, 1);
+                settled = true;
+            }, "双倍领取", () =>
+            {
+                WatchAd("pack_double", () =>
+                {
+                    app.Wardrobe.ClaimPackStage(car, 2);
+                    Sfx.Play(SfxId.Claim);
+                    hud.ShowToast("奖励翻倍了");
+                    settled = true;
+                }, () =>
+                {
+                    app.Wardrobe.ClaimPackStage(car, 1);
+                    hud.ShowToast("广告没看完，先领了单倍");
+                    settled = true;
+                });
+            }, true);
+            while (!settled) yield return null;
+            Sfx.Play(SfxId.Claim);
+        }
+
+        List<PackHud.PopupItem> StageItems(int car)
+        {
+            var list = new List<PackHud.PopupItem>();
+            GameDatabase db = app.Database;
+            int[] mats = WardrobeService.PackStageMats[Mathf.Clamp(car, 0, WardrobeService.PackStageMats.Length - 1)];
+            for (int m = 0; m < mats.Length; m++)
+            {
+                if (mats[m] <= 0) continue;
+                Sprite icon = db.craftMats != null && m < db.craftMats.Count ? db.craftMats[m] : null;
+                list.Add(new PackHud.PopupItem { Icon = icon, Count = mats[m] });
+            }
+            if (car >= PackBoard.CarCount - 1)
+                list.Add(new PackHud.PopupItem { Icon = db.iconHomeEnergy, Count = WardrobeService.PackReward });
+            return list;
+        }
+
+        // ------------------------------------------------------------ 补充
 
         void OnRefill()
         {
-            if (board == null || view.Busy || board.Won) return;
+            if (Locked || board.Won) return;
             if (!board.CanRefill)
             {
                 Sfx.Play(SfxId.Deny);
-                if (board.ReserveCount == 0)
-                    hud.ShowToast("衣服已经发完了");
-                else
-                    hud.ShowToast("先把能接上的倒开，再补充");
+                fx.Shake((RectTransform)hud.refillButton.transform, 8f, 0.2f);
+                hud.ShowToast("衣架都满了，先倒一倒");
                 return;
             }
-            StartCoroutine(RefillRoutine());
+            Sfx.Play(SfxId.Tap);
+            List<PackBoard.Drop> drops = board.Refill();
+            StartCoroutine(RefillRoutine(drops));
         }
 
-        IEnumerator RefillRoutine()
+        IEnumerator RefillRoutine(List<PackBoard.Drop> drops)
         {
-            yield return view.PlayRefill();
+            int run = runId;
+            RefreshChrome();
+            yield return view.PlayRefill(drops);
+            if (run != runId) yield break;
             RefreshChrome();
             Notice();
         }
 
+        // ------------------------------------------------------------ 堵住
+
         void Notice()
         {
-            if (board == null || board.Won) return;
-            if (!board.IsStuck)
-            {
-                stuckNoted = false;
-                return;
-            }
-            if (stuckNoted) return;
-            stuckNoted = true;
+            if (board == null || board.Won || popupOpen || !board.IsStuck) return;
+            StartCoroutine(StuckRoutine());
+        }
+
+        IEnumerator StuckRoutine()
+        {
             Sfx.Play(SfxId.Stuck);
-            hud.ShowToast("这局堵住了，点重开再来");
+            WxBridge.Vibrate(WxBridge.Buzz.Heavy);
+            bool canAddColumn = !board.IsOpen(PackBoard.AdColumn);
+            string sub = canAddColumn ? "看个视频，多开一条衣架接着放" : "看个视频，把每列顶上的衣服收回去";
+            string adLabel = canAddColumn ? "加一列" : "收起衣服";
+            bool watched = false;
+            yield return Ask("衣架堵住了", sub, null, "重新开始", Restart, adLabel, () =>
+            {
+                WatchAd(canAddColumn ? "pack_revive_column" : "pack_revive_take", () => watched = true, () =>
+                {
+                    hud.ShowToast("广告没看完");
+                    Notice();
+                });
+            }, false);
+            if (!watched) yield break;
+            while (view.Busy) yield return null;
+            if (canAddColumn)
+            {
+                board.UnlockAd();
+                view.Refresh();
+                hud.ShowToast("多了一条衣架，接着整理");
+            }
+            else
+            {
+                List<PackBoard.Drop> taken = board.Revive();
+                yield return view.PlayRevive(taken);
+                hud.ShowToast("顶上的衣服收回去了，补充时会先落回同款");
+            }
+            RefreshChrome();
+            Notice();
+        }
+
+        // ------------------------------------------------------------ 公共
+
+        IEnumerator Ask(string title, string sub, List<PackHud.PopupItem> items, string primary, UnityAction onPrimary,
+            string ad, UnityAction onAd, bool rays)
+        {
+            popupOpen = true;
+            yield return hud.Popup(title, sub, items, primary, onPrimary, ad, onAd, rays);
+            popupOpen = false;
+        }
+
+        void WatchAd(string scene, System.Action success, System.Action fail = null)
+        {
+            string unit = WxBridge.RewardedAdUnitId;
+            bool tracked = !string.IsNullOrEmpty(unit);
+            if (tracked) Analytics.AdRequest(scene, unit);
+            WxBridge.ShowRewarded(() =>
+            {
+                if (tracked)
+                {
+                    Analytics.AdShow(scene, unit);
+                    Analytics.AdClose(scene, unit, true);
+                }
+                success?.Invoke();
+            }, () =>
+            {
+                if (tracked) Analytics.AdError(scene, unit, "not_ended");
+                Sfx.Play(SfxId.Deny);
+                if (fail != null) fail();
+                else hud.ShowToast("广告没看完");
+            });
         }
 
         void RefreshChrome()
         {
             if (hud == null || board == null) return;
-            hud.SetProgress(board.BoxesDone, PackBoard.BoxesToWin, mystery);
-            hud.SetPile(board.ReserveCount);
-            hud.SetActions(board.CanPack, board.CanRefill);
-            hud.SetBoxCount(board.BoxFilled, board.CurrentSeats, board.BoxesDone, board.Won);
+            bool idle = !view.Busy;
+            hud.SetActions(board.CanBoard && idle, board.CanRefill && idle);
+            if (!view.Busy)
+                hud.SetProgress(board.Car, board.SeatsFilled, board.CurrentSeats);
+        }
+
+        void Update()
+        {
+            if (board == null || hud == null) return;
+            hud.SetActions(board.CanBoard && !view.Busy && !popupOpen, board.CanRefill && !view.Busy && !popupOpen);
         }
 
         ItemDef[] PickPalette()
@@ -292,8 +352,7 @@ namespace DressSort
             for (int i = 0; i < dresses.Count; i++)
             {
                 ItemDef item = dresses[i];
-                if (item == null || !item.boardEligible) continue;
-                if (item.id == "mystery") continue;
+                if (item == null || !item.boardEligible || item.id == "mystery") continue;
                 pool.Add(item);
             }
             for (int i = pool.Count - 1; i > 0; i--)
@@ -303,7 +362,7 @@ namespace DressSort
                 pool[i] = pool[j];
                 pool[j] = tmp;
             }
-            int count = Mathf.Min(PaletteSize, pool.Count);
+            int count = Mathf.Min(PackBoard.MaxColors, pool.Count);
             var picked = new ItemDef[count];
             for (int i = 0; i < count; i++)
                 picked[i] = pool[i];

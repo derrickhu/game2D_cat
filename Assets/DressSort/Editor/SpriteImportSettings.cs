@@ -11,11 +11,12 @@ namespace DressSort.EditorTools
     {
         const string ArtRoot = "Assets/DressSort/Art/";
         const string HomeRes = "Assets/DressSort/Resources/HomeUi/";
+        const string PackRes = "Assets/DressSort/Resources/Pack/";
 
         void OnPreprocessTexture()
         {
-            bool packCarpet = assetPath.EndsWith("/Resources/Pack/bg_carpet.jpg");
-            if (!assetPath.StartsWith(ArtRoot) && !assetPath.StartsWith(HomeRes) && !packCarpet) return;
+            bool packRes = assetPath.StartsWith(PackRes);
+            if (!assetPath.StartsWith(ArtRoot) && !assetPath.StartsWith(HomeRes) && !packRes) return;
 
             var importer = (TextureImporter)assetImporter;
             importer.textureType = TextureImporterType.Sprite;
@@ -31,9 +32,9 @@ namespace DressSort.EditorTools
             importer.SetTextureSettings(texSettings);
 
             bool portrait = assetPath.Contains("/Portraits/");
-            bool chrome = assetPath.Contains("/Art/Ui/");
+            bool chrome = assetPath.Contains("/Art/Ui/") || packRes;
             bool sceneBg = assetPath.Contains("/Art/Ui/Bgs/")
-                || assetPath.EndsWith("/Resources/Pack/bg_carpet.jpg")
+                || (packRes && assetPath.EndsWith(".jpg"))
                 || assetPath.Contains("/Art/Ui/Workshop/bg_")
                 || assetPath.Contains("/Art/Ui/Reward/bg_")
                 || assetPath.Contains("/Art/Loading/")
@@ -48,16 +49,10 @@ namespace DressSort.EditorTools
                 : 512;
             importer.textureCompression = TextureImporterCompression.CompressedHQ;
 
-            if (assetPath.EndsWith("/Game/dust_cover.png"))
+            if (assetPath == PackRes + "lane.png")
+                importer.spriteBorder = new Vector4(60f, 60f, 60f, 60f);
+            else if (assetPath.EndsWith("/Game/dust_cover.png"))
                 importer.spriteBorder = new Vector4(60f, 44f, 60f, 84f);
-            else if (assetPath.EndsWith("/Pack/lane.png")
-                || assetPath.EndsWith("/Pack/lane_on.png")
-                || assetPath.EndsWith("/Pack/lane_ready.png"))
-            {
-                // 已经按铺地布的最终比例画好，整张显示。长边超过 1024，单独放开。
-                importer.maxTextureSize = 2048;
-                importer.spriteBorder = Vector4.zero;
-            }
             else if (assetPath.Contains("/Art/Ui/btn_"))
                 importer.spriteBorder = new Vector4(160f, 80f, 160f, 80f);
             else if (assetPath.Contains("/Art/Ui/card"))

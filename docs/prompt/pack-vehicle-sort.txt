@@ -1,0 +1,31 @@
+活动「衣服排排上车」换皮美术（内置 GenerateImage，品红底去背）。
+画法锚定：已有裙子小图 dress_cherry_red / 金钥匙 key.png 的细匀深可可棕描边、平涂两色、柔和粉彩赛璐璐。
+母版：/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/pack-vehicle/
+
+[bg] 9:16
+Cute pastel mobile game background, flat cel-shaded cartoon with thin even dark cocoa-brown outlines.
+Top 22%: the back wall of a cozy laundry boutique, soft strawberry-milk pink wallpaper with tiny cream polka dots, a thin white baseboard.
+Middle 38%: a wide plain cream-colored floor panel like vanilla ice cream, framed top and bottom by a butter-yellow stripe like a school road line, empty and clean.
+Bottom 40%: a sunny street seen from the side, a light mint-green sidewalk curb strip, then a soft warm-grey asphalt road like a pencil eraser, empty.
+Large calm flat areas, simple shapes, centered symmetric composition, NO TEXT.
+
+[washer] 1:1
+A single cute pastel front-loading washing machine, front view, mint-green body like pistachio ice cream, round glass door showing colorful tumbling little dresses inside, two round knobs on top, flat cel-shading, thin even dark cocoa-brown outline, sticker style, centered on a solid flat magenta #FF00FF background, NO TEXT.
+
+[gate] 3:4
+A single cute pastel clothing archway gate, front view, two tall white posts like birch sticks and a top bar in strawberry-milk pink with a little gold hanger hook in the middle, a sky-blue ribbon strip across the top bar, open empty middle, flat cel-shading, thin even dark cocoa-brown outline, sticker style, centered on a solid flat magenta #FF00FF background, NO TEXT.
+
+[van4] 16:9
+A single cute chubby delivery van, side view facing left, peach-pink body like a ripe peach, a driver window at the front, then exactly 4 big square passenger windows in one row, every window filled with flat solid dark navy blue like a night sky, two round black wheels, flat cel-shading, thin even dark cocoa-brown outline, sticker style, centered on a solid flat magenta #FF00FF background, NO TEXT.
+
+[bus6] 16:9
+A single cute pastel minibus, side view facing left, mint-green body like pistachio ice cream with a cream stripe, a driver window at the front, then exactly 6 square passenger windows in one row, every window filled with flat solid dark navy blue like a night sky, two round black wheels, flat cel-shading, thin even dark cocoa-brown outline, sticker style, centered on a solid flat magenta #FF00FF background, NO TEXT.
+
+[bus8] 16:9
+A single cute long city bus, side view facing left, butter-yellow body like a lemon custard with a white stripe, a driver window at the front, then exactly 8 square passenger windows in one row, every window filled with flat solid dark navy blue like a night sky, three round black wheels, flat cel-shading, thin even dark cocoa-brown outline, sticker style, centered on a solid flat magenta #FF00FF background, NO TEXT.
+
+[bus10] 4:3
+A single cute double-decker bus, side view facing left, cherry-red body like a candy apple, a driver window at the front of the lower deck, upper deck with exactly 5 square windows in a row and lower deck with exactly 5 square windows in a row, every passenger window filled with flat solid dark navy blue like a night sky, a small gold crown ornament on the roof, round black wheels, flat cel-shading, thin even dark cocoa-brown outline, sticker style, centered on a solid flat magenta #FF00FF background, NO TEXT.
+
+[crown] 1:1
+A single cute small gold crown icon like a shiny gold coin color, three rounded points with pink gem dots, flat cel-shading, thin even dark cocoa-brown outline, sticker style, centered on a solid flat magenta #FF00FF background, NO TEXT.

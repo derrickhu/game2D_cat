@@ -26,6 +26,7 @@ namespace DressSort
             public int checkDay;
             public int clubDay;
             public int packDay;
+            public int packStageMask;
             public List<string> blueprints = new List<string>();
             public int[] materials = new int[CraftCatalog.MatCount];
             public List<int> taskClaimed = new List<int>();
@@ -219,17 +220,33 @@ namespace DressSort
             return true;
         }
 
+        /// <summary>活动每辆车送走的奖励，顺序同 CraftMat。最后一辆另加体力。每天每辆领一次。</summary>
+        public static readonly int[][] PackStageMats =
+        {
+            new[] { 2, 0, 0, 0, 0, 0, 0, 0 },
+            new[] { 0, 2, 1, 0, 0, 0, 0, 0 },
+            new[] { 0, 0, 0, 1, 1, 0, 1, 0 },
+            new[] { 1, 0, 0, 0, 0, 1, 0, 1 },
+        };
         public const int PackReward = 2;
 
-        public bool PackRewardedToday => data.packDay == Today;
+        int PackMaskToday => data.packDay == Today ? data.packStageMask : 0;
 
-        /// <summary>活动装箱当天第一次完成给体力。已经领过返回 false。</summary>
-        public bool ClaimPack()
+        public bool PackStageClaimed(int stage) => (PackMaskToday & (1 << stage)) != 0;
+
+        /// <summary>领第 stage 辆车的奖励，times 是倍数（看广告翻倍）。今天领过返回 false。</summary>
+        public bool ClaimPackStage(int stage, int times)
         {
-            if (PackRewardedToday) return false;
+            if (stage < 0 || stage >= PackStageMats.Length || PackStageClaimed(stage)) return false;
+            int mask = PackMaskToday | (1 << stage);
             data.packDay = Today;
+            data.packStageMask = mask;
+            int[] mats = PackStageMats[stage];
+            for (int m = 0; m < CraftCatalog.MatCount && m < mats.Length; m++)
+                data.materials[m] += mats[m] * Mathf.Max(1, times);
             Save();
-            GainEnergy(PackReward);
+            if (stage == PackStageMats.Length - 1)
+                GainEnergy(PackReward * Mathf.Max(1, times));
             return true;
         }
 
