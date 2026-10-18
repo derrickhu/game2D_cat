@@ -19,6 +19,6 @@ MonoBehaviour:
   worn: {fileID: 21300000, guid: b704fac6962146489ed47171cfb94eee, type: 3}
   wornBack: {fileID: 0}
   boardEligible: 0
-  accent: {r: 1, g: 0.24, b: 0.55, a: 1}
+  accent: {r: 0.8156863, g: 0.1882353, b: 0.22745098, a: 1}
   unlockedFromStart: 0
   layeredWithHair: 1

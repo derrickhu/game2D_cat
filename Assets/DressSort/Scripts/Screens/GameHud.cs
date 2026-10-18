@@ -55,6 +55,12 @@ namespace DressSort
         public Button resumeButton;
         public Button restartButton;
         public Button mapButton;
+        public Button clearButton;
+        public Button stepsAdButton;
+        public RectTransform failLayer;
+        public Button failAdButton;
+        public Button failRestartButton;
+        public Button failHomeButton;
 
         public static GameHud Assemble(RectTransform parent, GameDatabase db)
         {
@@ -195,6 +201,99 @@ namespace DressSort
             stepsPlate.raycastTarget = false;
             movesLabel = Label(stepsPlate.transform, "剩余 40 步", new Vector2(0f, 3f), new Vector2(280f, 70f),
                 36, Color.white);
+            clearButton = ClearButton(topBar, db);
+            EnsureStepsAd(db);
+        }
+
+        /// <summary>步数牌右下角。旧预制没有这颗时补一颗。</summary>
+        public void EnsureClear(GameDatabase db)
+        {
+            if (clearButton != null) return;
+            clearButton = ClearButton(topBar != null ? topBar : transform, db);
+        }
+
+        Button ClearButton(Transform parent, GameDatabase db)
+        {
+            Image face = Capsule(parent, "ClearNow", db != null ? db.rewardBtn : null,
+                Vector2.zero, new Vector2(220f, 72f));
+            RectTransform rect = face.rectTransform;
+            rect.anchorMin = new Vector2(1f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-36f, -132f);
+            Text label = Label(face.transform, "一键通关", new Vector2(0f, 2f), new Vector2(200f, 60f), 32, Color.white);
+            label.fontStyle = FontStyle.Bold;
+            Shade(label);
+            return MakeHit(face);
+        }
+
+        /// <summary>步数牌正下方、一键通关左边。剩 5 步以内才亮。</summary>
+        public void EnsureStepsAd(GameDatabase db)
+        {
+            if (stepsAdButton != null) return;
+            Transform parent = topBar != null ? topBar : transform;
+            Transform existing = parent.Find("StepsAd");
+            if (existing != null)
+                stepsAdButton = existing.GetComponent<Button>();
+            if (stepsAdButton != null) return;
+
+            Sprite sprite = db != null ? db.rewardBtn : null;
+            Image face = Capsule(parent, "StepsAd", sprite, Vector2.zero, new Vector2(292f, 80f));
+            if (face.sprite == null)
+            {
+                face.sprite = UiKit.Rounded;
+                face.type = Image.Type.Sliced;
+                face.color = new Color(1f, 0.72f, 0.18f, 1f);
+            }
+            RectTransform rect = face.rectTransform;
+            rect.anchorMin = new Vector2(1f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-36f, -128f);
+            rect.sizeDelta = new Vector2(300f, 76f);
+            Text label = Label(face.transform, "看广告 +5步", new Vector2(0f, 2f), new Vector2(280f, 64f), 30, Color.white);
+            label.fontStyle = FontStyle.Bold;
+            Shade(label);
+            stepsAdButton = MakeHit(face);
+            stepsAdButton.gameObject.SetActive(false);
+        }
+
+        Coroutine stepsAdPulse;
+
+        public void SetStepsAd(bool show)
+        {
+            if (stepsAdButton == null) return;
+            if (stepsAdButton.gameObject.activeSelf == show) return;
+            stepsAdButton.gameObject.SetActive(show);
+            if (clearButton != null)
+            {
+                RectTransform clearRect = clearButton.transform as RectTransform;
+                clearRect.anchoredPosition = new Vector2(-36f, show ? -216f : -132f);
+            }
+            if (stepsAdPulse != null)
+                StopCoroutine(stepsAdPulse);
+            stepsAdPulse = null;
+            stepsAdButton.transform.localScale = Vector3.one;
+            stepsAdButton.transform.localRotation = Quaternion.identity;
+            if (!show || !isActiveAndEnabled) return;
+            stepsAdButton.transform.SetAsLastSibling();
+            stepsAdPulse = StartCoroutine(PulseStepsAd());
+        }
+
+        System.Collections.IEnumerator PulseStepsAd()
+        {
+            RectTransform rect = stepsAdButton.transform as RectTransform;
+            float t = 0f;
+            while (stepsAdButton != null && stepsAdButton.gameObject.activeSelf)
+            {
+                t += Time.deltaTime;
+                float beat = 0.5f + 0.5f * Mathf.Sin(t * 6.2f);
+                float s = 1f + beat * 0.1f;
+                rect.localScale = new Vector3(s, s, 1f);
+                rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(t * 3.4f) * 2.4f);
+                yield return null;
+            }
+            stepsAdPulse = null;
         }
 
         void BuildPause(GameDatabase db)
@@ -223,6 +322,84 @@ namespace DressSort
                 Color.white);
 
             pauseLayer.gameObject.SetActive(false);
+            EnsureFail(db);
+        }
+
+        /// <summary>步数用完或闹钟响了。铺在棋盘上，不挡右上角的一键通关。</summary>
+        public void EnsureFail(GameDatabase db)
+        {
+            if (failLayer != null)
+            {
+                Transform oldUndo = failLayer.Find("Board/Btn_撤回一步");
+                if (oldUndo != null)
+                    oldUndo.gameObject.SetActive(false);
+                return;
+            }
+            failLayer = UiKit.Stretch(transform, "Fail");
+            Image dim = failLayer.gameObject.AddComponent<Image>();
+            dim.color = new Color(0.16f, 0.07f, 0.1f, 0.55f);
+            dim.raycastTarget = true;
+
+            Image board = UiKit.Icon(failLayer, "Board", db != null ? db.gamePauseBoard : null,
+                new Vector2(0.5f, 0.5f), new Vector2(0f, 20f), new Vector2(680f, 900f));
+            board.preserveAspect = true;
+            board.raycastTarget = true;
+            if (board.sprite == null)
+                board.sprite = UiKit.Rounded;
+
+            failTitle = Label(board.transform, "步数用完了", new Vector2(0f, 318f), new Vector2(520f, 80f), 48, Color.white);
+            failTitle.fontStyle = FontStyle.Bold;
+            Shade(failTitle);
+            failBody = Label(board.transform, "看广告，再加 5 步", new Vector2(0f, 210f), new Vector2(520f, 64f), 32, Cocoa);
+            failBody.fontStyle = FontStyle.Bold;
+
+            failAdButton = PauseButton(board.transform, "看广告 +5步", db != null ? db.rewardBtn : null, 80f, Color.white);
+            failRestartButton = PauseButton(board.transform, "重新开始", db != null ? db.dressupSave : null, -160f, Color.white);
+            failHomeButton = PauseButton(board.transform, "回到首页", db != null ? db.dressupTabTrack : null, -280f, Color.white);
+            failLayer.gameObject.SetActive(false);
+        }
+
+        Text failTitle;
+        Text failBody;
+
+        public void ShowFail(string title, string body, bool offerAd)
+        {
+            if (failLayer == null) return;
+            if (failTitle != null) failTitle.text = title;
+            if (failBody != null) failBody.text = body;
+            if (failAdButton != null)
+            {
+                failAdButton.gameObject.SetActive(offerAd);
+                failAdButton.interactable = true;
+            }
+            LayoutFailButtons();
+            failLayer.gameObject.SetActive(true);
+            failLayer.SetAsLastSibling();
+            if (pauseLayer != null)
+                pauseLayer.gameObject.SetActive(false);
+        }
+
+        public void HideFail()
+        {
+            if (failLayer != null)
+                failLayer.gameObject.SetActive(false);
+        }
+
+        void LayoutFailButtons()
+        {
+            var shown = new System.Collections.Generic.List<Button>();
+            if (failAdButton != null && failAdButton.gameObject.activeSelf) shown.Add(failAdButton);
+            if (failRestartButton != null) shown.Add(failRestartButton);
+            if (failHomeButton != null) shown.Add(failHomeButton);
+            float height = shown.Count > 3 ? 96f : 116f;
+            float gap = shown.Count > 3 ? 108f : 150f;
+            float top = shown.Count > 3 ? 118f : 110f;
+            for (int i = 0; i < shown.Count; i++)
+            {
+                RectTransform rect = shown[i].transform as RectTransform;
+                rect.sizeDelta = new Vector2(440f, height);
+                rect.anchoredPosition = new Vector2(0f, top - i * gap);
+            }
         }
 
         Button PauseButton(Transform parent, string text, Sprite sprite, float y, Color ink)
@@ -244,10 +421,10 @@ namespace DressSort
 
         public void SetCounts(int swaps, int shuffles)
         {
-            if (swapCount != null) swapCount.text = swaps.ToString();
-            if (shuffleCount != null) shuffleCount.text = shuffles.ToString();
-            Dim(swapButton, swaps > 0);
-            Dim(shuffleButton, shuffles > 0);
+            if (swapCount != null) swapCount.text = swaps > 0 ? swaps.ToString() : "+";
+            if (shuffleCount != null) shuffleCount.text = shuffles > 0 ? shuffles.ToString() : "+";
+            Dim(swapButton, true);
+            Dim(shuffleButton, true);
         }
 
         public void SetSwapArmed(bool armed)
@@ -316,11 +493,12 @@ namespace DressSort
         }
 
         public void Wire(UnityAction onSwap, UnityAction onUndo, UnityAction onShuffle, UnityAction onGear,
-            UnityAction onResume, UnityAction onRestart, UnityAction onMap)
+            UnityAction onResume, UnityAction onRestart, UnityAction onMap, UnityAction onClear)
         {
             Sfx.BindSilent(swapButton, onSwap);
             Sfx.BindSilent(undoButton, onUndo);
             Sfx.BindSilent(shuffleButton, onShuffle);
+            Sfx.BindSilent(clearButton, onClear);
             Bind(gear != null ? gear.GetComponent<Button>() : null, onGear);
             Bind(resumeButton, onResume);
             Sfx.BindSilent(restartButton, onRestart);
@@ -329,6 +507,7 @@ namespace DressSort
             PressScale.Attach(undoButton, 0.88f);
             PressScale.Attach(shuffleButton, 0.88f);
             PressScale.Attach(gear, 0.86f);
+            PressScale.Attach(clearButton, 0.92f);
             PressScale.Attach(resumeButton, 0.94f);
             PressScale.Attach(restartButton, 0.94f);
             PressScale.Attach(mapButton, 0.94f);

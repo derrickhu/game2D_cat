@@ -37,24 +37,30 @@ namespace DressSort
             "lavender_star", "cream_cloud", "blueberry", "rose_velvet", "hair_baguette",
         };
 
-        // 图纸按顺序发，发完的那类改送材料大礼包。画了新衣服接到对应队尾即可。
+        // 20 关后的节奏：第 21 关发第一张裙子图纸。
+        // 之后尾数 5 发下一张裙子，尾数 0（50 的倍数除外）发下一张发型，50 的倍数发翅膀。
+        // 材料每关只给一小份，图纸关也不把整份配方一次发完。某一类图纸发完，那个关卡改成材料大礼包。
+        // 裙子每两件旧工坊裙插一件新装；发型奶茶长发打头，之后旧发和新发交替。
         static readonly string[] DressBlueprints =
         {
-            "honey_bow",
-            "apple_denim", "berry_buns", "black_gold", "camellia",
-            "candy_berry", "candy_blueberry", "candy_grape", "coral_pearl",
-            "cream_cat", "festival_hydrangea", "festival_lantern", "festival_matcha",
-            "fruit_mango", "fruit_melon", "fruit_plum", "glacier_gold",
-            "honey_amber", "ivory_pearl", "macaron_lemon", "macaron_pistachio",
-            "macaron_sky", "mint_latte", "rose_wine", "ruby_heart",
+            "honey_bow", "apple_denim", "berry_buns", "maple_coat",
+            "black_gold", "camellia", "hawthorn_jumper", "candy_berry",
+            "candy_blueberry", "snow_coat", "candy_grape", "coral_pearl",
+            "pine_velvet", "cream_cat", "festival_hydrangea", "camel_cape",
+            "festival_lantern", "festival_matcha", "lemon_raincoat", "fruit_mango",
+            "fruit_melon", "peach_dance", "fruit_plum", "glacier_gold",
+            "mint_apron", "honey_amber", "ivory_pearl", "tennis_dress",
+            "macaron_lemon", "macaron_pistachio", "starfish_dress", "macaron_sky",
+            "mint_latte", "night_gown", "rose_wine", "ruby_heart",
             "sakura_bloom", "sapphire_star", "sea_coral", "sea_navy",
             "sea_peach", "sunflower", "wisteria_jewel",
         };
         static readonly string[] HairBlueprints =
         {
-            "hair_milktea_long",
-            "hair_berry", "hair_ink", "hair_coral", "hair_matcha",
-            "hair_glacier", "hair_sakura", "hair_jewel",
+            "hair_milktea_long", "hair_berry", "hair_maple_beret", "hair_ink",
+            "hair_peach_bun", "hair_coral", "hair_cafe_tails", "hair_matcha",
+            "hair_tennis_pony", "hair_glacier", "hair_sea_bob", "hair_sakura",
+            "hair_jewel",
         };
         static readonly string[] WingBlueprints = { "wing_aqua", "wing_rose", "wing_wisteria" };
 
@@ -121,6 +127,17 @@ namespace DressSort
             { "sea_peach", Need(cloth: 8, red: 2, blue: 2, lace: 1) },
             { "sunflower", Need(cloth: 8, yellow: 4, blue: 1) },
             { "wisteria_jewel", Need(cloth: 8, blue: 2, red: 2, yellow: 2, lace: 2) },
+            { "maple_coat", Need(cloth: 8, red: 2, yellow: 2, black: 2) },
+            { "hawthorn_jumper", Need(cloth: 8, red: 4, yellow: 2) },
+            { "snow_coat", Need(cloth: 8, red: 1, lace: 2) },
+            { "pine_velvet", Need(cloth: 8, red: 2, yellow: 1, blue: 2, lace: 1) },
+            { "camel_cape", Need(cloth: 8, yellow: 3, red: 2) },
+            { "lemon_raincoat", Need(cloth: 8, yellow: 4, blue: 1) },
+            { "peach_dance", Need(cloth: 8, red: 3, lace: 2) },
+            { "mint_apron", Need(cloth: 8, blue: 2, yellow: 1, lace: 1) },
+            { "tennis_dress", Need(cloth: 8, yellow: 2, blue: 1, black: 1) },
+            { "starfish_dress", Need(cloth: 8, yellow: 3, red: 2, blue: 1) },
+            { "night_gown", Need(cloth: 8, blue: 4, yellow: 2, lace: 1) },
             { "hair_milktea", Need(hair: 5, red: 1, yellow: 1, black: 1) },
             { "hair_wisteria", Need(hair: 5, red: 1, blue: 2) },
             { "hair_caramel", Need(hair: 5, red: 1, yellow: 1, black: 1) },
@@ -135,6 +152,11 @@ namespace DressSort
             { "hair_glacier", Need(hair: 5, blue: 2, yellow: 1) },
             { "hair_sakura", Need(hair: 5, red: 2, lace: 1) },
             { "hair_jewel", Need(hair: 5, blue: 2, red: 1, yellow: 1) },
+            { "hair_maple_beret", Need(hair: 5, red: 2, yellow: 2, black: 1) },
+            { "hair_peach_bun", Need(hair: 5, red: 2, yellow: 1) },
+            { "hair_cafe_tails", Need(hair: 5, red: 1, yellow: 2, black: 1) },
+            { "hair_tennis_pony", Need(hair: 5, yellow: 3) },
+            { "hair_sea_bob", Need(hair: 5, blue: 3) },
             { "wing_aqua", Need(cloth: 4, blue: 3, yellow: 1, lace: 4, star: 5) },
             { "wing_rose", Need(cloth: 4, red: 3, yellow: 1, lace: 4, star: 5) },
             { "wing_wisteria", Need(cloth: 4, red: 2, blue: 3, lace: 4, star: 5) },
@@ -226,21 +248,8 @@ namespace DressSort
             if (asIfStocked) reward.bigPack = false;
             var rng = new Random(index * 48271 + 7);
 
-            if (index == WorkshopLevel && reward.itemId != null)
-            {
-                int[] need = RecipeOf(reward.itemId);
-                if (need != null) Array.Copy(need, drop, MatCount);
-                return drop;
-            }
-
-            if (reward.kind == Kind.DressBlueprint && !reward.bigPack)
-            {
-                drop[PickDye(rng, shortage, -1)] = 1;
-                return drop;
-            }
-
-            // 一组 10 关大约产出布匹 10、发丝 5、染料 10、蕾丝 2、星砂 1，
-            // 比这组图纸要用的多两成：图纸拿到后攒几关就能做，又不会堆成山。
+            // 一组 10 关大约产出布匹 10、发丝 5、染料 10、蕾丝 2、星砂 1。
+            // 普通关 1 布 + 1 染料，双数关再加 1 发丝。难关和大礼包多 1 布、1 染料、蕾丝和星砂。
             bool rich = reward.hard || reward.bigPack;
             drop[(int)CraftMat.Cloth] = rich ? 2 : 1;
             drop[(int)CraftMat.Hair] = rich || index % 2 == 0 ? 1 : 0;

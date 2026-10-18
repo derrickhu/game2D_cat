@@ -1,0 +1,12 @@
+{
+  "defaults": { "bitrate": "96k", "prompt_influence": 0.65 },
+  "sfx": [
+    {
+      "name": "stuck",
+      "text": "bright music-box fail melody of six separate notes: A5, G5, E5, then G5, E5, landing on C5. Each note is its own pluck with a gap, a short tune that steps down, dry, no low thud, no voice, no drums",
+      "duration": 2.05,
+      "output": "/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/sfx-fail/stuck.mp3",
+      "notes": "失败结算只响这一次。六音旋律：A5 G5 E5，回 G5，再 E5，落在 C5。装进 Resources/Audio/stuck.mp3"
+    }
+  ]
+}

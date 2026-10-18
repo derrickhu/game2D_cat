@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b087983e010c9483cb7da0ebf73a9ba9, type: 3}
+  m_Name: camel_cape
+  m_EditorClassIdentifier: 
+  id: camel_cape
+  displayName: "\u9A7C\u8272\u62AB\u80A9"
+  slot: 0
+  icon: {fileID: 21300000, guid: fbd4ab5c6d1414881b5f18d2f6f3895d, type: 3}
+  worn: {fileID: 21300000, guid: 5b5bd7c49cb9e4d519b12fcc6f227c72, type: 3}
+  wornBack: {fileID: 0}
+  boardEligible: 0
+  accent: {r: 0.76862746, g: 0.627451, b: 0.47058824, a: 1}
+  unlockedFromStart: 0
+  layeredWithHair: 1

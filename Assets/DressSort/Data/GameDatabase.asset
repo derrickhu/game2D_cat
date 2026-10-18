@@ -84,6 +84,22 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4e3b258e7b3b847fab026514bbbc9d1c, type: 2}
   - {fileID: 11400000, guid: 03dc958e962d649f5bd65a81c5a4d282, type: 2}
   - {fileID: 11400000, guid: 46b0d0da038d24e0ca7bafd979fbb62a, type: 2}
+  - {fileID: 11400000, guid: 038a3cc0310b04e62babe056398a50c4, type: 2}
+  - {fileID: 11400000, guid: a67c5a8bc73ea4d8da3e469526048d47, type: 2}
+  - {fileID: 11400000, guid: 6c380c6224e284fe387a70dc221b55ff, type: 2}
+  - {fileID: 11400000, guid: ca88c0521f7774d98a58ff69fa32e030, type: 2}
+  - {fileID: 11400000, guid: 707689a78d791496f88daef7afd47131, type: 2}
+  - {fileID: 11400000, guid: a4a803567c3234c0fa51af97625d0dd5, type: 2}
+  - {fileID: 11400000, guid: 79c97a7d3d88c4b519ce732920f942b5, type: 2}
+  - {fileID: 11400000, guid: d0d1b6b095c70475d864fae97af0d6b1, type: 2}
+  - {fileID: 11400000, guid: cb4828008b1fd4f83a696b409409ddaa, type: 2}
+  - {fileID: 11400000, guid: 05d96ead64d8640df893615124523e73, type: 2}
+  - {fileID: 11400000, guid: a1194dcbbfe9e4d45abdd7e0db001f43, type: 2}
+  - {fileID: 11400000, guid: 4d69b16ff51c142ce971eb4c551dfdae, type: 2}
+  - {fileID: 11400000, guid: 61be8f536bae549f0a5fee0e37601a70, type: 2}
+  - {fileID: 11400000, guid: 148972851df064183b4d240a7b88aac1, type: 2}
+  - {fileID: 11400000, guid: 2bf50b94272134e5cab7a4a845a6f9f9, type: 2}
+  - {fileID: 11400000, guid: 4c61d83685b20455cb2e96aef370164a, type: 2}
   mysteryItem: {fileID: 11400000, guid: 72f31f3fc3411456a8f71ebbb6b856c2, type: 2}
   defaultDress: {fileID: 11400000, guid: 128f9e0cd8ec84dd3b424ff548380195, type: 2}
   defaultHair: {fileID: 11400000, guid: 11a1b2c3d4e5f60718293a4b5c6d7e80, type: 2}
@@ -143,11 +159,6 @@ MonoBehaviour:
   gameKey: {fileID: 21300000, guid: b1d23423582c44ec0856a249392db79b, type: 3}
   gameAlarm: {fileID: 21300000, guid: 74a3b888ef92544a38718552696c1a0f, type: 3}
   gameBubble: {fileID: 21300000, guid: f4ac1afc57bc74274aaf37575c706df8, type: 3}
-  packLane: {fileID: 21300000, guid: 62d4fb5ae6f294e03a946d7848239b6a, type: 3}
-  packLaneOn: {fileID: 21300000, guid: 08d81270a14504df28e5e6337cd2cadd, type: 3}
-  packLaneReady: {fileID: 21300000, guid: 78925b9ada4544df3ac4758b73527f6f, type: 3}
-  packCarpet: {fileID: 21300000, guid: 60e8991cd5ef1436f9103b4bfbc3de99, type: 3}
-  packBox: {fileID: 21300000, guid: c402de7bd10ba462aad87bd5b40414f7, type: 3}
   packBtn: {fileID: 21300000, guid: 36cb505d920bc42f9a559f55da1bff8b, type: 3}
   packRefill: {fileID: 21300000, guid: abc0465c2f5754a6cae48f50d219ec52, type: 3}
   packLock: {fileID: 21300000, guid: 413aa1bd6a18d41349b2f69e38a09c4b, type: 3}

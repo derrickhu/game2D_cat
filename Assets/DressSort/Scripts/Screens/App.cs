@@ -56,6 +56,14 @@ namespace DressSort
         /// <summary>刚通关那一关掉的材料，奖励页要显示。</summary>
         public int[] PendingMaterials { get; set; }
 
+        /// <summary>这关的图纸是新到手的。已经有的图纸不再当新奖励展示。</summary>
+        public bool PendingNewPrint { get; set; }
+
+        /// <summary>刚拿到的图纸在哪个页签。工坊打开时跳过去。</summary>
+        public ItemSlot PendingPrintSlot { get; set; }
+
+        public bool OpenPrintTab { get; set; }
+
         /// <summary>回到首页时要提示的一句话，首页显示后清空。</summary>
         public string Notice { get; set; }
 

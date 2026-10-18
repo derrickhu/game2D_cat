@@ -7,12 +7,15 @@ namespace DressSort
 {
     /// <summary>
     /// 过关领奖。外观在 Resources/Prefabs/RewardScreen，这里播开盒动画并填文案。
-    /// 直送弹出衣服；图纸是底图叠裙子小图；材料按个数各弹一个。
+    /// 直送弹出衣服；图纸是一张浅色小纸，上面铺裙子小图；材料按个数各弹一个。
     /// </summary>
     public class RewardPanel : Panel
     {
         const float DressLift = 200f;
-        const float CardAspect = 470f / 630f;
+        const float PaperAspect = 596f / 774f;
+        static readonly Color GlowGold = new Color(1f, 0.86f, 0.42f, 0.92f);
+
+        static Sprite blueprintPaper;
 
         RewardHud hud;
         RectTransform stage;
@@ -28,6 +31,12 @@ namespace DressSort
         Text hintLabel;
         Button takeButton;
         Text takeLabel;
+        Button continueButton;
+        Text continueLabel;
+        Button doubleButton;
+        bool canTryOn;
+        bool matsDoubled;
+        bool matAdBusy;
         RectTransform fxLayer;
         Image popperLeft;
         Image popperRight;
@@ -43,6 +52,11 @@ namespace DressSort
             public Image badge;
             public bool card;
             public Vector2 rest;
+            public RectTransform glow;
+            public Image glowImage;
+            public RectTransform[] sparks;
+            public Image[] sparkImages;
+            public Text times;
         }
 
         readonly List<Prize> prizes = new List<Prize>();
@@ -104,34 +118,41 @@ namespace DressSort
             hintLabel = hud.hintLabel;
             takeButton = hud.takeButton;
             takeLabel = hud.takeLabel;
+            continueButton = hud.continueButton;
+            continueLabel = hud.continueLabel;
             fxLayer = hud.fxLayer;
             popperLeft = hud.popperLeft;
             popperRight = hud.popperRight;
             closedSize = closed.rectTransform.sizeDelta;
             baseSize = boxBase.rectTransform.sizeDelta;
             lidSize = lid.rectTransform.sizeDelta;
-            hud.Wire(OnTap, OnTake);
+            hud.ApplyChrome(app.Database);
+            continueButton = hud.continueButton;
+            continueLabel = hud.continueLabel;
+            hud.Wire(OnTap, OnTake, OnContinue);
         }
 
         public override void OnShow()
         {
             LevelDef level = app.PendingLevel;
             reward = level != null ? level.reward : null;
-            isBlueprint = reward == null && level != null && level.blueprint != null;
+            isBlueprint = reward == null && app.PendingNewPrint && level != null && level.blueprint != null;
             if (isBlueprint)
                 reward = level.blueprint;
-            if (app.GmPlay)
-                takeLabel.text = "下一关";
-            else if (isBlueprint)
-                takeLabel.text = "去工坊看看";
-            else if (reward != null)
-                takeLabel.text = "收下并试穿";
-            else
-                takeLabel.text = "下一关";
+            // 只有直接送进衣柜的裙子才能试穿。图纸、材料、发型都改成回首页。
+            canTryOn = !app.GmPlay && !isBlueprint && reward != null && reward.slot == ItemSlot.Dress;
+            takeLabel.text = canTryOn ? "收下并试穿" : "回到首页";
+            LevelDef next = app.GmPlay
+                ? (level != null ? app.LevelAt(level.index + 1) : null)
+                : app.NextLevel;
+            continueLabel.text = next != null ? "继续第" + next.index + "关" : "回首页";
             revealed = false;
+            matsDoubled = false;
+            matAdBusy = false;
             ClearBits();
             BuildPrizes();
             ResetPose();
+            PrepareDoubleButton();
             if (prizes.Count == 0) return;
             StartCoroutine(ShowRoutine());
         }
@@ -164,6 +185,13 @@ namespace DressSort
             nameLabel.text = "";
             takeButton.transform.localScale = Vector3.zero;
             takeButton.gameObject.SetActive(false);
+            continueButton.transform.localScale = Vector3.zero;
+            continueButton.gameObject.SetActive(false);
+            if (doubleButton != null)
+            {
+                doubleButton.transform.localScale = Vector3.zero;
+                doubleButton.gameObject.SetActive(false);
+            }
             popperLeft.rectTransform.localScale = Vector3.zero;
             popperRight.rectTransform.localScale = Vector3.zero;
             Vector2 mouth = new Vector2(0f, baseSize.y * 0.72f);
@@ -189,7 +217,10 @@ namespace DressSort
             yield return RisePrizes();
             FinishReveal();
             yield return PopIn(plate, 0.28f);
-            yield return PopIn((RectTransform)takeButton.transform, 0.28f);
+            if (OfferDouble)
+                yield return PopIn((RectTransform)doubleButton.transform, 0.22f);
+            yield return PopIn((RectTransform)takeButton.transform, 0.22f);
+            yield return PopIn((RectTransform)continueButton.transform, 0.22f);
         }
 
         IEnumerator Drop()
@@ -344,8 +375,19 @@ namespace DressSort
             popperRight.rectTransform.localScale = new Vector3(-1f, 1f, 1f);
             FinishReveal();
             plate.localScale = Vector3.one;
+            if (OfferDouble)
+            {
+                doubleButton.gameObject.SetActive(true);
+                doubleButton.transform.localScale = Vector3.one;
+            }
+            else if (doubleButton != null)
+            {
+                doubleButton.gameObject.SetActive(false);
+            }
             takeButton.gameObject.SetActive(true);
             takeButton.transform.localScale = Vector3.one;
+            continueButton.gameObject.SetActive(true);
+            continueButton.transform.localScale = Vector3.one;
             if (rainLeft <= 0f)
                 rainLeft = 2f;
             if (stillClosed)
@@ -376,23 +418,15 @@ namespace DressSort
             }
         }
 
-        /// <summary>直送一件衣服。图纸是底图，裙子小图叠在格子中间。材料按份数各一个。</summary>
+        /// <summary>直送一件衣服。图纸是浅色小纸，裙子小图铺在纸上。材料按份数各一个。</summary>
         void BuildPrizes()
         {
             ClearPrizes();
             if (isBlueprint && reward != null)
-            {
-                Sprite card = Db != null ? Db.craftCard : null;
-                Sprite icon = reward.ResolveIcon();
-                if (card != null)
-                    SpawnPrize(card, icon, true);
-                else
-                    SpawnPrize(icon, null, false);
-            }
+                SpawnPaper(reward.slot == ItemSlot.Hair ? HairIcon(reward) : reward.ResolveIcon(),
+                    reward.slot == ItemSlot.Hair);
             else if (reward != null)
-            {
                 SpawnPrize(reward.ResolveIcon(), null, false);
-            }
 
             if (reward == null || isBlueprint)
                 SpawnMaterials();
@@ -409,6 +443,97 @@ namespace DressSort
                 for (int n = 0; n < mats[m]; n++)
                     SpawnPrize(icon, null, false);
             }
+        }
+
+        /// <summary>金边证书纸。裙子铺满纸心，发型小图居中，后面一圈会呼吸的金光。</summary>
+        void SpawnPaper(Sprite icon, bool hair = false)
+        {
+            RectTransform sheet = UiKit.Rect(gift, "Blueprint", new Vector2(0.5f, 0.5f),
+                Vector2.zero, new Vector2(220f, 286f));
+            var prize = new Prize { rect = sheet, card = true };
+            if (Db != null && Db.rewardRays != null)
+            {
+                Image glow = UiKit.Icon(sheet, "Glow", Db.rewardRays, new Vector2(0.5f, 0.5f),
+                    Vector2.zero, new Vector2(460f, 460f));
+                glow.color = GlowGold;
+                prize.glow = glow.rectTransform;
+                prize.glowImage = glow;
+            }
+
+            Sprite art = BlueprintPaper();
+            if (art != null)
+            {
+                Image face = UiKit.Icon(sheet, "Face", art, new Vector2(0.5f, 0.5f),
+                    Vector2.zero, Vector2.one * 100f);
+                face.preserveAspect = false;
+                Fill(face.rectTransform, 0f);
+            }
+            else
+            {
+                Image rim = UiKit.Slice(sheet, "Rim", UiKit.SoftRect, new Vector2(0.5f, 0.5f),
+                    Vector2.zero, Vector2.zero, new Color(0.93f, 0.72f, 0.22f));
+                Fill(rim.rectTransform, 0f);
+                Image face = UiKit.Slice(sheet, "Face", UiKit.SoftRect, new Vector2(0.5f, 0.5f),
+                    Vector2.zero, Vector2.zero, new Color(1f, 0.97f, 0.91f));
+                Fill(face.rectTransform, 8f);
+            }
+
+            if (icon != null)
+            {
+                Image mark = UiKit.Icon(sheet, "Dress", icon, new Vector2(0.5f, 0.5f),
+                    Vector2.zero, Vector2.one * 100f);
+                RectTransform dressRect = mark.rectTransform;
+                // 裙子图标四周有透明边，框画大一点才铺满纸心。发型小图居中，别撑破金边。
+                dressRect.anchorMin = hair ? new Vector2(0.22f, 0.10f) : new Vector2(-0.06f, 0.05f);
+                dressRect.anchorMax = hair ? new Vector2(0.78f, 0.78f) : new Vector2(1.06f, 0.90f);
+                dressRect.offsetMin = Vector2.zero;
+                dressRect.offsetMax = Vector2.zero;
+            }
+
+            if (Db != null && Db.rewardSparkle != null)
+            {
+                prize.sparks = new RectTransform[4];
+                prize.sparkImages = new Image[4];
+                for (int s = 0; s < 4; s++)
+                {
+                    Image star = UiKit.Icon(sheet, "Spark", Db.rewardSparkle, new Vector2(0.5f, 0.5f),
+                        Vector2.zero, new Vector2(52f, 52f));
+                    prize.sparks[s] = star.rectTransform;
+                    prize.sparkImages[s] = star;
+                }
+            }
+            prizes.Add(prize);
+        }
+
+        /// <summary>发型用 Icons/hair_ 小图。物品上的引用有时指到全身头像，这里按文件名取。</summary>
+        static Sprite HairIcon(ItemDef item)
+        {
+            if (item == null) return null;
+#if UNITY_EDITOR
+            if (!string.IsNullOrEmpty(item.id))
+            {
+                string key = item.id.StartsWith("hair_") ? item.id.Substring(5) : item.id;
+                Sprite file = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+                    "Assets/DressSort/Art/Icons/hair_" + key + ".png");
+                if (file != null) return file;
+            }
+#endif
+            return item.icon;
+        }
+
+        static Sprite BlueprintPaper()
+        {
+            if (blueprintPaper == null)
+                blueprintPaper = Resources.Load<Sprite>("Ui/blueprint_paper");
+            return blueprintPaper;
+        }
+
+        static void Fill(RectTransform rect, float inset)
+        {
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(inset, inset);
+            rect.offsetMax = new Vector2(-inset, -inset);
         }
 
         void SpawnPrize(Sprite sprite, Sprite badge, bool card)
@@ -438,13 +563,13 @@ namespace DressSort
         {
             int n = prizes.Count;
             if (n == 0) return;
-            float cardH = n <= 1 ? 460f : n <= 3 ? 320f : n <= 6 ? 240f : 180f;
-            float mat = cardH * 0.62f;
+            float paperH = n <= 1 ? 340f : n <= 3 ? 286f : n <= 6 ? 220f : 180f;
+            float mat = paperH * 0.56f;
             var widths = new float[n];
             float width = 0f;
             for (int i = 0; i < n; i++)
             {
-                widths[i] = prizes[i].card ? cardH * CardAspect : mat;
+                widths[i] = prizes[i].card ? paperH * PaperAspect : mat;
                 width += widths[i];
             }
             float gap = n <= 1 ? 0f : 18f;
@@ -453,7 +578,7 @@ namespace DressSort
             if (n > 1 && width > limit)
             {
                 float scale = limit / width;
-                cardH *= scale;
+                paperH *= scale;
                 mat *= scale;
                 gap *= scale;
                 for (int i = 0; i < n; i++)
@@ -464,8 +589,19 @@ namespace DressSort
             float lift = baseSize.y + (n <= 1 ? DressLift : 140f);
             for (int i = 0; i < n; i++)
             {
-                float h = prizes[i].card ? cardH : mat;
+                float h = prizes[i].card ? paperH : mat;
                 prizes[i].rect.sizeDelta = new Vector2(widths[i], h);
+                if (prizes[i].glow != null)
+                {
+                    float g = h * 1.65f;
+                    prizes[i].glow.sizeDelta = new Vector2(g, g);
+                }
+                if (prizes[i].sparks != null)
+                {
+                    float spark = h * 0.22f;
+                    for (int s = 0; s < prizes[i].sparks.Length; s++)
+                        prizes[i].sparks[s].sizeDelta = new Vector2(spark, spark);
+                }
                 if (prizes[i].badge != null)
                 {
                     float mark = h * (200f / 630f);
@@ -491,7 +627,174 @@ namespace DressSort
             prizes.Clear();
         }
 
+        bool OfferDouble => !matsDoubled && !app.GmPlay && CraftCatalog.Any(app.PendingMaterials);
+
+        void PrepareDoubleButton()
+        {
+            if (!OfferDouble)
+            {
+                if (doubleButton != null)
+                    doubleButton.gameObject.SetActive(false);
+                return;
+            }
+            if (doubleButton == null)
+            {
+                const float buttonH = 124f;
+                doubleButton = UiKit.Button(hud.transform, "看广告 材料翻倍", new Vector2(0.5f, 0.204f),
+                    Vector2.zero, new Vector2(580f, buttonH),
+                    app.Database != null ? app.Database.rewardBtn : null, Color.white, 42, OnDoubleMaterials);
+                UiKit.FitPill(doubleButton.targetGraphic as Image,
+                    app.Database != null ? app.Database.rewardBtn : null, buttonH);
+                Text label = doubleButton.GetComponentInChildren<Text>();
+                if (label != null)
+                {
+                    label.fontStyle = FontStyle.Bold;
+                    label.alignment = TextAnchor.MiddleCenter;
+                    label.rectTransform.anchoredPosition = new Vector2(0f, 4f);
+                    label.rectTransform.sizeDelta = new Vector2(540f, 100f);
+                    CraftView.AddRim(label, new Color(0.45f, 0.24f, 0.05f), 3f);
+                }
+            }
+            doubleButton.interactable = true;
+            Text caption = doubleButton.GetComponentInChildren<Text>();
+            if (caption != null)
+                caption.text = "看广告 材料翻倍";
+            doubleButton.transform.localScale = Vector3.zero;
+            doubleButton.gameObject.SetActive(false);
+            doubleButton.transform.SetAsLastSibling();
+        }
+
+        void OnDoubleMaterials()
+        {
+            if (!OfferDouble || matAdBusy) return;
+            int[] mats = app.PendingMaterials;
+            matAdBusy = true;
+            doubleButton.interactable = false;
+            const string scene = "reward_mats";
+            Analytics.AdRequest(scene, WxBridge.ToolAdUnitId);
+            WxBridge.ShowRewarded(WxBridge.ToolAdUnitId, () =>
+            {
+                matAdBusy = false;
+                matsDoubled = true;
+                if (!app.GmPlay)
+                    app.Wardrobe.AddMaterials(mats);
+                Analytics.AdShow(scene, WxBridge.ToolAdUnitId);
+                Analytics.AdClose(scene, WxBridge.ToolAdUnitId, true);
+                if (doubleButton != null)
+                    doubleButton.gameObject.SetActive(false);
+                if (hintLabel != null)
+                    hintLabel.text = "材料已翻倍";
+                StartCoroutine(PlayDouble());
+            }, () =>
+            {
+                matAdBusy = false;
+                doubleButton.interactable = true;
+                Sfx.Play(SfxId.Deny);
+                if (hintLabel != null)
+                    StartCoroutine(FlashHint(hintLabel.text, "广告没看完"));
+            });
+        }
+
+        /// <summary>看完广告回来：材料保持原样，每份下面弹出 ×2。</summary>
+        IEnumerator PlayDouble()
+        {
+            Sfx.Play(SfxId.Confetti);
+            int shown = 0;
+            for (int i = 0; i < prizes.Count; i++)
+            {
+                Prize prize = prizes[i];
+                if (prize.card || prize.rect == null) continue;
+                StartCoroutine(PopTimes(prize, shown * 0.07f));
+                shown++;
+            }
+            if (shown == 0)
+                yield break;
+            yield return new WaitForSeconds(shown * 0.07f + 0.5f);
+        }
+
+        IEnumerator PopTimes(Prize prize, float delay)
+        {
+            if (delay > 0f)
+                yield return new WaitForSeconds(delay);
+            if (prize.rect == null) yield break;
+            Text label = EnsureTimes(prize);
+            BurstSparkles(prize.rest);
+            Image face = prize.rect.GetComponent<Image>();
+            Color ink = face != null ? face.color : Color.white;
+            float t = 0f;
+            const float duration = 0.48f;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float k = Mathf.Clamp01(t / duration);
+                float punch = 1f + Mathf.Sin(k * Mathf.PI) * 0.24f;
+                prize.rect.localScale = new Vector3(punch, punch, 1f);
+                if (label != null)
+                {
+                    float pop = EaseOutBack(Mathf.Clamp01((k - 0.08f) / 0.7f));
+                    label.rectTransform.localScale = new Vector3(pop, pop, 1f);
+                    label.rectTransform.anchoredPosition = new Vector2(0f, Mathf.Lerp(-18f, 8f, pop));
+                }
+                if (face != null)
+                    face.color = Color.Lerp(Color.white, ink, Mathf.Clamp01((k - 0.12f) / 0.45f));
+                yield return null;
+            }
+            prize.rect.localScale = Vector3.one;
+            if (label != null)
+            {
+                label.rectTransform.localScale = Vector3.one;
+                label.rectTransform.anchoredPosition = new Vector2(0f, 8f);
+            }
+            if (face != null)
+                face.color = ink;
+        }
+
+        Text EnsureTimes(Prize prize)
+        {
+            if (prize.times != null) return prize.times;
+            float h = Mathf.Max(64f, prize.rect.sizeDelta.y);
+            int size = Mathf.Clamp(Mathf.RoundToInt(h * 0.42f), 30, 52);
+            Text label = UiKit.Label(prize.rect, "Times", "×2", new Vector2(0.5f, 0f),
+                new Vector2(0f, 8f), new Vector2(Mathf.Max(88f, h * 1.1f), size + 18f), size,
+                new Color(1f, 0.84f, 0.22f, 1f));
+            RectTransform rect = label.rectTransform;
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = new Vector2(0f, 8f);
+            rect.localScale = Vector3.zero;
+            label.fontStyle = FontStyle.Bold;
+            label.alignment = TextAnchor.MiddleCenter;
+            label.raycastTarget = false;
+            Outline outline = label.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0.42f, 0.14f, 0.04f, 1f);
+            outline.effectDistance = new Vector2(2.5f, -2.5f);
+            prize.times = label;
+            return label;
+        }
+
+        IEnumerator FlashHint(string restore, string message)
+        {
+            if (hintLabel == null) yield break;
+            hintLabel.text = message;
+            yield return new WaitForSeconds(1.2f);
+            if (hintLabel != null && !matsDoubled)
+                hintLabel.text = restore;
+        }
+
         void OnTake()
+        {
+            Sfx.Play(SfxId.Claim);
+            if (canTryOn && reward != null)
+            {
+                app.Wardrobe.Equip(reward);
+                app.Show(ScreenId.DressUp);
+                return;
+            }
+            app.Show(ScreenId.Home);
+        }
+
+        void OnContinue()
         {
             Sfx.Play(SfxId.Claim);
             if (app.GmPlay)
@@ -506,17 +809,6 @@ namespace DressSort
                 }
                 app.CurrentLevel = next;
                 app.Show(ScreenId.Game);
-                return;
-            }
-            if (isBlueprint)
-            {
-                app.Show(ScreenId.Workshop);
-                return;
-            }
-            if (reward != null)
-            {
-                app.Wardrobe.Equip(reward);
-                app.Show(ScreenId.DressUp);
                 return;
             }
             app.ContinueAfterClear();
@@ -534,8 +826,33 @@ namespace DressSort
                 float bob = Mathf.Sin(idle * 2.2f) * 10f;
                 for (int i = 0; i < prizes.Count; i++)
                 {
-                    if (prizes[i].rect == null) continue;
-                    prizes[i].rect.anchoredPosition = prizes[i].rest + new Vector2(0f, bob);
+                    Prize prize = prizes[i];
+                    if (prize.rect == null) continue;
+                    prize.rect.anchoredPosition = prize.rest + new Vector2(0f, bob);
+                    if (prize.glow == null && prize.sparks == null) continue;
+                    float pulse = 0.5f + 0.5f * Mathf.Sin(idle * 2.6f);
+                    if (prize.glow != null)
+                        prize.glow.localScale = Vector3.one * Mathf.Lerp(0.9f, 1.08f, pulse);
+                    if (prize.glowImage != null)
+                    {
+                        Color glow = GlowGold;
+                        glow.a = Mathf.Lerp(0.45f, 0.95f, pulse);
+                        prize.glowImage.color = glow;
+                    }
+                    if (prize.sparks == null) continue;
+                    float rx = prize.rect.sizeDelta.x * 0.64f;
+                    float ry = prize.rect.sizeDelta.y * 0.56f;
+                    for (int s = 0; s < prize.sparks.Length; s++)
+                    {
+                        float ang = idle * 1.15f + s * Mathf.PI * 0.5f;
+                        prize.sparks[s].anchoredPosition = new Vector2(Mathf.Cos(ang) * rx, Mathf.Sin(ang) * ry);
+                        float twinkle = 0.5f + 0.5f * Mathf.Sin(idle * 5.2f + s * 1.4f);
+                        prize.sparks[s].localScale = Vector3.one * Mathf.Lerp(0.65f, 1.2f, twinkle);
+                        if (prize.sparkImages[s] == null) continue;
+                        Color ink = Color.white;
+                        ink.a = Mathf.Lerp(0.35f, 1f, twinkle);
+                        prize.sparkImages[s].color = ink;
+                    }
                 }
             }
 

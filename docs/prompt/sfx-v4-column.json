@@ -1,0 +1,47 @@
+{
+  "defaults": { "bitrate": "96k", "prompt_influence": 0.6 },
+  "sfx": [
+    {
+      "name": "a_bubble_bloop",
+      "text": "cute cartoon bubble bloop with a quick upward pitch bend, round and juicy, bouncy, plump middle pitch, clear and punchy, casual mobile puzzle game, dry, no reverb, no voice, no music",
+      "duration": 0.24,
+      "output": "/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/sfx-column/a_bubble_bloop.mp3",
+      "notes": "上扬泡泡音"
+    },
+    {
+      "name": "b_xylophone_hop",
+      "text": "two quick wooden xylophone notes hopping upward, G5 then C6, played with soft rubber mallets, bright and playful, cheerful cute puzzle game pick up sound, dry, no reverb, no voice",
+      "duration": 0.3,
+      "output": "/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/sfx-column/b_xylophone_hop.mp3",
+      "notes": "木琴两连跳"
+    },
+    {
+      "name": "c_kalimba_pluck",
+      "text": "one playful kalimba pluck with a tiny upward slide, warm thumb piano, round and bouncy, sweet cute mobile game, clear attack, short decay, dry, no reverb, no voice",
+      "duration": 0.3,
+      "output": "/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/sfx-column/c_kalimba_pluck.mp3",
+      "notes": "卡林巴拨弦。原声太轻，生成后抬了响度"
+    },
+    {
+      "name": "d_pizzicato_boing",
+      "text": "cheerful pizzicato violin pluck with a little cartoon boing spring, light and bouncy, playful cute puzzle game, clear attack, short, dry, no reverb, no voice",
+      "duration": 0.28,
+      "output": "/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/sfx-column/d_pizzicato_boing.mp3",
+      "notes": "拨弦加小弹簧。已装成 Resources/Audio/swap.mp3（交换道具）"
+    },
+    {
+      "name": "e_toy_pop",
+      "text": "cute plastic toy pop with a bright springy wobble, like a little cartoon jelly jumping up, juicy and round, playful casual mobile game, clear attack, dry, no reverb, no voice, no music",
+      "duration": 0.24,
+      "output": "/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/sfx-column/e_toy_pop.mp3",
+      "notes": "果冻弹跳 pop。已装成 Resources/Audio/cloth_lift.mp3（点列换裙子）"
+    },
+    {
+      "name": "f_marimba_bounce",
+      "text": "three super quick marimba notes rising C5 E5 G5 like a tiny happy hop, soft mallets, warm wood, bouncy and cute, mobile puzzle game, dry, no reverb, no voice",
+      "duration": 0.32,
+      "output": "/Users/rosa/rosa_games/game_assets/game2D_cat/assets/raw/dresssort/sfx-column/f_marimba_bounce.mp3",
+      "notes": "马林巴三连上行。原声太轻，生成后抬了响度"
+    }
+  ]
+}

@@ -15,6 +15,7 @@ namespace DressSort
 
         WorkshopHud hud;
         int tab;
+        CraftCelebrate celebrate;
         readonly List<RectTransform> cards = new List<RectTransform>();
         Coroutine toastRoutine;
         GameObject gmLayer;
@@ -41,6 +42,7 @@ namespace DressSort
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
+            hud.ApplyTabs();
             hud.Wire(() => app.Show(ScreenId.Home), OnTab);
             EnsureGmButton();
         }
@@ -48,13 +50,15 @@ namespace DressSort
         public override void OnShow()
         {
             if (hud == null) return;
-            tab = FirstTabWithWork();
+            tab = app.OpenPrintTab ? SlotIndex(app.PendingPrintSlot) : FirstTabWithPrints();
+            app.OpenPrintTab = false;
             hud.ShowToast("");
             Refresh();
         }
 
         public override void OnHide()
         {
+            DismissCelebrate();
             CloseGm();
             StopAllCoroutines();
             toastRoutine = null;
@@ -68,17 +72,21 @@ namespace DressSort
                 RebuildPrints();
         }
 
-        /// <summary>打开时直接停在有能做的图纸的那一页。</summary>
-        int FirstTabWithWork()
+        int SlotIndex(ItemSlot slot)
+        {
+            for (int i = 0; i < Slots.Length; i++)
+                if (Slots[i] == slot) return i;
+            return 0;
+        }
+
+        /// <summary>有图纸的页签优先。都没有就停在裙子页。</summary>
+        int FirstTabWithPrints()
         {
             for (int i = 0; i < Slots.Length; i++)
             {
-                foreach (ItemDef item in app.Wardrobe.Blueprints(Slots[i]))
-                {
-                    if (app.Wardrobe.CanCraft(item)) return i;
-                }
+                if (app.Wardrobe.Blueprints(Slots[i]).Count > 0) return i;
             }
-            return tab;
+            return 0;
         }
 
         void Refresh()
@@ -186,24 +194,23 @@ namespace DressSort
             }
             Sfx.Play(SfxId.Craft);
             Refresh();
-            Toast("做好了「" + item.displayName + "」，已放进衣柜");
-            RectTransform made = cards.Find(c => c.name == "Card_" + item.id);
-            if (made != null)
-                StartCoroutine(Pop(made));
+            DismissCelebrate();
+            celebrate = CraftCelebrate.Show(root, item, app.Database, () => WearNow(item), DismissCelebrate);
         }
 
-        IEnumerator Pop(RectTransform card)
+        void WearNow(ItemDef item)
         {
-            float t = 0f;
-            while (t < 0.32f && card != null)
-            {
-                t += Time.deltaTime;
-                float k = Mathf.Clamp01(t / 0.32f);
-                card.localScale = Vector3.one * (1f + Mathf.Sin(k * Mathf.PI) * 0.08f);
-                yield return null;
-            }
-            if (card != null)
-                card.localScale = Vector3.one;
+            DismissCelebrate();
+            Sfx.Play(SfxId.Equip);
+            app.Wardrobe.Equip(item);
+            app.Show(ScreenId.DressUp);
+        }
+
+        void DismissCelebrate()
+        {
+            if (celebrate == null) return;
+            celebrate.Close();
+            celebrate = null;
         }
 
         void Toast(string message)

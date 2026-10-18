@@ -80,6 +80,7 @@ namespace DressSort
         };
 
         static AudioSource oneShot;
+        static AudioSource sting;
         static AudioSource music;
         static AudioClip[] clips;
         static bool clipsLoaded;
@@ -114,6 +115,32 @@ namespace DressSort
             if (clip != null)
                 oneShot.PlayOneShot(clip, Gain(id));
             ApplyBgm();
+        }
+
+        /// <summary>失败结算单独一条声道，离开页面可以停掉，不会把按钮音一起掐掉。</summary>
+        public static void PlaySting(SfxId id)
+        {
+            if (!Application.isPlaying) return;
+            Install();
+            heard = true;
+            if (sting == null)
+            {
+                sting = oneShot.gameObject.AddComponent<AudioSource>();
+                sting.playOnAwake = false;
+                sting.spatialBlend = 0f;
+            }
+            AudioClip clip = Clip(id);
+            if (clip == null) return;
+            sting.Stop();
+            sting.clip = clip;
+            sting.volume = Gain(id);
+            sting.Play();
+        }
+
+        public static void StopSting()
+        {
+            if (sting != null && sting.isPlaying)
+                sting.Stop();
         }
 
         /// <summary>连着叠好的列一列比一列高：C、D、E、G。</summary>
@@ -355,6 +382,8 @@ namespace DressSort
                     return 0.62f;
                 case SfxId.Deny:
                     return 0.5f;
+                case SfxId.Stuck:
+                    return 0.8f;
                 case SfxId.Win:
                 case SfxId.GiftPop:
                 case SfxId.Finale:

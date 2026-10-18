@@ -24,6 +24,8 @@ namespace DressSort
         public Button wipeButton;
         public Button gmButton;
         public Button energyPlus;
+        public Button shareButton;
+        public Text shareLabel;
         public HomeSideEntry[] sideButtons;
 
         static readonly string[] LeftIds = { "circle", "rank", "checkin" };
@@ -92,6 +94,7 @@ namespace DressSort
                 title.gameObject.SetActive(false);
 
             EnsureEnergyBar(UiKit.Skin);
+            EnsureShare(UiKit.Skin);
 
             Place(startButton != null ? startButton.transform as RectTransform : null,
                 new Vector2(0.5f, 0f), new Vector2(0f, 300f), new Vector2(520f, 134f));
@@ -480,6 +483,52 @@ namespace DressSort
             energyPlus.gameObject.SetActive(true);
             Place(energyPlus.transform as RectTransform, new Vector2(0f, 1f),
                 new Vector2(276f, -72f), new Vector2(40f, 40f));
+        }
+
+        /// <summary>右上角。每天第一次分享领一个今天有效的道具。</summary>
+        public void EnsureShare(GameDatabase db)
+        {
+            if (shareButton == null)
+            {
+                Transform existing = transform.Find("Btn_分享得道具");
+                if (existing != null)
+                    shareButton = existing.GetComponent<Button>();
+            }
+            if (shareButton == null)
+            {
+                shareButton = UiKit.Button(transform, "分享得道具", new Vector2(1f, 1f),
+                    new Vector2(-188f, -188f), new Vector2(320f, 92f),
+                    db != null ? db.rewardBtn : null, Color.white, 34, () => { });
+                UiKit.FitPill(shareButton.targetGraphic as Image, db != null ? db.rewardBtn : null, 92f);
+                shareLabel = shareButton.GetComponentInChildren<Text>();
+                if (shareLabel != null)
+                {
+                    shareLabel.fontStyle = FontStyle.Bold;
+                    shareLabel.alignment = TextAnchor.MiddleCenter;
+                    shareLabel.rectTransform.sizeDelta = new Vector2(300f, 72f);
+                    CraftView.AddRim(shareLabel, new Color(0.45f, 0.24f, 0.05f), 2f);
+                }
+            }
+            if (db != null && db.rewardBtn != null)
+                UiKit.FitPill(shareButton.targetGraphic as Image, db.rewardBtn, 92f);
+            RectTransform rect = shareButton.transform as RectTransform;
+            rect.anchorMin = new Vector2(1f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 0.5f);
+            rect.anchoredPosition = new Vector2(-28f, -188f);
+            rect.sizeDelta = new Vector2(320f, 92f);
+            if (shareLabel == null)
+                shareLabel = shareButton.GetComponentInChildren<Text>();
+            shareButton.transform.SetAsLastSibling();
+        }
+
+        public void SetShareReady(bool ready)
+        {
+            if (shareLabel != null)
+                shareLabel.text = ready ? "分享得道具" : "明天再来";
+            Image face = shareButton != null ? shareButton.targetGraphic as Image : null;
+            if (face != null)
+                face.color = ready ? Color.white : new Color(0.82f, 0.78f, 0.74f, 1f);
         }
 
         Image EnsureEnergyCountPlate()

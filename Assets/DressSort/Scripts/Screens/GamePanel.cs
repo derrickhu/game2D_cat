@@ -14,7 +14,16 @@ namespace DressSort
 
         int shufflesLeft;
         int swapsLeft;
+        int shuffleSerial;
+        int dealSerial;
+        bool stepsAdUsed;
+        bool toolAdBusy;
+        bool failOpen;
+        bool failShown;
+        bool leaving;
+        bool failWired;
         bool finished;
+        bool clearing;
 
         protected override void Build()
         {
@@ -49,17 +58,16 @@ namespace DressSort
                 hud.sparkleSprite = app.Database.rewardSparkle;
                 hud.BindMechanics(app.Database);
             }
+            hud.EnsureClear(app.Database);
+            hud.EnsureStepsAd(app.Database);
+            EnsureFailReady();
+            Sfx.BindClick(hud.stepsAdButton, OnStepsAd);
             hud.Wire(OnSwap, OnUndo, OnShuffle,
-                () => { CancelSwap(); hud.ShowPause(true); },
+                () => { CancelSwap(); CloseFail(); hud.ShowPause(true); },
                 () => hud.ShowPause(false),
                 OnRestart,
-                () =>
-                {
-                    hud.ShowPause(false);
-                    if (level != null && !finished)
-                        Analytics.LevelFail("quit_to_home", LevelProgress());
-                    app.Show(ScreenId.Home);
-                });
+                OnFailHome,
+                OnClearNow);
 
             board = BoardView.Create(hud.boardRoot != null ? hud.boardRoot : root,
                 new BoardView.Layout { overlap = 0.70f });
@@ -89,6 +97,8 @@ namespace DressSort
                 return;
             }
             TrackLevelStart();
+            stepsAdUsed = false;
+            shuffleSerial = 0;
             Deal(level.seed, true);
         }
 
@@ -112,13 +122,17 @@ namespace DressSort
         void Deal(int seed, bool intro = false)
         {
             finished = false;
+            clearing = false;
+            dealSerial++;
+            failShown = false;
+            leaving = false;
+            CloseFail();
             if (fx != null)
             {
                 fx.Clear();
                 fx.ClearBanners();
             }
-            shufflesLeft = level.shuffles;
-            swapsLeft = level.swaps;
+            SyncTools();
             if (board != null)
                 board.PickMode = false;
             if (hud != null)
@@ -176,7 +190,7 @@ namespace DressSort
                     else if (logic.AlarmRang)
                         hud.ShowToast("闹钟响了，撤回一步或者重新开始");
                     else if (logic.OutOfMoves)
-                        hud.ShowToast("步数用完了，撤回或者重新开始");
+                        hud.ShowToast(StuckText());
                     else
                         hud.ShowToast("手里没有可放的");
                 }
@@ -213,17 +227,108 @@ namespace DressSort
             if (logic.AlarmRang)
             {
                 finished = true;
-                Sfx.Play(SfxId.Alarm);
-                hud.ShowToast("闹钟响了！撤回一步或者重新开始");
+                PresentFail();
                 yield break;
             }
 
             if (logic.OutOfMoves)
             {
                 finished = true;
-                Sfx.Play(SfxId.Stuck);
-                hud.ShowToast("步数用完了，撤回或者重新开始");
+                PresentFail();
             }
+        }
+
+        void Update()
+        {
+            if (leaving || failOpen || clearing || logic == null || !finished || logic.IsWin()) return;
+            if (hud != null && hud.pauseLayer != null && hud.pauseLayer.gameObject.activeSelf) return;
+            if (logic.OutOfMoves || logic.AlarmRang)
+                PresentFail();
+        }
+
+        void EnsureFailReady()
+        {
+            if (hud == null) return;
+            hud.EnsureFail(app != null ? app.Database : null);
+            if (hud.failLayer != null && hud.failLayer.parent != transform)
+            {
+                hud.failLayer.SetParent(transform, false);
+                Stretch(hud.failLayer);
+            }
+            if (failWired) return;
+            failWired = true;
+            Sfx.BindClick(hud.failAdButton, OnStepsAd);
+            Sfx.BindClick(hud.failRestartButton, OnRestart);
+            Sfx.BindClick(hud.failHomeButton, OnFailHome);
+        }
+
+        void PresentFail()
+        {
+            if (leaving || failOpen || hud == null || logic == null || clearing || logic.IsWin()) return;
+            EnsureFailReady();
+            failOpen = true;
+            CancelSwap();
+            hud.ShowToast("");
+            bool first = !failShown;
+            failShown = true;
+            if (first)
+                WxBridge.Vibrate(WxBridge.Buzz.Heavy);
+            if (logic.AlarmRang)
+            {
+                if (first)
+                    Sfx.PlaySting(SfxId.Alarm);
+                hud.ShowFail("闹钟响了", "重新开始，或者回到首页", false);
+                return;
+            }
+            if (first)
+                Sfx.PlaySting(SfxId.Stuck);
+            bool ad = !stepsAdUsed;
+            hud.ShowFail("步数用完了", ad ? "看广告，再加 5 步" : "这关不能再加步了", ad);
+        }
+
+        void CloseFail()
+        {
+            failOpen = false;
+            Sfx.StopSting();
+            if (hud != null)
+                hud.HideFail();
+        }
+
+        void OnFailHome()
+        {
+            leaving = true;
+            if (hud != null)
+                hud.ShowPause(false);
+            bool failed = finished && logic != null && !logic.IsWin();
+            string reason = logic != null && logic.AlarmRang ? "alarm" : "out_of_moves";
+            CloseFail();
+            if (level != null && !finished)
+                Analytics.LevelFail("quit_to_home", LevelProgress());
+            else if (level != null && failed)
+                Analytics.LevelFail(reason, LevelProgress());
+            app.Show(ScreenId.Home);
+        }
+
+        void OnClearNow()
+        {
+            if (clearing || level == null || logic == null) return;
+            clearing = true;
+            finished = true;
+            CloseFail();
+            CancelSwap();
+            if (hud != null)
+                hud.ShowToast("");
+            StartCoroutine(ClearNowRoutine());
+        }
+
+        IEnumerator ClearNowRoutine()
+        {
+            if (board != null)
+            {
+                board.StopAllCoroutines();
+                yield return board.Finale("整理完成！");
+            }
+            Complete();
         }
 
         void Complete()
@@ -231,6 +336,29 @@ namespace DressSort
             int spare = Mathf.Max(0, level.moveLimit - logic.Steps);
             int stars = 1 + Mathf.Clamp(spare / Mathf.Max(1, level.moveLimit / 3), 0, 2);
             Analytics.LevelClear(stars);
+            app.PendingLevel = level;
+            // 图纸要进工坊，GM 也入库。关卡进度仍然不写。
+            bool freshPrint = false;
+            if (level.blueprint != null)
+            {
+                freshPrint = app.Wardrobe.AddBlueprint(level.blueprint);
+                app.PendingPrintSlot = level.blueprint.slot;
+                app.OpenPrintTab = true;
+            }
+            int[] mats = CraftCatalog.MaterialsFor(level.index, app.Wardrobe.Shortage());
+            if (!app.GmPlay)
+            {
+                app.Wardrobe.ReportCleared(level.index, stars);
+                RankService.Submit(app.Wardrobe.LevelsCleared);
+                app.Wardrobe.AddMaterials(mats);
+            }
+            app.PendingMaterials = mats;
+            app.PendingNewPrint = freshPrint;
+            if (level.reward != null || freshPrint || CraftCatalog.Any(mats))
+            {
+                app.Show(ScreenId.Reward);
+                return;
+            }
             if (app.GmPlay)
             {
                 LevelDef gmNext = app.LevelAt(level.index + 1);
@@ -244,21 +372,6 @@ namespace DressSort
                 level = gmNext;
                 TrackLevelStart();
                 Deal(level.seed, true);
-                return;
-            }
-
-            app.Wardrobe.ReportCleared(level.index, stars);
-            RankService.Submit(app.Wardrobe.LevelsCleared);
-            app.PendingLevel = level;
-            bool freshPrint = false;
-            if (level.blueprint != null)
-                freshPrint = app.Wardrobe.AddBlueprint(level.blueprint);
-            int[] mats = CraftCatalog.MaterialsFor(level.index, app.Wardrobe.Shortage());
-            app.Wardrobe.AddMaterials(mats);
-            app.PendingMaterials = mats;
-            if (level.reward != null || freshPrint)
-            {
-                app.Show(ScreenId.Reward);
                 return;
             }
             GoNext(mats);
@@ -300,10 +413,11 @@ namespace DressSort
             }
             CancelSwap();
             logic.Undo();
-            if (logic.LastUndoWasSwap)
-                swapsLeft = Mathf.Min(level.swaps, swapsLeft + 1);
             board.Refresh();
-            finished = false;
+            finished = logic.OutOfMoves || logic.AlarmRang;
+            CloseFail();
+            if (!finished)
+                failShown = false;
             UpdateHud();
             Sfx.Play(SfxId.Undo);
             hud.ShowToast("已撤回一步");
@@ -311,27 +425,59 @@ namespace DressSort
 
         void OnShuffle()
         {
-            if (board.Busy) return;
-            if (shufflesLeft <= 0 && !finished)
+            if (board.Busy || !ToolsOpen) return;
+            if (logic == null || !logic.CanShuffleUnsolved())
             {
                 Sfx.Play(SfxId.Deny);
-                hud.ShowToast("随机次数用完了");
+                hud.ShowToast("没有还能打乱的列");
                 return;
             }
+            if (shufflesLeft <= 0)
+            {
+                OfferToolAd(false);
+                return;
+            }
+            DoShuffle();
+        }
 
-            int keep = finished ? level.shuffles : shufflesLeft - 1;
-            int swaps = swapsLeft;
-            Deal(level.seed + (level.shuffles - keep) * 104729);
-            shufflesLeft = keep;
-            swapsLeft = swaps;
+        void DoShuffle()
+        {
+            if (logic == null || !logic.CanShuffleUnsolved())
+            {
+                SyncTools();
+                UpdateHud();
+                hud.ShowToast("没有还能打乱的列");
+                return;
+            }
+            if (app.Wardrobe == null || !app.Wardrobe.TrySpendShuffle())
+            {
+                SyncTools();
+                UpdateHud();
+                return;
+            }
+            shuffleSerial++;
+            logic.ShuffleUnsolved(level.seed + shuffleSerial * 104729);
+            board.Refresh();
             UpdateHud();
             Sfx.Play(SfxId.Shuffle);
-            hud.ShowToast("重新洗牌");
+            hud.ShowToast("没排好的列打乱了");
+            if (logic.IsWin())
+            {
+                finished = true;
+                hud.ShowToast("");
+                StartCoroutine(ShuffleWin());
+            }
+        }
+
+        IEnumerator ShuffleWin()
+        {
+            yield return board.Finale("整理完成！");
+            Complete();
         }
 
         void OnSwap()
         {
-            if (board.Busy || finished) return;
+            if (board.Busy || !ToolsOpen) return;
             if (board.PickMode)
             {
                 CancelSwap();
@@ -341,8 +487,7 @@ namespace DressSort
             }
             if (swapsLeft <= 0)
             {
-                Sfx.Play(SfxId.Deny);
-                hud.ShowToast("交换次数用完了");
+                OfferToolAd(true);
                 return;
             }
             board.PickMode = true;
@@ -361,7 +506,7 @@ namespace DressSort
 
         void OnSwapPick(int column, int row)
         {
-            if (board.Busy || finished) return;
+            if (board.Busy || !ToolsOpen) return;
             if (!logic.CanSwap(column, row))
             {
                 Sfx.Play(SfxId.Deny);
@@ -377,9 +522,102 @@ namespace DressSort
                     hud.ShowToast(row < 0 ? "这列是空的" : "两件一样，换了没变化");
                 return;
             }
+            if (app.Wardrobe == null || !app.Wardrobe.TrySpendSwap())
+            {
+                CancelSwap();
+                SyncTools();
+                UpdateHud();
+                hud.ShowToast("交换次数用完了");
+                return;
+            }
             CancelSwap();
-            swapsLeft--;
+            SyncTools();
             StartCoroutine(SwapRoutine(column, row));
+        }
+
+        void OnStepsAd()
+        {
+            if (stepsAdUsed || toolAdBusy || logic == null || clearing) return;
+            if (logic.IsWin() || logic.AlarmRang) return;
+            if (logic.MoveLimit - logic.Steps > 5) return;
+            int ticket = dealSerial;
+            toolAdBusy = true;
+            if (hud != null && hud.failAdButton != null)
+                hud.failAdButton.interactable = false;
+            const string scene = "steps";
+            Analytics.AdRequest(scene, WxBridge.ToolAdUnitId);
+            WxBridge.ShowRewarded(WxBridge.ToolAdUnitId, () =>
+            {
+                toolAdBusy = false;
+                if (ticket != dealSerial || logic == null || hud == null) return;
+                stepsAdUsed = true;
+                logic.GrantMoves(5);
+                CloseFail();
+                if (!logic.OutOfMoves && !logic.IsWin() && !logic.AlarmRang)
+                    finished = false;
+                Analytics.AdShow(scene, WxBridge.ToolAdUnitId);
+                Analytics.AdClose(scene, WxBridge.ToolAdUnitId, true);
+                UpdateHud();
+                Sfx.Play(SfxId.Heart);
+                hud.ShowToast("加了 5 步");
+            }, () =>
+            {
+                toolAdBusy = false;
+                if (ticket != dealSerial || hud == null) return;
+                if (hud.failAdButton != null)
+                    hud.failAdButton.interactable = true;
+                Analytics.AdError(scene, WxBridge.ToolAdUnitId, "not_ended");
+                Sfx.Play(SfxId.Deny);
+                if (failOpen)
+                    hud.ShowFail("步数用完了", "广告没看完", true);
+                else
+                    hud.ShowToast("广告没看完");
+            });
+        }
+
+        void OfferToolAd(bool swap)
+        {
+            if (toolAdBusy || !ToolsOpen) return;
+            toolAdBusy = true;
+            string scene = swap ? "tool_swap" : "tool_shuffle";
+            Analytics.AdRequest(scene, WxBridge.ToolAdUnitId);
+            WxBridge.ShowRewarded(WxBridge.ToolAdUnitId, () =>
+            {
+                toolAdBusy = false;
+                if (app.Wardrobe != null)
+                {
+                    if (swap)
+                        app.Wardrobe.GrantSwap();
+                    else
+                        app.Wardrobe.GrantShuffle();
+                }
+                SyncTools();
+                UpdateHud();
+                Analytics.AdShow(scene, WxBridge.ToolAdUnitId);
+                Analytics.AdClose(scene, WxBridge.ToolAdUnitId, true);
+                if (!ToolsOpen || board == null)
+                {
+                    hud.ShowToast(swap ? "得到一次交换，今天有效" : "得到一次随机，今天有效");
+                    return;
+                }
+                if (swap)
+                {
+                    board.PickMode = true;
+                    hud.SetSwapArmed(true);
+                    hud.ShowToast("得到一次交换，点一件和手里的换");
+                    return;
+                }
+                if (board.Busy)
+                    hud.ShowToast("得到一次随机，今天有效");
+                else
+                    DoShuffle();
+            }, () =>
+            {
+                toolAdBusy = false;
+                Analytics.AdError(scene, WxBridge.ToolAdUnitId, "not_ended");
+                Sfx.Play(SfxId.Deny);
+                hud.ShowToast("广告没看完");
+            });
         }
 
         IEnumerator SwapRoutine(int column, int row)
@@ -400,9 +638,16 @@ namespace DressSort
         {
             if (board.Busy) return;
             hud.ShowPause(false);
-            if (level != null && !finished)
-                Analytics.LevelFail("restart", LevelProgress());
+            if (level != null && logic != null && !logic.IsWin())
+            {
+                if (!finished)
+                    Analytics.LevelFail("restart", LevelProgress());
+                else if (logic.OutOfMoves || logic.AlarmRang)
+                    Analytics.LevelFail(logic.AlarmRang ? "alarm" : "out_of_moves", LevelProgress());
+            }
             TrackLevelStart();
+            stepsAdUsed = false;
+            shuffleSerial = 0;
             Deal(level.seed);
             Sfx.Play(SfxId.Shuffle);
             hud.ShowToast("重新开始");
@@ -413,8 +658,27 @@ namespace DressSort
             if (hud == null || level == null) return;
             if (hud.levelLabel != null)
                 hud.levelLabel.text = (app.GmPlay ? "GM 第 " : "第 ") + level.index + " 关";
-            hud.SetSteps(Mathf.Max(0, level.moveLimit - logic.Steps), animate && Application.isPlaying);
+            int left = Mathf.Max(0, logic.MoveLimit - logic.Steps);
+            hud.SetSteps(left, animate && Application.isPlaying);
             hud.SetCounts(swapsLeft, shufflesLeft);
+            bool offerSteps = !failOpen && !stepsAdUsed && left > 0 && left <= 5
+                && !logic.IsWin() && !logic.AlarmRang;
+            hud.SetStepsAd(offerSteps);
+        }
+
+        void SyncTools()
+        {
+            swapsLeft = app != null && app.Wardrobe != null ? app.Wardrobe.SwapsToday : 0;
+            shufflesLeft = app != null && app.Wardrobe != null ? app.Wardrobe.ShufflesToday : 0;
+        }
+
+        bool ToolsOpen => logic != null && !clearing && !logic.IsWin() && !logic.AlarmRang;
+
+        string StuckText()
+        {
+            return stepsAdUsed
+                ? "步数用完了，撤回或者重新开始"
+                : "步数用完了，点步数下的广告加 5 步";
         }
 
         void TrackLevelStart()

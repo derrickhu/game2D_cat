@@ -82,7 +82,7 @@ namespace DressSort
 
         public int Held { get; private set; } = Empty;
         public int Steps { get; private set; }
-        public int MoveLimit { get; }
+        public int MoveLimit { get; private set; }
 
         /// <summary>最近一次手里的裙子落下后，自动换到列底的那些异款。</summary>
         public Settle[] LastSettles { get; private set; } = NoSettles;
@@ -285,6 +285,91 @@ namespace DressSort
         public bool CanUndo => history.Count > 0;
 
         public bool OutOfMoves => Steps >= MoveLimit;
+
+        /// <summary>看广告加步。只抬上限，已经走掉的步数不动。</summary>
+        public void GrantMoves(int extra)
+        {
+            if (extra > 0)
+                MoveLimit += extra;
+        }
+
+        /// <summary>没排好的列里至少有两件不一样的衣服，才打得乱。</summary>
+        public bool CanShuffleUnsolved()
+        {
+            var cells = new List<int>();
+            CollectUnsolved(cells);
+            return cells.Count >= 2 && !AllSame(cells);
+        }
+
+        /// <summary>
+        /// 只打乱还没排好的列。每列件数不变，排好的列、手里那件、已走步数都留着。
+        /// 打乱后不能再撤回到洗牌之前。
+        /// </summary>
+        public bool ShuffleUnsolved(int seed)
+        {
+            var cells = new List<int>();
+            var counts = new List<int>();
+            var which = new List<int>();
+            for (int c = 0; c < ColumnCount; c++)
+            {
+                if (IsColumnSolved(c)) continue;
+                which.Add(c);
+                counts.Add(columns[c].Count);
+                cells.AddRange(columns[c]);
+            }
+            if (cells.Count < 2 || AllSame(cells)) return false;
+
+            var before = cells.ToArray();
+            var random = new Random(seed);
+            bool changed = false;
+            for (int attempt = 0; attempt < 8 && !changed; attempt++)
+            {
+                Shuffle(cells, random);
+                changed = !SameCells(cells, before);
+            }
+            if (!changed) return false;
+
+            int at = 0;
+            for (int i = 0; i < which.Count; i++)
+            {
+                List<int> list = columns[which[i]];
+                for (int r = 0; r < counts[i]; r++)
+                    list[r] = cells[at++];
+            }
+            history.Clear();
+            settleHistory.Clear();
+            ResetLast();
+            Unwrap();
+            AfterMove();
+            return true;
+        }
+
+        void CollectUnsolved(List<int> cells)
+        {
+            for (int c = 0; c < ColumnCount; c++)
+            {
+                if (IsColumnSolved(c)) continue;
+                cells.AddRange(columns[c]);
+            }
+        }
+
+        static bool AllSame(List<int> cells)
+        {
+            for (int i = 1; i < cells.Count; i++)
+            {
+                if (cells[i] != cells[0]) return false;
+            }
+            return true;
+        }
+
+        static bool SameCells(List<int> cells, int[] before)
+        {
+            for (int i = 0; i < before.Length; i++)
+            {
+                if (cells[i] != before[i]) return false;
+            }
+            return true;
+        }
 
         void ResetLast()
         {
@@ -674,7 +759,7 @@ namespace DressSort
             return taken;
         }
 
-        /// <summary>最近一次撤回的是不是「交换」，面板据此退还道具次数。</summary>
+        /// <summary>最近一次撤回的是不是「交换」。次数不退还。</summary>
         public bool LastUndoWasSwap { get; private set; }
 
         /// <summary>拆开的包裹、拉开的防尘罩、打开的锁、拆掉的闹钟，撤回时都不复原。</summary>

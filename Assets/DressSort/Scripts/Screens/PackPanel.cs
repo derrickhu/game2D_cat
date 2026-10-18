@@ -6,8 +6,8 @@ using UnityEngine.Events;
 namespace DressSort
 {
     /// <summary>
-    /// 活动页「衣服排排上车」：发牌、点选、上车、补充、每辆车的奖励，以及三处激励视频——
-    /// 第 7 列临时解锁、领奖翻倍、堵住时加一列或收起顶上的衣服。
+    /// 活动页「衣服排排上车」：发牌、点选、上车、补充、每辆车的材料奖励，以及三处激励视频——
+    /// 第 7 列临时解锁、领奖翻倍、堵住时加一列或收起顶上的衣服。每天两局，不扣体力。
     /// </summary>
     public class PackPanel : Panel
     {
@@ -30,14 +30,14 @@ namespace DressSort
             hud.transform.SetAsFirstSibling();
             fx = BoardFx.Create(hud.fxLayer, app.Database);
             view = PackView.Attach(hud, fx);
-            hud.Wire(() => app.Show(ScreenId.Home), Restart, OnBoard, OnRefill, OnLane);
+            hud.Wire(() => app.Show(ScreenId.Home), () => Restart(false), OnBoard, OnRefill, OnLane);
         }
 
         public override void OnShow()
         {
             if (hud == null) return;
             hud.Fit();
-            Restart();
+            Restart(true);
         }
 
         public override void OnHide()
@@ -57,7 +57,8 @@ namespace DressSort
 
         bool Locked => board == null || view.Busy || popupOpen;
 
-        void Restart()
+        /// <summary>newPlay 为真才占今天的一次。页内重开不占次数，已经领过的车也不再发。</summary>
+        void Restart(bool newPlay)
         {
             if (view != null && view.Busy) return;
             palette = PickPalette();
@@ -67,6 +68,13 @@ namespace DressSort
                 hud.ShowToast("还没有可以整理的裙子");
                 return;
             }
+            if (newPlay && !app.Wardrobe.TryBeginPack())
+            {
+                app.Notice = "今天的两次用完了，明天再来";
+                app.Show(ScreenId.Home);
+                return;
+            }
+            hud.SetPlays(WardrobeService.PackPlaysPerDay - app.Wardrobe.PackPlaysLeft, WardrobeService.PackPlaysPerDay);
             StopAllCoroutines();
             runId++;
             ClearPopups();
@@ -150,11 +158,13 @@ namespace DressSort
                 return;
             }
             Sfx.Play(SfxId.Tap);
+            bool adWasOpen = board.IsOpen(PackBoard.AdColumn);
             List<PackBoard.Boarding> list = board.BoardAll();
-            StartCoroutine(BoardRoutine(list));
+            bool adClosed = adWasOpen && !board.IsOpen(PackBoard.AdColumn);
+            StartCoroutine(BoardRoutine(list, adClosed));
         }
 
-        IEnumerator BoardRoutine(List<PackBoard.Boarding> list)
+        IEnumerator BoardRoutine(List<PackBoard.Boarding> list, bool adClosed)
         {
             int run = runId;
             RefreshChrome();
@@ -164,13 +174,20 @@ namespace DressSort
             if (board.Won)
             {
                 yield return view.PlayFinale();
-                yield return Ask("全部送达！", "四辆车都坐满了，明天还有新的奖励", null,
-                    "再来一局", Restart, null, null, true);
+                int left = app.Wardrobe.PackPlaysLeft;
+                if (left > 0)
+                    yield return Ask("全部送达！", "今天还能再玩 " + left + " 次", null,
+                        "再来一局", () => Restart(true), null, null, true);
+                else
+                    yield return Ask("全部送达！", "今天的两次用完了，明天再来", null,
+                        "回首页", () => app.Show(ScreenId.Home), null, null, true);
                 yield break;
             }
             if (board.Car > 0 && list.Count > 0 && list[list.Count - 1].CarDone)
             {
                 string unlock = board.Car == 1 ? "第 5 条衣架开了" : board.Car == 2 ? "第 6 条衣架开了" : "";
+                if (adClosed)
+                    unlock = string.IsNullOrEmpty(unlock) ? "临时衣架锁上了" : unlock + "，临时衣架锁上了";
                 if (!string.IsNullOrEmpty(unlock)) hud.ShowToast(unlock);
             }
             Notice();
@@ -184,7 +201,7 @@ namespace DressSort
             var items = StageItems(car);
             if (app.Wardrobe.PackStageClaimed(car))
             {
-                yield return Ask(title, "今天这辆的奖励已经领过", items, "继续", null, null, null, true);
+                yield return Ask(title, "这辆的奖励已经领过", items, "继续", null, null, null, true);
                 yield break;
             }
             Sfx.Play(SfxId.StageReward);
@@ -224,8 +241,6 @@ namespace DressSort
                 Sprite icon = db.craftMats != null && m < db.craftMats.Count ? db.craftMats[m] : null;
                 list.Add(new PackHud.PopupItem { Icon = icon, Count = mats[m] });
             }
-            if (car >= PackBoard.CarCount - 1)
-                list.Add(new PackHud.PopupItem { Icon = db.iconHomeEnergy, Count = WardrobeService.PackReward });
             return list;
         }
 
@@ -272,7 +287,7 @@ namespace DressSort
             string sub = canAddColumn ? "看个视频，多开一条衣架接着放" : "看个视频，把每列顶上的衣服收回去";
             string adLabel = canAddColumn ? "加一列" : "收起衣服";
             bool watched = false;
-            yield return Ask("衣架堵住了", sub, null, "重新开始", Restart, adLabel, () =>
+            yield return Ask("衣架堵住了", sub, null, "重新开始", () => Restart(false), adLabel, () =>
             {
                 WatchAd(canAddColumn ? "pack_revive_column" : "pack_revive_take", () => watched = true, () =>
                 {
@@ -310,10 +325,10 @@ namespace DressSort
 
         void WatchAd(string scene, System.Action success, System.Action fail = null)
         {
-            string unit = WxBridge.RewardedAdUnitId;
+            string unit = WxBridge.ToolAdUnitId;
             bool tracked = !string.IsNullOrEmpty(unit);
             if (tracked) Analytics.AdRequest(scene, unit);
-            WxBridge.ShowRewarded(() =>
+            WxBridge.ShowRewarded(unit, () =>
             {
                 if (tracked)
                 {

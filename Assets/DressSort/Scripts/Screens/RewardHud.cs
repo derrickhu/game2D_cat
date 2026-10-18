@@ -14,7 +14,6 @@ namespace DressSort
         public const float GiftW = 340f;
         public const float DressSize = 340f;
 
-        static readonly Color Cream = new Color(1f, 0.95f, 0.84f);
         static readonly Color Wine = new Color(0.5f, 0.1f, 0.14f);
         static readonly Color Amber = new Color(0.56f, 0.3f, 0.06f);
 
@@ -32,6 +31,8 @@ namespace DressSort
         public Text hintLabel;
         public Button takeButton;
         public Text takeLabel;
+        public Button continueButton;
+        public Text continueLabel;
         public RectTransform fxLayer;
         public Image popperLeft;
         public Image popperRight;
@@ -90,28 +91,20 @@ namespace DressSort
             tapButton = UiKit.HitArea(stage, "Tap", new Vector2(0.5f, 0.5f), new Vector2(0f, 300f),
                 new Vector2(760f, 860f), () => { });
 
-            Image plateImage = UiKit.Slice(transform, "Plate", db != null ? db.rewardPlate : null,
-                new Vector2(0.5f, 0.205f), Vector2.zero, new Vector2(840f, 140f), Color.white);
-            UiKit.FitPill(plateImage, db != null ? db.rewardPlate : null, 140f);
+            // 名字是纯文字，不铺底牌，免得挡住裙子。位置在横幅下沿和裙子之间。
+            Image plateImage = UiKit.Slice(transform, "Plate", null,
+                new Vector2(0.5f, 0.70f), Vector2.zero, new Vector2(920f, 108f), Color.white);
+            plateImage.raycastTarget = false;
+            plateImage.enabled = false;
             plate = plateImage.rectTransform;
-            nameLabel = UiKit.Label(plate, "Name", "", new Vector2(0.5f, 0.5f), new Vector2(0f, 6f),
-                new Vector2(760f, 96f), 48, CraftView.Cocoa);
-            nameLabel.fontStyle = FontStyle.Bold;
-            FitText(nameLabel, 30, 48);
+            nameLabel = UiKit.Label(plate, "Name", "", new Vector2(0.5f, 0.5f), new Vector2(0f, 26f),
+                new Vector2(900f, 64f), 52, Color.white);
+            hintLabel = UiKit.Label(plate, "Hint", "", new Vector2(0.5f, 0.5f), new Vector2(0f, -28f),
+                new Vector2(900f, 40f), 30, new Color(1f, 0.96f, 0.88f));
+            StyleCaption();
 
-            hintLabel = UiKit.Label(transform, "Hint", "", new Vector2(0.5f, 0.148f), Vector2.zero,
-                new Vector2(960f, 64f), 34, Cream);
-            FitText(hintLabel, 24, 34);
-            CraftView.AddRim(hintLabel, Wine, 2f);
-
-            const float buttonH = 140f;
-            takeButton = UiKit.Button(transform, "收下并试穿", new Vector2(0.5f, 0.075f), Vector2.zero,
-                new Vector2(580f, buttonH), db != null ? db.rewardBtn : null, Color.white, 54, () => { });
-            UiKit.FitPill(takeButton.targetGraphic as Image, db != null ? db.rewardBtn : null, buttonH);
-            takeLabel = takeButton.GetComponentInChildren<Text>();
-            takeLabel.fontStyle = FontStyle.Bold;
-            takeLabel.rectTransform.anchoredPosition = new Vector2(0f, 6f);
-            CraftView.AddRim(takeLabel, Amber, 3f);
+            takeButton = MakeButton("收下并试穿", 0.128f, db, out takeLabel);
+            continueButton = MakeButton("继续下一关", 0.052f, db, out continueLabel);
 
             fxLayer = UiKit.Stretch(transform, "Confetti");
             popperLeft = UiKit.Icon(transform, "PopperL", db != null ? db.rewardPopper : null,
@@ -122,10 +115,98 @@ namespace DressSort
             popperLeft.transform.SetAsLastSibling();
         }
 
-        public void Wire(UnityAction onTap, UnityAction onTake)
+        /// <summary>
+        /// 旧预制还是米色名牌。进页面时改成横幅下的纯文字，缺的继续按钮补上。
+        /// </summary>
+        public void ApplyChrome(GameDatabase db)
+        {
+            StyleCaption();
+            PlaceButton(takeButton, 0.128f, db);
+            if (continueButton == null)
+                continueButton = MakeButton("继续下一关", 0.052f, db, out continueLabel);
+            else
+                PlaceButton(continueButton, 0.052f, db);
+        }
+
+        public void Wire(UnityAction onTap, UnityAction onTake, UnityAction onContinue)
         {
             Sfx.BindSilent(tapButton, onTap);
             Sfx.BindSilent(takeButton, onTake);
+            Sfx.BindSilent(continueButton, onContinue);
+        }
+
+        void StyleCaption()
+        {
+            if (plate != null)
+            {
+                plate.anchorMin = new Vector2(0.5f, 0.70f);
+                plate.anchorMax = new Vector2(0.5f, 0.70f);
+                plate.anchoredPosition = Vector2.zero;
+                plate.sizeDelta = new Vector2(920f, 108f);
+                Image image = plate.GetComponent<Image>();
+                if (image != null)
+                {
+                    image.enabled = false;
+                    image.raycastTarget = false;
+                }
+            }
+            if (hintLabel != null && plate != null && hintLabel.transform.parent != plate)
+                hintLabel.transform.SetParent(plate, false);
+            StyleLine(nameLabel, Color.white, 52, 32, new Vector2(0f, 26f), new Vector2(900f, 64f), 3f);
+            StyleLine(hintLabel, new Color(1f, 0.96f, 0.88f), 30, 22, new Vector2(0f, -28f), new Vector2(900f, 40f), 2f);
+        }
+
+        void StyleLine(Text label, Color color, int size, int min, Vector2 offset, Vector2 box, float rim)
+        {
+            if (label == null) return;
+            label.color = color;
+            label.fontSize = size;
+            label.fontStyle = FontStyle.Bold;
+            label.alignment = TextAnchor.MiddleCenter;
+            label.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            label.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            label.rectTransform.anchoredPosition = offset;
+            label.rectTransform.sizeDelta = box;
+            FitText(label, min, size);
+            Outline outline = label.GetComponent<Outline>();
+            if (outline == null)
+                outline = label.gameObject.AddComponent<Outline>();
+            outline.effectColor = Wine;
+            outline.effectDistance = new Vector2(rim, -rim);
+        }
+
+        static void PlaceButton(Button button, float anchorY, GameDatabase db)
+        {
+            if (button == null) return;
+            const float buttonH = 124f;
+            var rect = (RectTransform)button.transform;
+            rect.anchorMin = new Vector2(0.5f, anchorY);
+            rect.anchorMax = new Vector2(0.5f, anchorY);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = new Vector2(580f, buttonH);
+            UiKit.FitPill(button.targetGraphic as Image, db != null ? db.rewardBtn : null, buttonH);
+            Text label = button.GetComponentInChildren<Text>();
+            if (label == null) return;
+            label.rectTransform.anchoredPosition = new Vector2(0f, 4f);
+            label.rectTransform.sizeDelta = new Vector2(540f, 100f);
+            label.fontSize = 46;
+            label.resizeTextForBestFit = true;
+            label.resizeTextMinSize = 30;
+            label.resizeTextMaxSize = 46;
+        }
+
+        Button MakeButton(string caption, float anchorY, GameDatabase db, out Text label)
+        {
+            const float buttonH = 124f;
+            Button button = UiKit.Button(transform, caption, new Vector2(0.5f, anchorY), Vector2.zero,
+                new Vector2(580f, buttonH), db != null ? db.rewardBtn : null, Color.white, 46, () => { });
+            UiKit.FitPill(button.targetGraphic as Image, db != null ? db.rewardBtn : null, buttonH);
+            label = button.GetComponentInChildren<Text>();
+            label.fontStyle = FontStyle.Bold;
+            label.rectTransform.anchoredPosition = new Vector2(0f, 4f);
+            FitText(label, 30, 46);
+            CraftView.AddRim(label, Amber, 3f);
+            return button;
         }
 
         static Vector2 SizeOf(Sprite sprite, float k, Vector2 fallback) =>

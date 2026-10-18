@@ -41,6 +41,7 @@ namespace DressSort
 
             hud.ApplyChromeLayout();
             hud.Wire(OnStart, () => app.Show(ScreenId.DressUp), OnEnergyPlus, OnWipe, OpenGm, OnSide);
+            Sfx.BindClick(hud.shareButton, OnDailyShare);
 
             if (root.parent is RectTransform frame)
                 hud.BindStage(frame);
@@ -65,6 +66,8 @@ namespace DressSort
             {
                 LevelDef next = app.NextLevel;
                 hud.SetStartCaption(next != null ? "第" + next.index + "关" : "已通关");
+                hud.EnsureShare(app.Database);
+                hud.SetShareReady(app.Wardrobe.ShareReady);
             }
             if (!string.IsNullOrEmpty(app.Notice))
             {
@@ -98,6 +101,32 @@ namespace DressSort
         void OnEnergyPlus()
         {
             OpenEnergy(null);
+        }
+
+        bool shareBusy;
+
+        void OnDailyShare()
+        {
+            if (shareBusy) return;
+            if (app.Wardrobe == null || !app.Wardrobe.ShareReady)
+            {
+                Toast("今天已经分享过了");
+                return;
+            }
+            shareBusy = true;
+            WxBridge.Share("来叠一裙又一裙", () =>
+            {
+                shareBusy = false;
+                if (app == null || app.Wardrobe == null) return;
+                int which = app.Wardrobe.ClaimShareTool();
+                if (hud != null)
+                    hud.SetShareReady(app.Wardrobe.ShareReady);
+                if (!isActiveAndEnabled) return;
+                if (which < 0)
+                    Toast("今天已经分享过了");
+                else
+                    Toast(which == 0 ? "得到一次交换，今天有效" : "得到一次随机，今天有效");
+            });
         }
 
         void OpenEnergy(Action follow)
@@ -354,7 +383,10 @@ namespace DressSort
                     PopupView.Open<ClubPopup>("ClubPopup", layer, app, OnShow);
                     break;
                 case "event":
-                    app.Show(ScreenId.Pack);
+                    if (app.Wardrobe.PackPlaysLeft <= 0)
+                        Toast("今天的两次用完了，明天再来");
+                    else
+                        app.Show(ScreenId.Pack);
                     break;
                 case "workshop":
                     if (app.Wardrobe.WorkshopOpen)

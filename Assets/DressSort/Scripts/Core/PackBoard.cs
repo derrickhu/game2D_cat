@@ -7,11 +7,12 @@ namespace DressSort
     /// 活动页「衣服排排上车」。不碰 Unity。
     /// 七条衣架，一条装 8 件。先点一列再点另一列：最上面连着的同款倒过去，对面空着或顶上同款才行，倒满为止。
     /// 一列 8 件同款就能上车，一列坐一个车窗。四辆车 4、6、8、10 个座，坐满开走换下一辆，四辆都送走算赢。
-    /// 第 5 列送走 1 辆车后开，第 6 列送走 2 辆后开，第 7 列看广告临时开。
+    /// 第 5 列送走 1 辆车后开，第 6 列送走 2 辆后开，第 7 列看广告临时开，这辆车走了就收回。
     /// 「补充」从衣物门往开着的列顶上撒一把衣服，盖住的那几件变问号，露到顶上才翻开。
     /// 衣服按「每种 8 件一组」装进袋子再打散，所以场上每种总数一直凑得齐。
-    /// 补充时一部分衣服会优先落到同款顶上、空列里，车越往后帮得越少、颜色越多。
-    /// 数值用机器人模拟调过：平均每个座位 2～3 步，卡住大多出现在最后一辆车。
+    /// 补充时多数衣服会盖到别的款式上，只留一小部分落到同款顶上。车越往后颜色越多、盖得越狠。
+    /// 棋盘排满又没有整列同款时就会堵住，看广告加一列或收起顶上的衣服才能继续。
+    /// 数值用机器人模拟调过：第一辆车自己能送走，从第二辆起几乎都要看广告才能继续，看了就能过。
     /// </summary>
     public class PackBoard
     {
@@ -26,13 +27,14 @@ namespace DressSort
         public const int MaxSeats = 10;
         public const int MaxColors = 5;
 
-        static readonly int[] Colors = { 3, 4, 5, 5 };
-        static readonly float[] Help = { 0.7f, 0.6f, 0.55f, 0.5f };
-        static readonly int[] RunMin = { 2, 2, 1, 1 };
-        static readonly int[] RunMax = { 4, 3, 3, 3 };
-        static readonly int[] RefillSize = { 8, 10, 10, 12 };
-        const float EmptyBias = 0.8f;
-        const int DealCount = 16;
+        static readonly int[] Colors = { 3, 5, 5, 5 };
+        static readonly float[] Help = { 0.55f, 0.08f, 0.05f, 0.04f };
+        static readonly float[] Clutter = { 0.25f, 0.9f, 0.95f, 0.97f };
+        static readonly int[] RunMin = { 2, 1, 1, 1 };
+        static readonly int[] RunMax = { 4, 2, 1, 1 };
+        static readonly int[] RefillSize = { 8, 14, 16, 16 };
+        const float EmptyBias = 0.4f;
+        const int DealCount = 12;
         const int ReviveTake = 2;
 
         public struct Cell
@@ -70,6 +72,7 @@ namespace DressSort
         {
             public int Type;
             public int Count;
+            public bool Back;
         }
 
         readonly List<Cell>[] columns = new List<Cell>[ColumnCount];
@@ -245,6 +248,8 @@ namespace DressSort
                     Car++;
                     if (Car >= 1) open[FirstUnlock] = true;
                     if (Car >= 2) open[SecondUnlock] = true;
+                    // 广告列是临时的：这辆车走的时候如果是空的，就收回，下一辆要再看一次。
+                    if (columns[AdColumn].Count == 0) open[AdColumn] = false;
                     if (Car >= CarCount)
                     {
                         Won = true;
@@ -323,9 +328,11 @@ namespace DressSort
         void Scatter(List<int> targets, int amount, List<Drop> record)
         {
             float help = Help[Math.Min(Car, Help.Length - 1)];
+            float clutter = Clutter[Math.Min(Car, Clutter.Length - 1)];
             int placed = 0;
             var room = new List<int>();
             var match = new List<int>();
+            var bury = new List<int>();
             var empty = new List<int>();
             while (placed < amount)
             {
@@ -333,6 +340,7 @@ namespace DressSort
                 Chunk chunk = bag[0];
                 room.Clear();
                 match.Clear();
+                bury.Clear();
                 empty.Clear();
                 for (int i = 0; i < targets.Count; i++)
                 {
@@ -342,12 +350,17 @@ namespace DressSort
                     room.Add(c);
                     if (columns[c].Count == 0) empty.Add(c);
                     else if (columns[c][0].Type == chunk.Type) match.Add(c);
+                    else bury.Add(c);
                 }
                 if (room.Count == 0) break;
 
                 int pick;
-                if (match.Count > 0 && random.NextDouble() < help)
+                if (chunk.Back && match.Count > 0)
                     pick = match[random.Next(match.Count)];
+                else if (match.Count > 0 && random.NextDouble() < help)
+                    pick = match[random.Next(match.Count)];
+                else if (bury.Count > 0 && random.NextDouble() < clutter)
+                    pick = Tightest(bury);
                 else if (empty.Count > 0 && random.NextDouble() < EmptyBias)
                     pick = empty[random.Next(empty.Count)];
                 else
@@ -364,6 +377,22 @@ namespace DressSort
                 if (chunk.Count <= 0) bag.RemoveAt(0);
                 else bag[0] = chunk;
             }
+        }
+
+        int Tightest(List<int> bury)
+        {
+            int best = bury[0];
+            int bestSpace = ColumnHeight - columns[best].Count;
+            for (int i = 1; i < bury.Count; i++)
+            {
+                int space = ColumnHeight - columns[bury[i]].Count;
+                if (space < bestSpace)
+                {
+                    bestSpace = space;
+                    best = bury[i];
+                }
+            }
+            return best;
         }
 
         int Weighted(List<int> room)
@@ -437,7 +466,7 @@ namespace DressSort
                 for (int i = 0; i < n; i++)
                 {
                     taken.Add(new Drop { Column = c, Type = list[0].Type });
-                    bag.Insert(0, new Chunk { Type = list[0].Type, Count = 1 });
+                    bag.Insert(0, new Chunk { Type = list[0].Type, Count = 1, Back = true });
                     list.RemoveAt(0);
                 }
             }
@@ -450,7 +479,6 @@ namespace DressSort
         /// <summary>机器人照着玩完整局。返回 "ok" 或出错的原因。</summary>
         public static string SelfCheck()
         {
-            int stucks = 0;
             for (int seed = 1; seed <= 20; seed++)
             {
                 var board = new PackBoard(MaxColors, seed * 31 + 7);
@@ -462,7 +490,6 @@ namespace DressSort
                     if (board.CanBoard) { board.BoardAll(); seen.Clear(); continue; }
                     if (BotStep(board, seen)) continue;
                     if (board.CanRefill) { board.Refill(); continue; }
-                    stucks++;
                     if (!board.UnlockAd() && board.Revive().Count == 0) return "dead " + seed;
                 }
                 if (!board.Won) return "unfinished " + seed;
@@ -471,7 +498,7 @@ namespace DressSort
                     if (board.Column(c).Count > ColumnHeight) return "overflow " + seed;
                 }
             }
-            return stucks > 20 * 8 ? "too hard " + stucks : "ok";
+            return "ok";
         }
 
         /// <summary>挑一步没走到过的局面。同款叠高优先，其次挪去空列把下面翻出来。</summary>

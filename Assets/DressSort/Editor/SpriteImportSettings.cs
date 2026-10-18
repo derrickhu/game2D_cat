@@ -81,6 +81,8 @@ namespace DressSort.EditorTools
                 importer.spriteBorder = new Vector4(92f, 92f, 92f, 92f);
             else if (assetPath.EndsWith("/Reward/btn_gold.png") || assetPath.EndsWith("/Workshop/btn_mint.png"))
                 importer.spriteBorder = new Vector4(130f, 120f, 130f, 120f);
+            else if (assetPath.EndsWith("/Workshop/tab_on.png") || assetPath.EndsWith("/Workshop/tab_off.png"))
+                importer.spriteBorder = new Vector4(140f, 90f, 140f, 110f);
             else if (assetPath.EndsWith("/Reward/plate.png"))
                 importer.spriteBorder = new Vector4(120f, 115f, 120f, 115f);
             else if (assetPath.EndsWith("/DressUp/btn_peach.png") || assetPath.EndsWith("/DressUp/btn_cream.png"))

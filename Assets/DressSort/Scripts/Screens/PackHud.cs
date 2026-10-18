@@ -99,6 +99,7 @@ namespace DressSort
 
         public Image toastPlate;
         public Text toastLabel;
+        public Text playsLabel;
         Coroutine toastRoutine;
 
         public RectTransform popupLayer;
@@ -554,6 +555,18 @@ namespace DressSort
                 new Vector2(140f, 68f), Chip.White, 30, () => { });
             restartButton.onClick.RemoveAllListeners();
             PressScale.Attach(restartButton, 0.9f);
+
+            playsLabel = UiKit.Label(topBar, "Plays", "", new Vector2(0.5f, 1f), new Vector2(0f, -60f),
+                new Vector2(320f, 56f), 32, Cocoa);
+            var playsRim = playsLabel.gameObject.AddComponent<Outline>();
+            playsRim.effectColor = new Color(1f, 0.96f, 0.93f, 0.95f);
+            playsRim.effectDistance = new Vector2(2f, -2f);
+        }
+
+        public void SetPlays(int used, int total)
+        {
+            if (playsLabel == null) return;
+            playsLabel.text = "今日 " + Mathf.Max(0, used) + "/" + total;
         }
 
         /// <summary>按当前屏幕高度和安全区摆位置。每次进页面调一次。</summary>

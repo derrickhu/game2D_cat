@@ -26,6 +26,11 @@ namespace DressSort
             public int checkDay;
             public int clubDay;
             public int packDay;
+            public int toolDay;
+            public int swapsToday;
+            public int shufflesToday;
+            public int shareDay;
+            public int packPlays;
             public int packStageMask;
             public List<string> blueprints = new List<string>();
             public int[] materials = new int[CraftCatalog.MatCount];
@@ -45,6 +50,8 @@ namespace DressSort
 
         public const int MaxEnergy = 5;
         public const int EnergyPerLevel = 1;
+        /// <summary>看一条体力广告加的点数。可以超过自然恢复上限。</summary>
+        public const int EnergyAdReward = 5;
         const long RecoverTicks = 5L * 60L * 10000000L;
 
         public int LevelsCleared => data.levelsCleared;
@@ -220,7 +227,96 @@ namespace DressSort
             return true;
         }
 
-        /// <summary>活动每辆车送走的奖励，顺序同 CraftMat。最后一辆另加体力。每天每辆领一次。</summary>
+        /// <summary>交换和随机记在今天。过了零点清掉，开局不送。</summary>
+        void RollTools()
+        {
+            if (data.toolDay == Today) return;
+            data.toolDay = Today;
+            data.swapsToday = 0;
+            data.shufflesToday = 0;
+            Save();
+        }
+
+        public int SwapsToday
+        {
+            get
+            {
+                RollTools();
+                return data.swapsToday;
+            }
+        }
+
+        public int ShufflesToday
+        {
+            get
+            {
+                RollTools();
+                return data.shufflesToday;
+            }
+        }
+
+        public bool ShareReady
+        {
+            get
+            {
+                RollTools();
+                return data.shareDay != Today;
+            }
+        }
+
+        public bool TrySpendSwap()
+        {
+            RollTools();
+            if (data.swapsToday <= 0) return false;
+            data.swapsToday--;
+            Save();
+            return true;
+        }
+
+        public bool TrySpendShuffle()
+        {
+            RollTools();
+            if (data.shufflesToday <= 0) return false;
+            data.shufflesToday--;
+            Save();
+            return true;
+        }
+
+        public void GrantSwap(int count = 1)
+        {
+            if (count <= 0) return;
+            RollTools();
+            data.swapsToday += count;
+            Save();
+        }
+
+        public void GrantShuffle(int count = 1)
+        {
+            if (count <= 0) return;
+            RollTools();
+            data.shufflesToday += count;
+            Save();
+        }
+
+        /// <summary>今天第一次分享。0 是交换，1 是随机，-1 表示今天领过了。</summary>
+        public int ClaimShareTool()
+        {
+            RollTools();
+            if (data.shareDay == Today) return -1;
+            data.shareDay = Today;
+            int which = Random.Range(0, 2);
+            if (which == 0)
+                data.swapsToday++;
+            else
+                data.shufflesToday++;
+            Save();
+            return which;
+        }
+
+        /// <summary>活动每天能开的局数。不扣体力。</summary>
+        public const int PackPlaysPerDay = 2;
+
+        /// <summary>活动每辆车送走的材料，顺序同 CraftMat。一局里每辆领一次，新的一局重新领。</summary>
         public static readonly int[][] PackStageMats =
         {
             new[] { 2, 0, 0, 0, 0, 0, 0, 0 },
@@ -228,25 +324,37 @@ namespace DressSort
             new[] { 0, 0, 0, 1, 1, 0, 1, 0 },
             new[] { 1, 0, 0, 0, 0, 1, 0, 1 },
         };
-        public const int PackReward = 2;
+
+        int PlaysToday => data.packDay == Today ? data.packPlays : 0;
+
+        public int PackPlaysLeft => Mathf.Max(0, PackPlaysPerDay - PlaysToday);
+
+        /// <summary>开一局。今天已经两局就返回 false，不扣体力。</summary>
+        public bool TryBeginPack()
+        {
+            int played = PlaysToday;
+            if (played >= PackPlaysPerDay) return false;
+            data.packDay = Today;
+            data.packPlays = played + 1;
+            data.packStageMask = 0;
+            Save();
+            return true;
+        }
 
         int PackMaskToday => data.packDay == Today ? data.packStageMask : 0;
 
         public bool PackStageClaimed(int stage) => (PackMaskToday & (1 << stage)) != 0;
 
-        /// <summary>领第 stage 辆车的奖励，times 是倍数（看广告翻倍）。今天领过返回 false。</summary>
+        /// <summary>领第 stage 辆车的材料，times 是倍数（看广告翻倍）。这一局领过返回 false。</summary>
         public bool ClaimPackStage(int stage, int times)
         {
             if (stage < 0 || stage >= PackStageMats.Length || PackStageClaimed(stage)) return false;
-            int mask = PackMaskToday | (1 << stage);
             data.packDay = Today;
-            data.packStageMask = mask;
+            data.packStageMask = PackMaskToday | (1 << stage);
             int[] mats = PackStageMats[stage];
             for (int m = 0; m < CraftCatalog.MatCount && m < mats.Length; m++)
                 data.materials[m] += mats[m] * Mathf.Max(1, times);
             Save();
-            if (stage == PackStageMats.Length - 1)
-                GainEnergy(PackReward * Mathf.Max(1, times));
             return true;
         }
 

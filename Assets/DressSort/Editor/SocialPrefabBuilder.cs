@@ -376,7 +376,7 @@ namespace DressSort.EditorTools
             RectTransform b = Frame<EnergyAdPopup>("EnergyAdPopup", boardClub, ribbonClub, "体力不够", size, 0f,
                 out var view);
             Img(b, "Heart", energy, new Vector2(0f, 90f), new Vector2(120f, 188f));
-            Txt(b, "Body", "看完一条广告，恢复 1 点体力", new Vector2(0f, -70f), new Vector2(640f, 56f), 32, Ink);
+            Txt(b, "Body", "看完一条广告，恢复 5 点体力", new Vector2(0f, -70f), new Vector2(640f, 56f), 32, Ink);
             view.watchButton = Capsule(b, "Watch", "看广告", new Vector2(0f, -210f), new Vector2(420f, 130f), btnOrange,
                 out _);
             return view.gameObject;

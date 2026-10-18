@@ -86,6 +86,40 @@ namespace DressSort
             wx?.GetMethod("ShowShareMenu", Type.EmptyTypes)?.Invoke(null, null);
         }
 
+        /// <summary>
+        /// 拉起转发给朋友。微信没有分享成功回调，回到前台就当分享过。
+        /// 编辑器里直接当成已经分享。
+        /// </summary>
+        public static void Share(string title, Action returned)
+        {
+#if UNITY_MINIGAME || WEIXINMINIGAME || UNITY_WEIXINMINIGAME || MINIGAME_SUBPLATFORM_WEIXIN
+            if (!Application.isEditor)
+            {
+                try
+                {
+                    WeChatWASM.WX.ShareAppMessage(new WeChatWASM.ShareAppMessageOption
+                    {
+                        title = string.IsNullOrEmpty(title) ? "来叠一裙又一裙" : title,
+                    });
+                    Action<WeChatWASM.OnShowListenerResult> back = null;
+                    back = _ =>
+                    {
+                        WeChatWASM.WX.OffShow(back);
+                        returned?.Invoke();
+                    };
+                    WeChatWASM.WX.OnShow(back);
+                    return;
+                }
+                catch (Exception)
+                {
+                    returned?.Invoke();
+                    return;
+                }
+            }
+#endif
+            returned?.Invoke();
+        }
+
         /// <summary>wx.login 拿一次性 code，换 openid 在云函数里做。非微信构建直接报失败。</summary>
         public static void Login(Action<string> ok, Action<string> fail)
         {
@@ -441,14 +475,16 @@ namespace DressSort
         }
 
         /// <summary>
-        /// 激励视频。广告位还没配、或在编辑器里，直接当看完。
-        /// 配了广告位才走微信 CreateRewardedVideoAd，看完才算成功。
+        /// 激励视频。编辑器里直接当看完。
+        /// 真机按广告位走微信 CreateRewardedVideoAd，看完才算成功。
+        /// 体力、道具是两个广告位，不能混用。
         /// </summary>
-        public const string RewardedAdUnitId = "";
+        public const string EnergyAdUnitId = "adunit-52cee388fc325d1f";
+        public const string ToolAdUnitId = "adunit-171dd316cf2b835d";
 
-        public static void ShowRewarded(Action success, Action fail)
+        public static void ShowRewarded(string adUnitId, Action success, Action fail)
         {
-            if (string.IsNullOrEmpty(RewardedAdUnitId) || Application.isEditor)
+            if (Application.isEditor || string.IsNullOrEmpty(adUnitId))
             {
                 success?.Invoke();
                 return;
@@ -457,7 +493,7 @@ namespace DressSort
             try
             {
                 WeChatWASM.WXRewardedVideoAd ad = WeChatWASM.WX.CreateRewardedVideoAd(
-                    new WeChatWASM.WXCreateRewardedVideoAdParam { adUnitId = RewardedAdUnitId });
+                    new WeChatWASM.WXCreateRewardedVideoAdParam { adUnitId = adUnitId });
                 bool settled = false;
                 ad.OnClose(res =>
                 {

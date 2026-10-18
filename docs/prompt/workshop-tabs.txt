@@ -1,0 +1,11 @@
+Two game UI buttons side by side on one wide canvas, with a clear gap between them. Flat solid background the color of a green screen, #3FA36A, filling every pixel outside the buttons.
+
+Japanese TV-anime cel sticker buttons, thin even cocoa-brown ink, flat glaze. Same construction as a chunky jelly capsule: fully rounded ends, a glossy white highlight along the upper left, a darker lower lip that gives the button thickness.
+
+Left button, the selected one: mint-macaron green, bright and fresh, the same family as a mint awning. Cocoa-brown outline.
+
+Right button, the resting one: butter-cream, the color of vanilla ice cream, quieter than the left. Same cocoa-brown outline, same highlight, same thickness.
+
+Both buttons are the same size, empty inside, wide enough for two Chinese characters later. One row only.
+
+Empty image, no letters, no captions.

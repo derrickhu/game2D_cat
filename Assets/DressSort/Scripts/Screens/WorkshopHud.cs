@@ -15,6 +15,9 @@ namespace DressSort
         public const float GapX = 24f;
         public const float GapY = 26f;
         const float TabsY = -200f;
+        const float TabW = 300f;
+        const float TabH = 108f;
+        const float TabPitch = 324f;
         const float ListTop = 290f;
         const float ListBottom = 290f;
 
@@ -63,27 +66,15 @@ namespace DressSort
             title.fontStyle = FontStyle.Bold;
             CraftView.AddRim(title);
 
-            if (db != null)
-            {
-                tabOn = new[] { db.dressupTabDressOn, db.dressupTabHairOn, db.dressupTabWingsOn };
-                tabOff = new[] { db.dressupTabDressOff, db.dressupTabHairOff, db.dressupTabWingsOff };
-            }
             for (int i = 0; i < TabNames.Length; i++)
             {
-                if (tabOff[i] != null)
-                {
-                    Image sign = UiKit.Icon(transform, "Tab_" + TabNames[i], tabOff[i], new Vector2(0.5f, 1f),
-                        new Vector2((i - 1) * 290f, TabsY), new Vector2(240f, 150f));
-                    tabFaces[i] = sign;
-                    tabButtons[i] = MakeHit(sign);
-                    continue;
-                }
                 Button tab = UiKit.Button(transform, TabNames[i], new Vector2(0.5f, 1f),
-                    new Vector2((i - 1) * 300f, TabsY), new Vector2(270f, 96f), Chip.White, 38, () => { });
+                    new Vector2((i - 1) * TabPitch, TabsY), new Vector2(TabW, TabH), Chip.White, 40, () => { });
                 tabButtons[i] = tab;
                 tabFaces[i] = tab.targetGraphic as Image;
                 tabLabels[i] = tab.GetComponentInChildren<Text>();
             }
+            ApplyTabs();
 
             var vpGo = new GameObject("List", typeof(RectTransform), typeof(Image), typeof(RectMask2D),
                 typeof(ScrollRect));
@@ -140,22 +131,75 @@ namespace DressSort
             }
         }
 
+        /// <summary>
+        /// 换上工坊自己的胶囊页签。换装衣橱的挂牌和这间缝纫间不是一套，预制里先放着的圆角块也换掉。
+        /// </summary>
+        public void ApplyTabs()
+        {
+            Sprite on = WorkshopTabSprite(true);
+            Sprite off = WorkshopTabSprite(false);
+            if (on == null || off == null || tabFaces == null) return;
+            if (tabOn == null || tabOn.Length != tabFaces.Length)
+                tabOn = new Sprite[tabFaces.Length];
+            if (tabOff == null || tabOff.Length != tabFaces.Length)
+                tabOff = new Sprite[tabFaces.Length];
+            for (int i = 0; i < tabFaces.Length; i++)
+            {
+                if (tabFaces[i] == null) continue;
+                tabOn[i] = on;
+                tabOff[i] = off;
+                RectTransform rect = tabFaces[i].rectTransform;
+                rect.anchorMin = new Vector2(0.5f, 1f);
+                rect.anchorMax = new Vector2(0.5f, 1f);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.sizeDelta = new Vector2(TabW, TabH);
+                rect.anchoredPosition = new Vector2((i - 1) * TabPitch, TabsY);
+                rect.localScale = Vector3.one;
+                Text label = tabLabels != null && i < tabLabels.Length ? tabLabels[i] : null;
+                if (label == null) continue;
+                label.fontStyle = FontStyle.Bold;
+                label.fontSize = 40;
+                label.color = CraftView.Cocoa;
+                label.alignment = TextAnchor.MiddleCenter;
+                label.rectTransform.anchoredPosition = new Vector2(0f, 8f);
+                label.rectTransform.sizeDelta = new Vector2(TabW - 48f, TabH - 28f);
+                if (label.GetComponent<Outline>() == null)
+                    CraftView.AddRim(label);
+            }
+        }
+
         public void SetTab(int index)
         {
             for (int i = 0; i < tabButtons.Length; i++)
             {
                 bool on = i == index;
-                if (tabFaces[i] != null && tabOff[i] != null)
+                if (tabFaces[i] != null && tabOff != null && i < tabOff.Length && tabOff[i] != null)
                 {
-                    tabFaces[i].sprite = on && tabOn[i] != null ? tabOn[i] : tabOff[i];
-                    tabFaces[i].rectTransform.localScale = Vector3.one * (on ? 1.08f : 0.94f);
+                    Sprite skin = on && tabOn != null && i < tabOn.Length && tabOn[i] != null ? tabOn[i] : tabOff[i];
+                    UiKit.FitPill(tabFaces[i], skin, tabFaces[i].rectTransform.sizeDelta.y);
+                    tabFaces[i].color = Color.white;
+                    tabFaces[i].rectTransform.localScale = Vector3.one;
+                    if (tabLabels != null && i < tabLabels.Length && tabLabels[i] != null)
+                        tabLabels[i].color = CraftView.Cocoa;
                     continue;
                 }
                 if (tabFaces[i] != null)
                     tabFaces[i].sprite = UiKit.SpriteOf(i == index ? Chip.Teal : Chip.White);
-                if (tabLabels[i] != null)
+                if (tabLabels != null && i < tabLabels.Length && tabLabels[i] != null)
                     tabLabels[i].color = UiKit.TextOn(i == index ? Chip.Teal : Chip.White);
             }
+        }
+
+        static Sprite WorkshopTabSprite(bool on)
+        {
+            string file = on ? "tab_on" : "tab_off";
+            Sprite sprite = Resources.Load<Sprite>("Ui/" + file);
+#if UNITY_EDITOR
+            if (sprite == null)
+                sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+                    "Assets/DressSort/Art/Ui/Workshop/" + file + ".png");
+#endif
+            return sprite;
         }
 
         public void SetStock(WardrobeService wardrobe)

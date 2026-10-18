@@ -101,6 +101,17 @@ namespace DressSort.EditorTools
             new DressInfo { id = "sea_peach", label = "海玻璃蜜桃裙", accent = new Color32(0xF0, 0xA0, 0x80, 0xFF), wardrobeOnly = true },
             new DressInfo { id = "sunflower", label = "向日葵裙", accent = new Color32(0xF0, 0xC0, 0x30, 0xFF), wardrobeOnly = true },
             new DressInfo { id = "wisteria_jewel", label = "紫藤珠宝裙", accent = new Color32(0xA0, 0x70, 0xD0, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "maple_coat", label = "栗棕大衣", accent = new Color32(0x8A, 0x4E, 0x2A, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "hawthorn_jumper", label = "山楂背带", accent = new Color32(0xC4, 0x38, 0x38, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "snow_coat", label = "雪白大衣", accent = new Color32(0xF6, 0xF2, 0xEC, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "pine_velvet", label = "松绿丝绒", accent = new Color32(0x1E, 0x6B, 0x45, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "camel_cape", label = "驼色披肩", accent = new Color32(0xC4, 0xA0, 0x78, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "lemon_raincoat", label = "柠檬雨衣", accent = new Color32(0xF0, 0xD0, 0x40, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "peach_dance", label = "白桃舞裙", accent = new Color32(0xF0, 0xB0, 0xC4, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "mint_apron", label = "薄荷围裙", accent = new Color32(0x8E, 0xD0, 0xB4, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "tennis_dress", label = "网球裙", accent = new Color32(0x3C, 0x8C, 0x4A, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "starfish_dress", label = "海星沙滩裙", accent = new Color32(0xF0, 0xC8, 0x70, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "night_gown", label = "夜空礼服", accent = new Color32(0x1A, 0x2C, 0x78, 0xFF), wardrobeOnly = true },
         };
 
         /// <summary>身上穿着的这一头。杏橙、紫藤、雾蓝改到任务里领。奶茶长发给图纸，粉红马尾留给活动。</summary>
@@ -130,6 +141,11 @@ namespace DressSort.EditorTools
             ("hair_glacier", "冰川辫"),
             ("hair_sakura", "樱花丸子"),
             ("hair_jewel", "紫藤珠辫"),
+            ("hair_maple_beret", "枫叶贝雷"),
+            ("hair_peach_bun", "白桃丸子"),
+            ("hair_cafe_tails", "咖啡双尾"),
+            ("hair_tennis_pony", "网球马尾"),
+            ("hair_sea_bob", "海水短发"),
         };
 
         [InitializeOnLoadMethod]
@@ -291,6 +307,19 @@ namespace DressSort.EditorTools
             Debug.Log($"[一裙又一裙] 重建完成：{items.Count} 件物品，{LevelCatalog.Count} 关");
         }
 
+        [MenuItem("一裙又一裙/同步衣柜图", priority = 3)]
+        public static void SyncWardrobeArt()
+        {
+            AssetDatabase.Refresh();
+            var database = LoadOrCreate<GameDatabase>(DatabasePath);
+            if (!TryBindCatalog(database))
+            {
+                Debug.LogWarning("[一裙又一裙] 衣柜图没接上");
+                return;
+            }
+            Debug.Log("[一裙又一裙] 衣柜图已同步，" + database.items.Count + " 件");
+        }
+
         [MenuItem("一裙又一裙/绑定背景", priority = 2)]
         public static void BindBackgroundsMenu()
         {
@@ -382,6 +411,7 @@ namespace DressSort.EditorTools
                 item.icon = LoadSprite("Icons/dress_" + info.id);
                 Sprite body = TryLoadSprite("Portraits/body_" + info.id);
                 item.worn = body != null ? body : LoadSprite("Portraits/portrait_" + info.id);
+                item.accent = info.accent;
                 item.layeredWithHair = body != null;
                 item.boardEligible = !info.wardrobeOnly;
                 item.unlockedFromStart = info.fromStart;

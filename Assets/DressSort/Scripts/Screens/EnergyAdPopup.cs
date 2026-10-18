@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace DressSort
 {
-    /// <summary>体力不够时弹出。看完广告恢复 1 点，够开一关。</summary>
+    /// <summary>体力不够时弹出。看完一条体力广告加 5 点。</summary>
     public class EnergyAdPopup : PopupView
     {
         public Button watchButton;
@@ -15,6 +15,12 @@ namespace DressSort
         {
             if (watchButton != null)
                 watchButton.onClick.AddListener(OnWatch);
+            Text[] labels = GetComponentsInChildren<Text>(true);
+            for (int i = 0; i < labels.Length; i++)
+            {
+                if (labels[i].gameObject.name != "Body") continue;
+                labels[i].text = "看完一条广告，恢复 " + WardrobeService.EnergyAdReward + " 点体力";
+            }
         }
 
         void OnWatch()
@@ -22,16 +28,12 @@ namespace DressSort
             Sfx.Play(SfxId.Tap);
             if (watchButton != null)
                 watchButton.interactable = false;
-            if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
-                Analytics.AdRequest("energy", WxBridge.RewardedAdUnitId);
-            WxBridge.ShowRewarded(() =>
+            Analytics.AdRequest("energy", WxBridge.EnergyAdUnitId);
+            WxBridge.ShowRewarded(WxBridge.EnergyAdUnitId, () =>
             {
-                if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
-                {
-                    Analytics.AdShow("energy", WxBridge.RewardedAdUnitId);
-                    Analytics.AdClose("energy", WxBridge.RewardedAdUnitId, true);
-                }
-                app.Wardrobe.GainEnergy(WardrobeService.EnergyPerLevel);
+                Analytics.AdShow("energy", WxBridge.EnergyAdUnitId);
+                Analytics.AdClose("energy", WxBridge.EnergyAdUnitId, true);
+                app.Wardrobe.GainEnergy(WardrobeService.EnergyAdReward);
                 Sfx.Play(SfxId.Heart);
                 changed?.Invoke();
                 Action follow = Follow;
@@ -39,8 +41,7 @@ namespace DressSort
                 follow?.Invoke();
             }, () =>
             {
-                if (!string.IsNullOrEmpty(WxBridge.RewardedAdUnitId))
-                    Analytics.AdError("energy", WxBridge.RewardedAdUnitId, "not_ended");
+                Analytics.AdError("energy", WxBridge.EnergyAdUnitId, "not_ended");
                 if (watchButton != null)
                     watchButton.interactable = true;
                 Sfx.Play(SfxId.Deny);
