@@ -47,8 +47,11 @@ namespace DressSort
             EnsureGmButton();
         }
 
+        public void RefreshGm() => EnsureGmButton();
+
         public override void OnShow()
         {
+            RefreshGm();
             if (hud == null) return;
             tab = app.OpenPrintTab ? SlotIndex(app.PendingPrintSlot) : FirstTabWithPrints();
             app.OpenPrintTab = false;
@@ -230,14 +233,22 @@ namespace DressSort
 
         void EnsureGmButton()
         {
-            if (hud.transform.Find("Btn_GM") != null) return;
-            UiKit.Button(hud.transform, "GM", new Vector2(1f, 1f),
+            if (hud == null) return;
+            bool show = WxBridge.AllowGm;
+            Transform existing = hud.transform.Find("Btn_GM");
+            if (existing != null)
+            {
+                existing.gameObject.SetActive(show);
+                return;
+            }
+            Button button = UiKit.Button(hud.transform, "GM", new Vector2(1f, 1f),
                 new Vector2(-100f, -88f), new Vector2(140f, 56f), Chip.White, 24, OpenGm);
+            button.gameObject.SetActive(show);
         }
 
         void OpenGm()
         {
-            if (gmLayer != null) return;
+            if (!WxBridge.AllowGm || gmLayer != null) return;
             var go = new GameObject("GmGrant", typeof(RectTransform), typeof(Image));
             go.transform.SetParent(root, false);
             var rect = (RectTransform)go.transform;

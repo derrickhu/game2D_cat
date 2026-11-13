@@ -207,6 +207,7 @@ namespace DressSort
             Sfx.Play(SfxId.StageReward);
             fx.Confetti(hud.transform.position, 40, 1500f, 1f);
             bool settled = false;
+            int times = 1;
             yield return Ask(title, "送达奖励", items, "领取", () =>
             {
                 app.Wardrobe.ClaimPackStage(car, 1);
@@ -216,8 +217,7 @@ namespace DressSort
                 WatchAd("pack_double", () =>
                 {
                     app.Wardrobe.ClaimPackStage(car, 2);
-                    Sfx.Play(SfxId.Claim);
-                    hud.ShowToast("奖励翻倍了");
+                    times = 2;
                     settled = true;
                 }, () =>
                 {
@@ -227,7 +227,7 @@ namespace DressSort
                 });
             }, true);
             while (!settled) yield return null;
-            Sfx.Play(SfxId.Claim);
+            FlyStage(items, times);
         }
 
         List<PackHud.PopupItem> StageItems(int car)
@@ -242,6 +242,24 @@ namespace DressSort
                 list.Add(new PackHud.PopupItem { Icon = icon, Count = mats[m] });
             }
             return list;
+        }
+
+        void FlyStage(List<PackHud.PopupItem> items, int times)
+        {
+            if (items == null || items.Count == 0) return;
+            var bits = new RewardFly.Bit[items.Count];
+            Vector3 origin = hud != null ? hud.transform.position : transform.position;
+            for (int i = 0; i < items.Count; i++)
+            {
+                bits[i] = new RewardFly.Bit
+                {
+                    sprite = items[i].Icon,
+                    count = items[i].Count * Mathf.Max(1, times),
+                    world = origin,
+                    nudge = (i - (items.Count - 1) * 0.5f) * 96f,
+                };
+            }
+            RewardFly.Play(this, bits, app.Database);
         }
 
         // ------------------------------------------------------------ 补充
@@ -325,7 +343,7 @@ namespace DressSort
 
         void WatchAd(string scene, System.Action success, System.Action fail = null)
         {
-            string unit = WxBridge.ToolAdUnitId;
+            string unit = WxBridge.ActivityAdUnitId;
             bool tracked = !string.IsNullOrEmpty(unit);
             if (tracked) Analytics.AdRequest(scene, unit);
             WxBridge.ShowRewarded(unit, () =>

@@ -16,31 +16,30 @@ namespace DressSort
     }
 
     /// <summary>
-    /// 关卡奖励与工坊配方。前 20 关每关直送一件；第 21 关起改发图纸和材料，
-    /// 图纸在工坊用材料做成衣服。所有数值都在这里，调节奏只改这一个文件。
+    /// 关卡奖励与工坊配方。前 10 关每关直送一件；第 11 关起改发图纸和材料，
+    /// 工坊同时开放。图纸在工坊用材料做成衣服。所有数值都在这里，调节奏只改这一个文件。
     /// </summary>
     public static class CraftCatalog
     {
         public const int MatCount = 8;
-        public const int GiftLevels = 20;
-        public const int WorkshopLevel = 21;
+        public const int GiftLevels = 10;
+        public const int WorkshopLevel = 11;
 
         public static readonly string[] MatNames = { "布匹", "发丝", "莓红染料", "柠黄染料", "湖蓝染料", "墨黑染料", "蕾丝", "星砂" };
         public static readonly string[] MatKeys = { "cloth", "hair", "dye_red", "dye_yellow", "dye_blue", "dye_black", "lace", "stardust" };
 
-        /// <summary>第 1–20 关的直送。第 10、20 关送发型，其余送裙子。</summary>
+        /// <summary>第 1–10 关的直送。第 10 关送发型，其余送裙子。</summary>
         static readonly string[] Gifts =
         {
             "lemon_print", "mint_bow", "orange_slice", "sky_dot", "strawberry",
             "cherry_red", "ivory_lace", "peach_puff", "grape_school", "hair_caramel",
-            "navy_stripe", "lilac_lace", "matcha_pinafore", "coral_sun", "cocoa_check",
-            "lavender_star", "cream_cloud", "blueberry", "rose_velvet", "hair_baguette",
         };
 
-        // 20 关后的节奏：第 21 关发第一张裙子图纸。
+        // 第 11 关发第一张裙子图纸，工坊同时开放。
         // 之后尾数 5 发下一张裙子，尾数 0（50 的倍数除外）发下一张发型，50 的倍数发翅膀。
         // 材料每关只给一小份，图纸关也不把整份配方一次发完。某一类图纸发完，那个关卡改成材料大礼包。
-        // 裙子每两件旧工坊裙插一件新装；发型奶茶长发打头，之后旧发和新发交替。
+        // 原来 11–19 关直送的裙子，排在裙子图纸末尾，补上发完后的空位。
+        // 裙子每两件旧工坊裙插一件新装。发型奶茶长发打头，之后华丽长发和旧发交替，新的靠前。
         static readonly string[] DressBlueprints =
         {
             "honey_bow", "apple_denim", "berry_buns", "maple_coat",
@@ -54,15 +53,25 @@ namespace DressSort
             "mint_latte", "night_gown", "rose_wine", "ruby_heart",
             "sakura_bloom", "sapphire_star", "sea_coral", "sea_navy",
             "sea_peach", "sunflower", "wisteria_jewel",
+            "cream_collar", "cocoa_bow",
+            "navy_stripe", "lilac_lace", "matcha_pinafore", "coral_sun", "cocoa_check",
+            "lavender_star", "cream_cloud", "blueberry", "rose_velvet",
         };
         static readonly string[] HairBlueprints =
         {
-            "hair_milktea_long", "hair_berry", "hair_maple_beret", "hair_ink",
-            "hair_peach_bun", "hair_coral", "hair_cafe_tails", "hair_matcha",
-            "hair_tennis_pony", "hair_glacier", "hair_sea_bob", "hair_sakura",
-            "hair_jewel",
+            "hair_milktea_long", "hair_ice_wave", "hair_berry", "hair_honey_cascade",
+            "hair_maple_beret", "hair_sakura_bow", "hair_ink", "hair_grape_gloss",
+            "hair_peach_bun", "hair_coral_wings", "hair_coral", "hair_navy_curl",
+            "hair_cafe_tails", "hair_cream_twins", "hair_matcha", "hair_tea_crown",
+            "hair_tennis_pony", "hair_mint_hook", "hair_glacier", "hair_lilac_streak",
+            "hair_sea_bob", "hair_sakura", "hair_jewel", "hair_baguette",
         };
-        static readonly string[] WingBlueprints = { "wing_aqua", "wing_rose", "wing_wisteria" };
+        static readonly string[] WingBlueprints =
+        {
+            "wing_aqua", "wing_rose", "wing_wisteria",
+            "wing_sunflower", "wing_sea", "wing_sakura", "wing_plum", "wing_pearl",
+            "wing_moon", "wing_mint", "wing_lilac", "wing_glacier", "wing_cocoa",
+        };
 
         static int[] Need(int cloth = 0, int hair = 0, int red = 0, int yellow = 0, int blue = 0,
             int black = 0, int lace = 0, int star = 0)
@@ -71,7 +80,7 @@ namespace DressSort
         }
 
         // 裙子都要布匹 8；染料按配色拆成红黄蓝黑四种基础色，花边多的加蕾丝。
-        // 发型短发 5 份发丝、长发 9 份；翅膀要只在难关掉的星砂。
+        // 发型短发 5 份发丝、普通长发 9 份。华丽长发 14 份发丝，再加蕾丝。翅膀要星砂。
         static readonly Dictionary<string, int[]> Recipes = new Dictionary<string, int[]>
         {
             { "teal_sailor", Need(cloth: 8, blue: 3, yellow: 1) },
@@ -138,13 +147,26 @@ namespace DressSort
             { "tennis_dress", Need(cloth: 8, yellow: 2, blue: 1, black: 1) },
             { "starfish_dress", Need(cloth: 8, yellow: 3, red: 2, blue: 1) },
             { "night_gown", Need(cloth: 8, blue: 4, yellow: 2, lace: 1) },
+            { "cream_collar", Need(cloth: 8, yellow: 3, black: 2) },
+            { "cocoa_bow", Need(cloth: 8, yellow: 2, black: 3) },
             { "hair_milktea", Need(hair: 5, red: 1, yellow: 1, black: 1) },
             { "hair_wisteria", Need(hair: 5, red: 1, blue: 2) },
             { "hair_caramel", Need(hair: 5, red: 1, yellow: 1, black: 1) },
             { "hair_baguette", Need(hair: 5, yellow: 3) },
+            { "hair_pink", Need(hair: 5, red: 2) }, // 只在首次七日签到的第 7 天发图纸
             { "hair_denim", Need(hair: 5, blue: 2, black: 1) },
             { "hair_apricot", Need(hair: 5, red: 2, yellow: 2) },
             { "hair_milktea_long", Need(hair: 9, red: 1, yellow: 2, black: 2) },
+            { "hair_ice_wave", Need(hair: 14, blue: 4, lace: 2) },
+            { "hair_honey_cascade", Need(hair: 14, yellow: 4, red: 2, lace: 1) },
+            { "hair_sakura_bow", Need(hair: 14, red: 4, lace: 3) },
+            { "hair_grape_gloss", Need(hair: 14, blue: 3, red: 2, black: 1) },
+            { "hair_coral_wings", Need(hair: 14, red: 3, yellow: 2, lace: 2) },
+            { "hair_navy_curl", Need(hair: 14, blue: 3, black: 3) },
+            { "hair_cream_twins", Need(hair: 14, yellow: 2, red: 3, lace: 2) },
+            { "hair_tea_crown", Need(hair: 14, black: 2, yellow: 2, lace: 3) },
+            { "hair_mint_hook", Need(hair: 14, blue: 4, yellow: 1, lace: 1) },
+            { "hair_lilac_streak", Need(hair: 14, blue: 3, red: 2, lace: 2) },
             { "hair_berry", Need(hair: 5, red: 3) },
             { "hair_ink", Need(hair: 5, black: 3, yellow: 1) },
             { "hair_coral", Need(hair: 5, red: 2, yellow: 1) },
@@ -160,6 +182,16 @@ namespace DressSort
             { "wing_aqua", Need(cloth: 4, blue: 3, yellow: 1, lace: 4, star: 5) },
             { "wing_rose", Need(cloth: 4, red: 3, yellow: 1, lace: 4, star: 5) },
             { "wing_wisteria", Need(cloth: 4, red: 2, blue: 3, lace: 4, star: 5) },
+            { "wing_sunflower", Need(cloth: 4, yellow: 4, lace: 4, star: 5) },
+            { "wing_sea", Need(cloth: 4, blue: 2, red: 2, yellow: 1, lace: 4, star: 5) },
+            { "wing_sakura", Need(cloth: 4, red: 4, lace: 4, star: 5) },
+            { "wing_plum", Need(cloth: 4, red: 2, blue: 2, yellow: 1, lace: 4, star: 5) },
+            { "wing_pearl", Need(cloth: 4, yellow: 1, blue: 1, lace: 4, star: 5) },
+            { "wing_moon", Need(cloth: 4, blue: 2, yellow: 2, lace: 4, star: 5) },
+            { "wing_mint", Need(cloth: 4, blue: 3, yellow: 2, lace: 4, star: 5) },
+            { "wing_lilac", Need(cloth: 4, red: 2, blue: 2, lace: 4, star: 5) },
+            { "wing_glacier", Need(cloth: 4, blue: 4, yellow: 2, lace: 4, star: 5) },
+            { "wing_cocoa", Need(cloth: 4, yellow: 2, black: 2, lace: 4, star: 5) },
         };
 
         public enum Kind
@@ -202,18 +234,16 @@ namespace DressSort
                 return reward;
             }
             if (index == WorkshopLevel)
-            {
                 return Blueprint(reward, Kind.DressBlueprint, DressBlueprints, 0);
-            }
             if (index % 50 == 0)
                 return Blueprint(reward, Kind.WingBlueprint, WingBlueprints, index / 50 - 1);
             if (index % 10 == 0)
             {
-                int slot = (index - 30) / 10 - (index - 1) / 50;
+                int slot = (index - 20) / 10 - (index - 1) / 50;
                 return Blueprint(reward, Kind.HairBlueprint, HairBlueprints, slot);
             }
             if (index % 10 == 5)
-                return Blueprint(reward, Kind.DressBlueprint, DressBlueprints, 1 + (index - 25) / 10);
+                return Blueprint(reward, Kind.DressBlueprint, DressBlueprints, 1 + (index - 15) / 10);
             return reward;
         }
 

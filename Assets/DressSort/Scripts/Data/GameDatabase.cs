@@ -93,6 +93,8 @@ namespace DressSort
         public Sprite craftCard;
         public Sprite craftBg;
         public Sprite craftBtnMint;
+        [Tooltip("看广告按钮。薄荷绿胶囊，和金色主按钮分开")]
+        public Sprite adBtn;
         [Header("过关领奖页")]
         public Sprite rewardBg;
         public Sprite rewardGiftClosed;

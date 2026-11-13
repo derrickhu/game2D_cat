@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace DressSort
 {
     /// <summary>
-    /// 进游戏先拉开局装扮、棋盘 8 款和前 20 关直送。
+    /// 进游戏先拉开局装扮、棋盘 8 款和前 10 关直送。
     /// 更后面的衣服等换上那件时再拉，并且插到队首。
     /// </summary>
     public static class CdnPortraits

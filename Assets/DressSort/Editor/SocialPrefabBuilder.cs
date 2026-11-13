@@ -141,7 +141,7 @@ namespace DressSort.EditorTools
                 out var view);
             float top = size.y * 0.5f;
 
-            Txt(b, "Sub", "连续签到领体力，断签从第 1 天重来", new Vector2(0f, top - 170f), new Vector2(700f, 44f), 30, Sub);
+            Txt(b, "Sub", "连续签到领材料，断签从第 1 天重来", new Vector2(0f, top - 170f), new Vector2(700f, 44f), 30, Sub);
 
             var cardSize = new Vector2(224f, 286f);
             float row1 = top - 215f - cardSize.y * 0.5f;
@@ -200,13 +200,12 @@ namespace DressSort.EditorTools
             RectTransform b = Frame<ClubPopup>("ClubPopup", boardClub, ribbonClub, "游戏圈", size, -20f, out var view);
 
             Img(b, "Hero", club, new Vector2(0f, 320f), new Vector2(170f, 179f));
-            Txt(b, "Sub", "每天在游戏圈发一条帖子就能领", new Vector2(0f, 200f), new Vector2(700f, 44f), 30, Sub);
+            Txt(b, "Sub", "每天发一条帖子，领取今天的奖励", new Vector2(0f, 200f), new Vector2(700f, 44f), 30, Sub);
 
             Image card = Img(b, "Reward", dayToday, new Vector2(0f, 15f), new Vector2(224f, 286f));
             RectTransform c = card.rectTransform;
             Txt(c, "Label", "今日奖励", new Vector2(0f, 120f), new Vector2(220f, 40f), 26, Color.white);
-            Img(c, "Energy", energy, new Vector2(0f, 14f), new Vector2(60f, 94f));
-            view.rewardLabel = Txt(c, "Amount", "×3", new Vector2(0f, -62f), new Vector2(200f, 50f), 36, Ink);
+            view.rewardLabel = Txt(c, "Amount", "随机材料\n体力 +2", new Vector2(0f, -8f), new Vector2(200f, 110f), 28, Ink);
 
             view.taskLabel = Txt(b, "Task", "今日发帖  0/1", new Vector2(0f, -170f), new Vector2(700f, 52f), 34, Ink);
 
@@ -377,8 +376,11 @@ namespace DressSort.EditorTools
                 out var view);
             Img(b, "Heart", energy, new Vector2(0f, 90f), new Vector2(120f, 188f));
             Txt(b, "Body", "看完一条广告，恢复 5 点体力", new Vector2(0f, -70f), new Vector2(640f, 56f), 32, Ink);
-            view.watchButton = Capsule(b, "Watch", "看广告", new Vector2(0f, -210f), new Vector2(420f, 130f), btnOrange,
-                out _);
+            view.watchButton = Capsule(b, "Watch", "看广告", new Vector2(0f, -210f), new Vector2(420f, 130f), btnGreen,
+                out Text watchLabel);
+            if (watchLabel != null)
+                watchLabel.rectTransform.anchoredPosition = new Vector2(28f, watchLabel.rectTransform.anchoredPosition.y);
+            Img(view.watchButton.transform, "Ad", Load("Ui/Pack/ad"), new Vector2(-150f, 8f), new Vector2(72f, 72f));
             return view.gameObject;
         }
 

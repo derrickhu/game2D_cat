@@ -1,10 +1,9 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace DressSort
 {
-    /// <summary>材料图标、材料数量行和过关后飘出的材料获得条。</summary>
+    /// <summary>材料图标、材料数量行。过关后的材料走奖励飞入。</summary>
     public static class CraftView
     {
         public static readonly Color Cocoa = new Color32(0x4A, 0x26, 0x2C, 0xFF);
@@ -47,48 +46,30 @@ namespace DressSort
             return count * cell;
         }
 
-        /// <summary>过关后在页面上方飘一条材料获得，停一会儿再淡出。</summary>
+        /// <summary>过关后材料从画面中间飞入，不再出「获得材料」字条。</summary>
         public static void ShowGain(MonoBehaviour host, RectTransform parent, GameDatabase db, int[] mats)
         {
-            if (host == null || parent == null || !CraftCatalog.Any(mats)) return;
-            Image plate = UiKit.Slice(parent, "MaterialGain", UiKit.SpriteOf(Chip.White), new Vector2(0.5f, 1f),
-                new Vector2(0f, -330f), new Vector2(900f, 132f), Color.white);
-            plate.transform.SetAsLastSibling();
-            Text title = UiKit.Label(plate.transform, "Title", "获得材料", new Vector2(0.5f, 1f),
-                new Vector2(0f, -4f), new Vector2(400f, 44f), 28, Cocoa);
-            title.fontStyle = FontStyle.Bold;
-            RectTransform row = UiKit.Rect(plate.transform, "Row", new Vector2(0.5f, 0.5f),
-                new Vector2(0f, -16f), new Vector2(880f, 72f));
-            float width = BuildRow(row, db, mats, 64f, 30);
-            plate.rectTransform.sizeDelta = new Vector2(Mathf.Clamp(width + 60f, 420f, 1000f), 132f);
-            host.StartCoroutine(FadeGain(plate));
-        }
-
-        static IEnumerator FadeGain(Image plate)
-        {
-            var group = plate.gameObject.AddComponent<CanvasGroup>();
-            group.blocksRaycasts = false;
-            RectTransform rect = plate.rectTransform;
-            Vector2 rest = rect.anchoredPosition;
-            float t = 0f;
-            while (t < 0.25f && plate != null)
+            if (host == null || parent == null || mats == null || !CraftCatalog.Any(mats)) return;
+            int n = 0;
+            int limit = Mathf.Min(mats.Length, CraftCatalog.MatCount);
+            for (int m = 0; m < limit; m++)
+                if (mats[m] > 0) n++;
+            if (n == 0) return;
+            var bits = new RewardFly.Bit[n];
+            int i = 0;
+            for (int m = 0; m < limit; m++)
             {
-                t += Time.deltaTime;
-                float k = Mathf.Clamp01(t / 0.25f);
-                group.alpha = k;
-                rect.anchoredPosition = rest + new Vector2(0f, (1f - k) * 40f);
-                yield return null;
+                if (mats[m] <= 0) continue;
+                bits[i] = new RewardFly.Bit
+                {
+                    sprite = MatIcon(db, m),
+                    count = mats[m],
+                    world = parent.position,
+                    nudge = (i - (n - 1) * 0.5f) * 96f,
+                };
+                i++;
             }
-            yield return new WaitForSeconds(1.8f);
-            t = 0f;
-            while (t < 0.35f && plate != null)
-            {
-                t += Time.deltaTime;
-                group.alpha = 1f - Mathf.Clamp01(t / 0.35f);
-                yield return null;
-            }
-            if (plate != null)
-                UiKit.Discard(plate);
+            RewardFly.Play(host, bits, db, false);
         }
 
         public static void AddRim(Text label) => AddRim(label, Rim, 1.5f);

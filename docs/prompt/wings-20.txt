@@ -1,0 +1,67 @@
+# 20 对细线翅膀
+
+画法对齐游戏里的蜜桃花瓣翼、紫藤心翼：平涂赛璐璐、中间往缝隙处变浅、细白或金色脉、外沿是同色系细笔线。一张只画一对，左右镜像，中间一条窄缝。背景整张铺石板灰蓝 #4A5A6B。
+
+共同开头：
+
+A costume wing pair for a cute dress-up phone game, flat Japanese anime paper-doll sticker. Straight-on back view, perfect left-right mirror. Two wings nearly touch across a narrow vertical gap in the exact center. Flat cel fills, a soft lighter glow toward the center gap, thin vein lines. Outer edge is a hairline in a slightly deeper shade of the wing color, as fine as a pen stroke. Simple graphic shapes. The pair fills the square with a small margin. Background is one flat school-slate gray-blue hex 4A5A6B filling every corner. Only this wing pair.
+
+## wing_honey 蜂蜜晶翼
+Honey-yellow bee wings, two soft oval lobes on each side. Flat cream hexagon lines. Rim a slightly deeper honey gold.
+
+## wing_mint 薄荷露翼
+Mint moth wings, one broad scalloped triangle on each side, fading to whipped cream at the gap. Tiny flat white dew dots along the rim.
+
+## wing_sakura 樱瓣蝶翼
+Sakura-mochi pink. Scalloped petal edge. Three small flat five-petal blossoms on each wing. White veins.
+
+## wing_glacier 冰川棱翼
+Ice-cube blue swallowtail with a long tail. Thin geometric facets. Hairline rim the color of a new gold coin. White sparkles.
+
+## wing_night 夜空燕尾
+Indigo swallowtail with a long tail. Flat cream stars. One small cream crescent near the top of each wing.
+
+## wing_coral 珊瑚扇翼
+Coral-pink fan butterfly, peach inner panels. Flat branching coral lines. Scalloped edge.
+
+## wing_matcha 抹茶叶翼
+Matcha-green butterfly shaped like one tea leaf on each side. Cream center rib. Finely serrated edge.
+
+## wing_ruby 红宝镶翼
+Ruby-red butterfly, pointed upper lobe and round lower lobe. Flat red panels separated by thin coin-gold lines.
+
+## wing_pearl 珍珠贝翼
+Pearl scallop butterfly. Two fan-shaped shells on each side, pearl white with a seashell blush. Thin shell ridges. One tiny sparkle on each shell.
+
+## wing_sunflower 葵花光翼
+Swallowtail of long lemon-candy petals, pale cream at the tips. Flat apricot sunlight at the center gap. Thin gold veins.
+
+## wing_sea 海玻璃鳍
+Sea-glass teal on the outer half, peach on the inner half. Flat fish-scale arcs. Scalloped fin edge.
+
+## wing_lilac 丁香蕾丝翼
+Lilac lace butterfly. Flat cream lace scrolls. A small cream bow in the center gap.
+
+## wing_cocoa 可可圆点翼
+Upper lobes milk-chocolate brown. Lower lobes whipped cream. Small flat coin-gold dots on the cream.
+
+## wing_candy 糖果螺旋翼
+Scalloped lobes with flat spiral stripes of strawberry-milk pink and lemon-candy yellow. Small flat white highlights.
+
+## wing_moon 银月长尾蛾
+Silver-cream luna moth, long tails. Pale lilac hairline. One moon spot on each upper lobe, cream center with a lilac ring.
+
+## wing_plum 李子金边燕尾
+Ripe-plum purple swallowtail. Apricot glow at the gap. Hairline the color of a gold coin. Tiny sparkles.
+
+## wing_cloud 奶油云翼
+Three soft cream scallops on each side. Peach blush in each lobe. Tiny four-point sparkles.
+
+## wing_aurora 极光纱翼
+Swallowtail with flat bands of mint, lilac, and lemon candy. Soft glow at the gap.
+
+## wing_goldfish 金鱼纱翼
+Flowing fins the color of a red envelope, fading to cream at the gap. Long trailing tips. Flat white scale arcs.
+
+## wing_berry 莓果晶翼
+Raspberry-pink swallowtail. Tiny deeper-raspberry dots along the rim. A small flat heart near the top of each wing.

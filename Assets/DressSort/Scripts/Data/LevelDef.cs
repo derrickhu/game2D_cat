@@ -44,7 +44,7 @@ namespace DressSort
         [Tooltip("过关时手里剩下的那件，也就是棋盘上的问号")]
         public ItemDef mystery;
 
-        [Tooltip("通关直接解锁的物品，只有前 20 关有")]
+        [Tooltip("通关直接解锁的物品，只有前 10 关有")]
         public ItemDef reward;
 
         [Tooltip("通关送的图纸，拿去工坊用材料做")]

@@ -375,16 +375,24 @@ namespace DressSort
             Sfx.BindClick(button, action);
         }
 
+        public void RefreshGm() => EnsureGmButton();
+
         void EnsureGmButton()
         {
+            bool show = WxBridge.AllowGm;
+            if (wipeButton != null)
+                wipeButton.gameObject.SetActive(show);
             if (gmButton != null)
             {
+                gmButton.gameObject.SetActive(show);
+                if (!show) return;
                 Place((RectTransform)gmButton.transform, new Vector2(0f, 0f),
                     new Vector2(88f, 56f), new Vector2(140f, 56f));
                 return;
             }
             gmButton = UiKit.Button(transform, "GM", new Vector2(0f, 0f),
                 new Vector2(88f, 56f), new Vector2(140f, 56f), Chip.White, 24, () => { });
+            gmButton.gameObject.SetActive(show);
         }
 
         public void SetStartCaption(string caption)
@@ -485,7 +493,7 @@ namespace DressSort
                 new Vector2(276f, -72f), new Vector2(40f, 40f));
         }
 
-        /// <summary>右上角。每天第一次分享领一个今天有效的道具。</summary>
+        /// <summary>分享领道具先关掉。预制里如果还留着这颗按钮，直接藏掉。</summary>
         public void EnsureShare(GameDatabase db)
         {
             if (shareButton == null)
@@ -494,41 +502,8 @@ namespace DressSort
                 if (existing != null)
                     shareButton = existing.GetComponent<Button>();
             }
-            if (shareButton == null)
-            {
-                shareButton = UiKit.Button(transform, "分享得道具", new Vector2(1f, 1f),
-                    new Vector2(-188f, -188f), new Vector2(320f, 92f),
-                    db != null ? db.rewardBtn : null, Color.white, 34, () => { });
-                UiKit.FitPill(shareButton.targetGraphic as Image, db != null ? db.rewardBtn : null, 92f);
-                shareLabel = shareButton.GetComponentInChildren<Text>();
-                if (shareLabel != null)
-                {
-                    shareLabel.fontStyle = FontStyle.Bold;
-                    shareLabel.alignment = TextAnchor.MiddleCenter;
-                    shareLabel.rectTransform.sizeDelta = new Vector2(300f, 72f);
-                    CraftView.AddRim(shareLabel, new Color(0.45f, 0.24f, 0.05f), 2f);
-                }
-            }
-            if (db != null && db.rewardBtn != null)
-                UiKit.FitPill(shareButton.targetGraphic as Image, db.rewardBtn, 92f);
-            RectTransform rect = shareButton.transform as RectTransform;
-            rect.anchorMin = new Vector2(1f, 1f);
-            rect.anchorMax = new Vector2(1f, 1f);
-            rect.pivot = new Vector2(1f, 0.5f);
-            rect.anchoredPosition = new Vector2(-28f, -188f);
-            rect.sizeDelta = new Vector2(320f, 92f);
-            if (shareLabel == null)
-                shareLabel = shareButton.GetComponentInChildren<Text>();
-            shareButton.transform.SetAsLastSibling();
-        }
-
-        public void SetShareReady(bool ready)
-        {
-            if (shareLabel != null)
-                shareLabel.text = ready ? "分享得道具" : "明天再来";
-            Image face = shareButton != null ? shareButton.targetGraphic as Image : null;
-            if (face != null)
-                face.color = ready ? Color.white : new Color(0.82f, 0.78f, 0.74f, 1f);
+            if (shareButton != null)
+                shareButton.gameObject.SetActive(false);
         }
 
         Image EnsureEnergyCountPlate()

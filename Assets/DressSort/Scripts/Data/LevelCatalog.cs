@@ -43,39 +43,40 @@ namespace DressSort
         }
 
         // 第 6 关包裹，第 11 关防尘罩，第 14 关专属列，第 19 关锁和钥匙，第 23 关限时闹钟。
-        // 新机制先单独出两关，再和大盘、别的机制混着来。奖励见 CraftCatalog。
+        // 新机制那一关步数留够，先学会再加压。5、8、10、13、16、18、21、25、28、30 是穿插的难关，
+        // 步数只比正解多一点点，走歪了就要靠撤回、交换、随机。奖励见 CraftCatalog。
         static readonly Plan[] Authored =
         {
             P(4, 4, 8, 24),
             P(5, 5, 14, 36),
             P(4, 5, 16, 36),
             P(5, 5, 20, 42),
-            P(5, 6, 24, 50),
+            P(5, 6, 24, 30),
             P(5, 5, 20, 44, parcels: 4),
             P(5, 6, 26, 54, parcels: 6),
-            P(6, 6, 30, 60),
+            P(6, 6, 30, 36),
             P(6, 6, 32, 62, parcels: 6),
-            P(6, 6, 34, 66, parcels: 10),
+            P(6, 6, 34, 44, parcels: 10),
             P(5, 5, 24, 52, covers: new[] { 0, 0, 1, 0, 0 }),
             P(5, 5, 28, 56, covers: new[] { 2, 0, 1, 0, 0 }),
-            P(7, 6, 38, 72),
+            P(7, 6, 38, 46),
             P(5, 6, 26, 56, targets: new[] { 1, 0, 0, 0, 1 }),
             P(6, 6, 32, 64, parcels: 6, targets: new[] { 0, 1, 0, 0, 1, 0 }),
-            P(7, 7, 42, 78),
+            P(7, 7, 42, 50),
             P(6, 6, 34, 66, covers: new[] { 0, 1, 0, 0, 2, 0 }),
-            P(7, 7, 40, 78, parcels: 8, targets: new[] { 1, 0, 0, 1, 0, 0, 1 }),
+            P(7, 7, 40, 48, parcels: 8, targets: new[] { 1, 0, 0, 1, 0, 0, 1 }),
             P(5, 6, 26, 58, locks: new[] { 0, 0, 1, 0, 0 }),
             P(6, 6, 32, 66, parcels: 6, locks: new[] { 0, 1, 0, 0, 0, 0 }),
-            P(8, 7, 46, 84),
+            P(8, 7, 46, 56),
             P(6, 7, 38, 74, locks: new[] { 0, 0, 1, 0, 1, 0 }),
             P(5, 6, 28, 60, alarms: 1),
             P(6, 6, 32, 66, parcels: 4, alarms: 1),
-            P(7, 7, 42, 80, covers: new[] { 0, 0, 0, 1, 0, 0, 0 }, targets: new[] { 0, 1, 0, 0, 0, 1, 0 }),
+            P(7, 7, 42, 50, covers: new[] { 0, 0, 0, 1, 0, 0, 0 }, targets: new[] { 0, 1, 0, 0, 0, 1, 0 }),
             P(6, 7, 38, 74, alarms: 2),
             P(7, 7, 44, 82, locks: new[] { 0, 0, 0, 1, 0, 0, 0 }, alarms: 1),
-            P(8, 8, 52, 92, parcels: 12),
+            P(8, 8, 52, 62, parcels: 12),
             P(7, 8, 50, 90, parcels: 8, locks: new[] { 0, 0, 1, 0, 0, 0, 0 }, targets: new[] { 1, 0, 0, 0, 0, 0, 1 }),
-            P(8, 8, 56, 98, parcels: 8, covers: new[] { 0, 0, 1, 0, 0, 2, 0, 0 }, alarms: 1),
+            P(8, 8, 56, 66, parcels: 8, covers: new[] { 0, 0, 1, 0, 0, 2, 0, 0 }, alarms: 1),
         };
 
         /// <summary>棋盘用的裙子，顺序固定，关卡按关号错开取连续几款。</summary>
@@ -151,12 +152,37 @@ namespace DressSort
             if (i == FirstWith(p => p.parcels > 0))
                 return "新机制：包裹落到最下面才会拆开";
             if (IsHard(def))
-                return "难关来了，步数要省着用";
+                return "难关来了，卡了就用道具";
             return "点一列，手里这件插到最上";
         }
 
-        public static bool IsHard(LevelDef def) =>
-            def != null && def.index % 10 == 0 && def.index > Authored.Length;
+        public static bool IsHard(LevelDef def)
+        {
+            if (def == null) return false;
+            if (def.index <= Authored.Length) return EarlyHard(def.index);
+            return def.index % 10 == 0;
+        }
+
+        /// <summary>前期穿插的紧步数关。新机制第一次出现的那关不放进来。</summary>
+        static bool EarlyHard(int index)
+        {
+            switch (index)
+            {
+                case 5:
+                case 8:
+                case 10:
+                case 13:
+                case 16:
+                case 18:
+                case 21:
+                case 25:
+                case 28:
+                case 30:
+                    return true;
+                default:
+                    return false;
+            }
+        }
 
         static int FirstWith(Predicate<Plan> match)
         {
@@ -186,7 +212,8 @@ namespace DressSort
 
         /// <summary>
         /// 第 31 关以后：每 100 关整体加难一档；每 10 关的第 10 关是难关，
-        /// 紧接着的两关松一口气。机制从已经教过的五种里随机组合，越往后叠得越多。
+        /// 步数只比正解多两成左右，接着的两关松一口气。
+        /// 机制从已经教过的五种里随机组合，越往后叠得越多。
         /// </summary>
         static Plan Procedural(int index)
         {
@@ -206,7 +233,10 @@ namespace DressSort
             int height = Mathf.Clamp(5 + Mathf.RoundToInt(d * 3f + (float)(rng.NextDouble() - 0.5)), 5, 8);
             int cells = columns * height;
             int scramble = Mathf.RoundToInt(cells * (0.8f + 0.4f * d));
-            int limit = scramble + Mathf.RoundToInt(scramble * (0.9f - 0.35f * d)) + 6;
+            int spare = Mathf.RoundToInt(scramble * (0.9f - 0.35f * d)) + 6;
+            if (hard)
+                spare = Mathf.Max(8, Mathf.RoundToInt(scramble * 0.2f));
+            int limit = scramble + spare;
 
             int want = hard ? 2 : relax ? 0 : 1;
             if (rng.NextDouble() < 0.15 + tier * 0.06) want++;

@@ -108,8 +108,15 @@ namespace DressSort
                 Sfx.Install();
                 CdnPortraits.Warm();
                 Analytics.Ensure();
-                StartCoroutine(BootAnalytics());
+                CloudSync.Imported += OnCloudImported;
+                CloudSync.Startup(() => FinishBoot(captureCamera));
+                return;
             }
+            FinishBoot(captureCamera);
+        }
+
+        void FinishBoot(Camera captureCamera)
+        {
             BindChrome(database);
             UiKit.Skin = database;
             Wardrobe = new WardrobeService(database);
@@ -118,20 +125,44 @@ namespace DressSort
             BuildPanels();
             BuildPageCover();
             Show(ScreenId.Home);
+            if (Application.isPlaying && !Application.isEditor)
+                StartCoroutine(SettleGm());
 #if UNITY_EDITOR
             if (Application.isPlaying && captureCamera == null)
                 StartCoroutine(PlayBootSplash());
 #endif
         }
 
+        void OnCloudImported()
+        {
+            if (Wardrobe == null) return;
+            Wardrobe.Reload();
+            if (current != ScreenId.Game && current != ScreenId.Reward)
+                Show(current);
+        }
+
         public void SetDatabase(GameDatabase value) => database = value;
 
-        /// <summary>先登录再记 session_start。失败也记一次匿名会话，首页人数不会缺。</summary>
-        IEnumerator BootAnalytics()
+        /// <summary>
+        /// 微信 SDK 可能比界面晚几帧才给得出 platform。
+        /// 没读到之前按钮保持隐藏，读到开发者工具后再打开。
+        /// </summary>
+        IEnumerator SettleGm()
         {
-            string err = null;
-            yield return Backend.EnsureToken(e => err = e);
-            Analytics.BindUser(string.IsNullOrEmpty(err) ? Backend.UserId : "");
+            int frames = 0;
+            while (!WxBridge.GmSettled && frames < 120)
+            {
+                frames++;
+                yield return null;
+            }
+            RefreshGm();
+        }
+
+        void RefreshGm()
+        {
+            PanelOf<HomePanel>(ScreenId.Home)?.RefreshGm();
+            PanelOf<WorkshopPanel>(ScreenId.Workshop)?.RefreshGm();
+            PanelOf<GamePanel>(ScreenId.Game)?.RefreshGm();
         }
 
         static void BindChrome(GameDatabase db)
@@ -276,6 +307,12 @@ namespace DressSort
             }
             if (db.rewardGiftClosed == null || db.craftBtnMint == null)
                 BindRewardArt(db, ui);
+            if (db.adBtn == null)
+            {
+                db.adBtn = LoadUiSprite(ui + "Social/btn_green");
+                if (db.adBtn != null)
+                    UnityEditor.EditorUtility.SetDirty(db);
+            }
 
             if (db.uiBtnTeal != null || db.uiBg != null)
                 UnityEditor.EditorUtility.SetDirty(db);
@@ -293,6 +330,7 @@ namespace DressSort
         {
             string reward = ui + "Reward/";
             db.craftBtnMint = LoadUiSprite(ui + "Workshop/btn_mint");
+            db.adBtn = LoadUiSprite(ui + "Social/btn_green");
             db.rewardBg = LoadUiSprite(reward + "bg_reward");
             db.rewardGiftClosed = LoadUiSprite(reward + "gift_closed");
             db.rewardGiftBase = LoadUiSprite(reward + "gift_base");
@@ -540,10 +578,10 @@ namespace DressSort
             return true;
         }
 
-        /// <summary>指定关卡直接开玩。不扣体力，通关也不推进存档。</summary>
+        /// <summary>指定关卡直接开玩。不扣体力，通关也不推进存档。真机上直接拒绝。</summary>
         public void StartGm(LevelDef level)
         {
-            if (level == null) return;
+            if (!WxBridge.AllowGm || level == null) return;
             GmPlay = true;
             CurrentLevel = level;
             Show(ScreenId.Game);

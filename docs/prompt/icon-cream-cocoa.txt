@@ -1,0 +1,19 @@
+# 奶油领裙、可可领结裙的棋盘小图
+
+无袖 A 字色块，对照 dress_black_ribbon / dress_apple_denim。一件一个结或彼得潘领。不进棋盘，只做图纸和衣柜小图。
+
+## cream_collar 奶油领裙
+
+One fingertip-size sleeveless paper-doll dress token, centered, front view, on a flat school-slate gray-blue field the color of a chalkboard, hex 4A5A6B. Japanese TV-anime cel, thin even black ink like a mapping pen. Bold A-line, round hem, tiny inward shoulder notches, empty armholes. Two round black feet at the hem. Flat glaze, two or three flat color blocks.
+
+The bodice is the color of whipped cream. A round peter-pan collar the brown of a milk-chocolate bar. Three small round buttons the same chocolate brown down the center of the bodice. The skirt is one flat caramel, the brown of a biscuit.
+
+Empty image. The picture contains only the dress token.
+
+## cocoa_bow 可可领结裙
+
+One fingertip-size sleeveless paper-doll dress token, centered, front view, on a flat school-slate gray-blue field the color of a chalkboard, hex 4A5A6B. Japanese TV-anime cel, thin even black ink like a mapping pen. Bold A-line, round hem, tiny inward shoulder notches, empty armholes. Two round black feet at the hem. Flat glaze, two or three flat color blocks.
+
+The dress is the brown of a milk-chocolate bar. A round peter-pan collar the color of whipped cream. One cream bow sits at the center of the collar, two loops and two short tails. A hem band the color of a caramel biscuit.
+
+Empty image. The picture contains only the dress token.

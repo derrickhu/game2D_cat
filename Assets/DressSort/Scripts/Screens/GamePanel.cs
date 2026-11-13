@@ -78,6 +78,11 @@ namespace DressSort
             board.OnItemClicked = OnSwapPick;
         }
 
+        public void RefreshGm()
+        {
+            if (hud != null) hud.RefreshGm();
+        }
+
         static void Stretch(RectTransform rect)
         {
             if (rect == null) return;
@@ -137,6 +142,7 @@ namespace DressSort
                 board.PickMode = false;
             if (hud != null)
             {
+                hud.RefreshGm();
                 hud.SetSwapArmed(false);
                 hud.ShowPause(false);
             }
@@ -168,7 +174,7 @@ namespace DressSort
             {
                 Sfx.Play(SfxId.HardLevel);
                 WxBridge.Vibrate(WxBridge.Buzz.Heavy);
-                fx.StartCoroutine(fx.Splash("高能预警", "这关步数要省着用"));
+                fx.StartCoroutine(fx.Splash("高能预警", "卡了就用道具"));
             }
         }
 
@@ -311,7 +317,7 @@ namespace DressSort
 
         void OnClearNow()
         {
-            if (clearing || level == null || logic == null) return;
+            if (!WxBridge.AllowGm || clearing || level == null || logic == null) return;
             clearing = true;
             finished = true;
             CloseFail();
@@ -552,14 +558,13 @@ namespace DressSort
                 if (ticket != dealSerial || logic == null || hud == null) return;
                 stepsAdUsed = true;
                 logic.GrantMoves(5);
+                FlySteps();
                 CloseFail();
                 if (!logic.OutOfMoves && !logic.IsWin() && !logic.AlarmRang)
                     finished = false;
                 Analytics.AdShow(scene, WxBridge.ToolAdUnitId);
                 Analytics.AdClose(scene, WxBridge.ToolAdUnitId, true);
                 UpdateHud();
-                Sfx.Play(SfxId.Heart);
-                hud.ShowToast("加了 5 步");
             }, () =>
             {
                 toolAdBusy = false;
@@ -595,21 +600,16 @@ namespace DressSort
                 UpdateHud();
                 Analytics.AdShow(scene, WxBridge.ToolAdUnitId);
                 Analytics.AdClose(scene, WxBridge.ToolAdUnitId, true);
-                if (!ToolsOpen || board == null)
-                {
-                    hud.ShowToast(swap ? "得到一次交换，今天有效" : "得到一次随机，今天有效");
-                    return;
-                }
+                FlyTool(swap);
+                if (!ToolsOpen || board == null) return;
                 if (swap)
                 {
                     board.PickMode = true;
                     hud.SetSwapArmed(true);
-                    hud.ShowToast("得到一次交换，点一件和手里的换");
+                    hud.ShowToast("点一件和手里的换");
                     return;
                 }
-                if (board.Busy)
-                    hud.ShowToast("得到一次随机，今天有效");
-                else
+                if (!board.Busy)
                     DoShuffle();
             }, () =>
             {
@@ -618,6 +618,36 @@ namespace DressSort
                 Sfx.Play(SfxId.Deny);
                 hud.ShowToast("广告没看完");
             });
+        }
+
+        void FlySteps()
+        {
+            if (hud == null) return;
+            Button from = hud.failAdButton != null && hud.failAdButton.gameObject.activeInHierarchy
+                ? hud.failAdButton
+                : hud.stepsAdButton;
+            Sprite sprite = app.Database != null ? app.Database.btnGameSteps : null;
+            Vector3 world = from != null ? from.transform.position : hud.transform.position;
+            Vector3 aim = hud.stepsPlate != null ? hud.stepsPlate.transform.position : world;
+            RewardFly.Play(hud, new[]
+            {
+                new RewardFly.Bit { sprite = sprite, count = 5, world = world, aimed = true, aim = aim },
+            }, app.Database);
+        }
+
+        void FlyTool(bool swap)
+        {
+            if (hud == null) return;
+            Button button = swap ? hud.swapButton : hud.shuffleButton;
+            Image image = button != null ? button.targetGraphic as Image : null;
+            Sprite sprite = image != null ? image.sprite : null;
+            if (sprite == null && app.Database != null)
+                sprite = swap ? app.Database.btnGameSwap : app.Database.btnGameShuffle;
+            Vector3 world = button != null ? button.transform.position : hud.transform.position;
+            RewardFly.Play(hud, new[]
+            {
+                new RewardFly.Bit { sprite = sprite, count = 1, world = world },
+            }, app.Database);
         }
 
         IEnumerator SwapRoutine(int column, int row)

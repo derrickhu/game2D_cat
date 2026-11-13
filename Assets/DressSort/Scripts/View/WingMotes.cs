@@ -58,35 +58,87 @@ namespace DressSort
                 return;
             }
 
-            if (id == "wing_aqua")
+            Kind nextKind;
+            Color nextTint;
+            Color nextHot;
+            if (!Motif(id, out nextKind, out nextTint, out nextHot))
             {
-                kind = Kind.Drop;
-                tint = new Color(0.35f, 0.92f, 1f, 1f);
-                hot = new Color(0.85f, 1f, 1f, 1f);
+                nextKind = Kind.Spark;
+                nextTint = new Color(1f, 0.86f, 0.45f, 1f);
+                nextHot = Color.white;
             }
-            else if (id == "wing_rose")
-            {
-                kind = Kind.Heart;
-                tint = new Color(1f, 0.42f, 0.62f, 1f);
-                hot = new Color(1f, 0.78f, 0.86f, 1f);
-            }
-            else if (id == "wing_wisteria")
-            {
-                kind = Kind.Spark;
-                tint = new Color(0.72f, 0.48f, 1f, 1f);
-                hot = new Color(1f, 0.82f, 0.96f, 1f);
-            }
-            else
-            {
-                kind = Kind.Spark;
-                tint = new Color(1f, 0.86f, 0.45f, 1f);
-                hot = Color.white;
-            }
+            kind = nextKind;
+            tint = nextTint;
+            hot = nextHot;
 
             Ensure();
             ApplySprite();
             playing = true;
             placed = false;
+        }
+
+        static bool Motif(string id, out Kind kind, out Color tint, out Color hot)
+        {
+            kind = Kind.Spark;
+            hot = Color.white;
+            switch (id)
+            {
+                case "wing_aqua":
+                    kind = Kind.Drop;
+                    tint = new Color(0.35f, 0.92f, 1f, 1f);
+                    hot = new Color(0.85f, 1f, 1f, 1f);
+                    return true;
+                case "wing_rose":
+                case "wing_sakura":
+                    kind = Kind.Heart;
+                    tint = new Color(1f, 0.42f, 0.62f, 1f);
+                    hot = new Color(1f, 0.78f, 0.86f, 1f);
+                    return true;
+                case "wing_lilac":
+                    kind = Kind.Heart;
+                    tint = new Color(0.78f, 0.58f, 1f, 1f);
+                    hot = new Color(1f, 0.9f, 0.96f, 1f);
+                    return true;
+                case "wing_wisteria":
+                    tint = new Color(0.72f, 0.48f, 1f, 1f);
+                    hot = new Color(1f, 0.82f, 0.96f, 1f);
+                    return true;
+                case "wing_sea":
+                    kind = Kind.Drop;
+                    tint = new Color(0.35f, 0.82f, 0.78f, 1f);
+                    hot = new Color(1f, 0.78f, 0.68f, 1f);
+                    return true;
+                case "wing_mint":
+                    tint = new Color(0.55f, 0.95f, 0.78f, 1f);
+                    hot = new Color(0.9f, 1f, 0.95f, 1f);
+                    return true;
+                case "wing_glacier":
+                    tint = new Color(0.55f, 0.82f, 1f, 1f);
+                    hot = new Color(0.9f, 0.96f, 1f, 1f);
+                    return true;
+                case "wing_plum":
+                    tint = new Color(0.62f, 0.32f, 0.82f, 1f);
+                    hot = new Color(1f, 0.72f, 0.45f, 1f);
+                    return true;
+                case "wing_moon":
+                    tint = new Color(0.82f, 0.78f, 0.95f, 1f);
+                    hot = new Color(1f, 0.96f, 0.82f, 1f);
+                    return true;
+                case "wing_pearl":
+                    tint = new Color(1f, 0.86f, 0.88f, 1f);
+                    hot = Color.white;
+                    return true;
+                case "wing_cocoa":
+                    tint = new Color(0.62f, 0.4f, 0.28f, 1f);
+                    hot = new Color(1f, 0.9f, 0.55f, 1f);
+                    return true;
+                case "wing_sunflower":
+                    tint = new Color(1f, 0.82f, 0.28f, 1f);
+                    hot = new Color(1f, 0.96f, 0.7f, 1f);
+                    return true;
+            }
+            tint = Color.white;
+            return false;
         }
 
         void Ensure()

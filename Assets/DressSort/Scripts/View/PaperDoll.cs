@@ -94,6 +94,16 @@ namespace DressSort
             if (id == "wing_aqua") return 0.40f;
             if (id == "wing_rose") return 0.46f;
             if (id == "wing_wisteria") return 0.56f;
+            if (id == "wing_sunflower") return 0.46f;
+            if (id == "wing_sea") return 0.42f;
+            if (id == "wing_sakura") return 0.47f;
+            if (id == "wing_plum") return 0.52f;
+            if (id == "wing_pearl") return 0.48f;
+            if (id == "wing_moon") return 0.35f;
+            if (id == "wing_mint") return 0.50f;
+            if (id == "wing_lilac") return 0.52f;
+            if (id == "wing_glacier") return 0.55f;
+            if (id == "wing_cocoa") return 0.51f;
             return 0.50f;
         }
 

@@ -1,0 +1,75 @@
+# 缺的 17 对翅膀
+
+画法和现有湖水翼、蜜桃花瓣翼、紫藤心翼同一套：背面正视、左右镜像、中间一条窄缝留给娃娃后背、细匀可可棕描边、糖果高光、平涂赛璐璐。背景整张铺石板灰蓝 #4A5A6B，方便去底。一张只画一对翅膀。
+
+共同开头（每条提示词都带上）：
+
+A costume wing pair for a cute dress-up phone game, one sticker, straight-on back view, perfect left-right mirror. The two wings nearly touch across a narrow vertical gap in the exact center. Thick even cocoa-brown ink outline, Japanese TV-anime cel, one soft glossy highlight, fine decorative veins. The pair fills the square with a small margin of background around the tips. Background is one flat school-slate gray-blue, hex 4A5A6B, filling every corner. The picture contains only this wing pair.
+
+## wing_honey 蜂蜜晶翼
+
+Bee costume wings. Each side has two plump oval lobes, a larger upper lobe and a smaller lower lobe. Membrane the color of honey in a glass jar. Cream hexagon cells drawn across the membrane. Rim the brown of a caramel biscuit.
+
+## wing_mint 薄荷露翼
+
+Moth costume wings. Each side is one broad rounded triangle with a scalloped outer edge. Membrane the green of mint ice cream, fading to whipped cream toward the center gap. A row of tiny white dew beads sits along the scalloped rim.
+
+## wing_sakura 樱瓣蝶翼
+
+Each wing is built from overlapping cherry-blossom petals. Color is the pink of sakura mochi, with white veins. Three small five-petal blossoms are painted on each wing.
+
+## wing_glacier 冰川棱翼
+
+Crystal swallowtail. Each side is a stack of sharp ice shards, the blue of a clear ice cube and the white of fresh snow. Thin gold rim the color of a new coin, like a picture frame around each facet.
+
+## wing_night 夜空燕尾
+
+Long swallowtail. Membrane the indigo of a clear night sky. Cream star specks scattered on both wings. One small cream crescent sits near the top of each wing.
+
+## wing_coral 珊瑚扇翼
+
+Open folding-fan silhouette. Membrane the pink of a piece of branching coral, with peach inner panels. Branching lines across the fan, the same shape as a piece of coral.
+
+## wing_matcha 抹茶叶翼
+
+Each side is one big tea leaf. Membrane the green of matcha powder. A cream center rib runs from the gap to the leaf tip. The outer edge is finely serrated like a real tea leaf.
+
+## wing_ruby 红宝镶翼
+
+Stained-glass butterfly. Ruby-gem red panels separated by gold leading the color of a coin. Upper lobe pointed, lower lobe round.
+
+## wing_pearl 珍珠贝翼
+
+Each side is two plump scallop shells, a larger upper shell and a smaller lower shell. Pearl white with a blush the color of the inside of a seashell. One soft oval highlight on each shell, like a pearl.
+
+## wing_sunflower 葵花光翼
+
+Glowing swallowtail shaped from sunflower petals. Long elegant tails. Membrane is luminous lemon gold, with an apricot glow pouring out from the center gap like a small sun. Gold sunbeam lines radiate from the gap across each wing. Petal tips are pale cream. Coin-gold outer rim. The wings look backlit and luminous.
+
+## wing_sea 海玻璃鳍
+
+Mermaid-fin silhouette, one broad fin on each side. Sea-glass teal on the outer half, peach on the inner half. Rows of fish scales drawn across the fin.
+
+## wing_lilac 丁香蕾丝翼
+
+Butterfly with a painted lace pattern, lilac and whipped cream. Scalloped outer edge. A small cream bow sits in the center gap, two loops and two short tails.
+
+## wing_cocoa 可可圆点翼
+
+Fashion butterfly. Upper lobes the brown of a milk-chocolate bar. Lower lobes the color of whipped cream. Gold polka dots the color of a coin scattered on the cream lobes.
+
+## wing_candy 糖果螺旋翼
+
+Each side is one round lollipop disc. Spiral stripes of strawberry-milk pink and lemon-candy yellow. A white oval highlight on the upper left of each disc.
+
+## wing_moon 银月长尾蛾
+
+Luna-moth silhouette with long tapering tails. Membrane the color of silver cream, rim a pale lilac. One round moon spot on each upper wing, cream center with a lilac ring.
+
+## wing_plum 李子金边燕尾
+
+Swallowtail. Membrane the purple of a ripe plum, with an apricot glow toward the center gap. A gold edge the color of a coin runs along the outer rim.
+
+## wing_cloud 奶油云翼
+
+Puffy cloud lobes, three soft scallops on each side. Whipped cream with a peach blush in the middle of each lobe. Tiny cream four-point sparkles sit on the upper lobes.

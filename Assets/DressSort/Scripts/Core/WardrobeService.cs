@@ -5,7 +5,7 @@ namespace DressSort
 {
     /// <summary>
     /// 存档：已解锁的物品、当前装扮、关卡进度、星星数。
-    /// 现在走 PlayerPrefs，接微信小游戏时把 Read/Write 换成云存档即可。
+    /// 本地仍写 PlayerPrefs；播放中每次 Save 会标脏，由 CloudSync 整份上行。
     /// </summary>
     public class WardrobeService
     {
@@ -24,7 +24,17 @@ namespace DressSort
             public long energyUtc;
             public int checkRun;
             public int checkDay;
+            /// <summary>第一次七日签到领到粉红马尾图纸的日期。0 表示还没领过。</summary>
+            public int checkPrizeDay;
+            /// <summary>今天的签到材料已经看广告翻过倍。0 表示还没翻。</summary>
+            public int checkDoubleDay;
             public int clubDay;
+            public int clubOfferDay;
+            public int clubMat0;
+            public int clubMat1;
+            public int clubCount0;
+            public int clubCount1;
+            public bool clubRefreshed;
             public int packDay;
             public int toolDay;
             public int swapsToday;
@@ -182,16 +192,56 @@ namespace DressSort
 
         // ------------------------------------------------------------ 签到与游戏圈
 
-        /// <summary>七日签到每天的体力，第 7 天是大份。</summary>
-        public static readonly int[] CheckInRewards = { 2, 2, 3, 2, 2, 3, 5 };
+        /// <summary>七日签到每天一种材料，各 2 份。第 7 天平时是蕾丝；第一次签满改送粉红马尾图纸。</summary>
+        public static readonly int[] CheckInMats =
+        {
+            (int)CraftMat.Cloth, (int)CraftMat.Hair, (int)CraftMat.DyeRed, (int)CraftMat.DyeYellow,
+            (int)CraftMat.DyeBlue, (int)CraftMat.DyeBlack, (int)CraftMat.Lace,
+        };
+        public static readonly int[] CheckInCounts = { 2, 2, 2, 2, 2, 2, 2 };
         public const int CheckInDays = 7;
-        public const int ClubReward = 3;
+        public const string CheckInPrizeId = "hair_pink";
+
+        public struct CheckInGrant
+        {
+            public int mat;
+            public int count;
+            public bool blueprint;
+        }
+
+        public bool CheckInPrizePending => data.checkPrizeDay == 0;
+
+        /// <summary>这一天卡片上该显示什么。第一次的第 7 天是粉红马尾图纸。</summary>
+        public CheckInGrant PreviewCheckIn(int day)
+        {
+            bool prize = day == CheckInDays && (CheckInPrizePending || data.checkPrizeDay == Today);
+            if (prize) return new CheckInGrant { blueprint = true };
+            int i = Mathf.Clamp(day, 1, CheckInDays) - 1;
+            return new CheckInGrant { mat = CheckInMats[i], count = CheckInCounts[i] };
+        }
+
+        public CheckInGrant LastCheckIn { get; private set; }
 
         static int DayKey(System.DateTime d) => d.Year * 10000 + d.Month * 100 + d.Day;
         static int Today => DayKey(System.DateTime.Now);
         static int Yesterday => DayKey(System.DateTime.Now.AddDays(-1));
 
         public bool CheckedInToday => data.checkDay == Today;
+
+        public bool CheckInDoubledToday => data.checkDoubleDay == Today;
+
+        /// <summary>把今天签到的材料再发一份。图纸不翻倍。今天没签、已经翻过、或今天是图纸，返回 false。</summary>
+        public bool DoubleCheckIn()
+        {
+            if (!CheckedInToday || CheckInDoubledToday) return false;
+            CheckInGrant grant = PreviewCheckIn(data.checkRun);
+            if (grant.blueprint || grant.count <= 0) return false;
+            data.materials[grant.mat] += grant.count;
+            data.checkDoubleDay = Today;
+            LastCheckIn = grant;
+            Save();
+            return true;
+        }
 
         /// <summary>这一轮已经签了几天。断签一天或七天签满后，从第 1 天重新开始。</summary>
         public int CheckInRun
@@ -204,27 +254,144 @@ namespace DressSort
             }
         }
 
-        /// <summary>签到成功返回当天是第几天（1~7），今天已签返回 0。</summary>
+        /// <summary>签到成功返回当天是第几天（1~7），今天已签返回 0。发的东西在 LastCheckIn。</summary>
         public int CheckIn()
         {
             if (CheckedInToday) return 0;
             int run = CheckInRun + 1;
             data.checkRun = run;
             data.checkDay = Today;
+            bool prize = run == CheckInDays && data.checkPrizeDay == 0;
+            if (prize)
+            {
+                data.checkPrizeDay = Today;
+                ItemDef item = database.Find(CheckInPrizeId);
+                if (AddBlueprint(item))
+                {
+                    LastCheckIn = new CheckInGrant { blueprint = true };
+                    return run;
+                }
+                data.materials[(int)CraftMat.Lace] += CheckInCounts[CheckInDays - 1];
+                LastCheckIn = new CheckInGrant { mat = (int)CraftMat.Lace, count = CheckInCounts[CheckInDays - 1] };
+            }
+            else
+            {
+                CheckInGrant grant = PreviewCheckIn(run);
+                data.materials[grant.mat] += grant.count;
+                LastCheckIn = grant;
+            }
             Save();
-            GainEnergy(CheckInRewards[run - 1]);
             return run;
         }
 
         public bool ClubClaimedToday => data.clubDay == Today;
 
+        public struct ClubOffer
+        {
+            public int mat0;
+            public int count0;
+            public int mat1;
+            public int count1;
+            public bool ready;
+            public bool refreshed;
+        }
+
+        public bool ClubRefreshUsed => data.clubOfferDay == Today && data.clubRefreshed;
+
+        /// <summary>今天的游戏圈奖励。两格各抽一次，可能是 1 份材料，也可能是 1 或 2 点体力。</summary>
+        public ClubOffer EnsureClubOffer()
+        {
+            if (data.clubOfferDay != Today || data.clubCount0 < 1 || data.clubCount1 < 1)
+            {
+                if (!ClubClaimedToday)
+                {
+                    RollClubOffer();
+                    data.clubOfferDay = Today;
+                    data.clubRefreshed = false;
+                    Save();
+                }
+            }
+            return ReadClubOffer();
+        }
+
+        /// <summary>看广告后重抽一次。今天已经换过或已经领过就不动。</summary>
+        public bool RefreshClubOffer()
+        {
+            if (ClubClaimedToday || ClubRefreshUsed) return false;
+            EnsureClubOffer();
+            RollClubOffer();
+            data.clubOfferDay = Today;
+            data.clubRefreshed = true;
+            Save();
+            return true;
+        }
+
+        /// <summary>领走今天已经抽好的两格奖励。</summary>
         public bool ClaimClub()
         {
             if (ClubClaimedToday) return false;
+            ClubOffer offer = EnsureClubOffer();
+            if (!offer.ready) return false;
             data.clubDay = Today;
-            Save();
-            GainEnergy(ClubReward);
+            int energy = 0;
+            energy += GrantClubSlot(offer.mat0, offer.count0);
+            energy += GrantClubSlot(offer.mat1, offer.count1);
+            if (energy > 0)
+                GainEnergy(energy);
+            else
+                Save();
             return true;
+        }
+
+        public string DescribeClubOffer(ClubOffer offer)
+        {
+            return DescribeClubSlot(offer.mat0, offer.count0) + "、" + DescribeClubSlot(offer.mat1, offer.count1);
+        }
+
+        static string DescribeClubSlot(int mat, int count)
+        {
+            if (mat < 0) return "体力 +" + count;
+            return CraftCatalog.MatNames[mat] + " ×" + count;
+        }
+
+        /// <summary>材料返回 0。体力返回点数，由调用方一次加上。</summary>
+        int GrantClubSlot(int mat, int count)
+        {
+            if (mat < 0) return count;
+            data.materials[mat] += count;
+            return 0;
+        }
+
+        void RollClubOffer()
+        {
+            RollClubSlot(out data.clubMat0, out data.clubCount0);
+            RollClubSlot(out data.clubMat1, out data.clubCount1);
+        }
+
+        static void RollClubSlot(out int mat, out int count)
+        {
+            if (Random.Range(0, 2) == 0)
+            {
+                mat = -1;
+                count = Random.Range(1, 3);
+                return;
+            }
+            mat = Random.Range(0, CraftCatalog.MatCount);
+            count = 1;
+        }
+
+        ClubOffer ReadClubOffer()
+        {
+            bool ready = data.clubOfferDay == Today && data.clubCount0 >= 1 && data.clubCount1 >= 1;
+            return new ClubOffer
+            {
+                mat0 = data.clubMat0,
+                count0 = data.clubCount0,
+                mat1 = data.clubMat1,
+                count1 = data.clubCount1,
+                ready = ready,
+                refreshed = ready && data.clubRefreshed,
+            };
         }
 
         /// <summary>交换和随机记在今天。过了零点清掉，开局不送。</summary>
@@ -360,7 +527,7 @@ namespace DressSort
 
         // ------------------------------------------------------------ 工坊
 
-        /// <summary>第 21 关通关送第一张图纸，工坊从那时开放。GM 也可以单独放开。</summary>
+        /// <summary>第 11 关通关送第一张图纸，工坊从那时开放。GM 也可以单独放开。</summary>
         public bool WorkshopOpen => data.levelsCleared >= CraftCatalog.WorkshopLevel || data.gmWorkshop;
 
         /// <summary>GM 放开工坊。不改关卡进度，重置存档后恢复上锁。</summary>
@@ -585,8 +752,21 @@ namespace DressSort
         void Save()
         {
             PlayerPrefs.SetString(Key, JsonUtility.ToJson(data));
+            if (Application.isPlaying) CloudSync.Touch();
             PlayerPrefs.Save();
         }
+
+        public static bool HasLocal => PlayerPrefs.HasKey(Key);
+
+        public static string RawLocal => PlayerPrefs.GetString(Key, "");
+
+        /// <summary>云端下行用，不标脏。内存里的衣柜要再 Reload。</summary>
+        public static void WriteRaw(string json)
+        {
+            PlayerPrefs.SetString(Key, json ?? "");
+        }
+
+        public void Reload() => Load();
 
         public void Wipe()
         {
@@ -594,6 +774,7 @@ namespace DressSort
             data = null;
             Load();
             Save();
+            if (Application.isPlaying) CloudSync.FlushNow("wipe");
         }
     }
 }

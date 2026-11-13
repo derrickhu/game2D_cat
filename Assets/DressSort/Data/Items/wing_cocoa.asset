@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b087983e010c9483cb7da0ebf73a9ba9, type: 3}
+  m_Name: wing_cocoa
+  m_EditorClassIdentifier: 
+  id: wing_cocoa
+  displayName: "\u53ef\u53ef\u5706\u70b9\u7ffc"
+  slot: 1
+  icon: {fileID: 21300000, guid: eca470969fbf4970bad94e73551b23e6, type: 3}
+  worn: {fileID: 21300000, guid: 6ad0b548cfbf49ac87b977e9580663c6, type: 3}
+  wornBack: {fileID: 0}
+  boardEligible: 0
+  accent: {r: 0.55, g: 0.38, b: 0.28, a: 1}
+  unlockedFromStart: 0
+  layeredWithHair: 0

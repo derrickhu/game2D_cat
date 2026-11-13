@@ -796,7 +796,7 @@ namespace DressSort
             Button main = null, side = null;
             if (!string.IsNullOrEmpty(ad))
             {
-                side = PopupButton(card, ad, new Vector2(-180f, by), db != null ? db.packBtn : null, Color.white, true);
+                side = PopupButton(card, ad, new Vector2(-180f, by), AdButton.Face(db), Cocoa, true);
                 main = PopupButton(card, primary, new Vector2(180f, by), db != null ? db.rewardBtn : null, Cocoa, false);
                 Sfx.BindClick(side, () =>
                 {
@@ -865,14 +865,11 @@ namespace DressSort
                 shadow.effectColor = Shade;
                 shadow.effectDistance = new Vector2(0f, -3f);
             }
-            if (adBadge && db != null && db.packAd != null)
-            {
-                UiKit.Icon(face.transform, "Ad", db.packAd, new Vector2(0.5f, 0.5f), new Vector2(-label.preferredWidth * 0.5f - 18f, 4f),
-                    new Vector2(48f, 52f));
-            }
             var button = face.gameObject.AddComponent<Button>();
             button.targetGraphic = face;
             button.transition = Selectable.Transition.None;
+            if (adBadge)
+                AdButton.Apply(button, db);
             return button;
         }
 

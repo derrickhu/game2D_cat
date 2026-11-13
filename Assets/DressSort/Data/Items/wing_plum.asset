@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b087983e010c9483cb7da0ebf73a9ba9, type: 3}
+  m_Name: wing_plum
+  m_EditorClassIdentifier: 
+  id: wing_plum
+  displayName: "\u674e\u5b50\u91d1\u8fb9\u71d5\u5c3e"
+  slot: 1
+  icon: {fileID: 21300000, guid: 1aa8bc940e8b48668d5b4d44800ee7dc, type: 3}
+  worn: {fileID: 21300000, guid: f570115e67fd4927b9370a35e3028430, type: 3}
+  wornBack: {fileID: 0}
+  boardEligible: 0
+  accent: {r: 0.55, g: 0.28, b: 0.62, a: 1}
+  unlockedFromStart: 0
+  layeredWithHair: 0

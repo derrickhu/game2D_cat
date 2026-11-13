@@ -293,6 +293,22 @@ namespace DressSort.EditorTools
         /// <summary>
         /// 转换只拷封面静图。花园 loading 视频要另外放进 images/，并写进封面配置。
         /// </summary>
+        static void CopyShareImages(string imagesDir)
+        {
+            string project = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+            string srcDir = Path.Combine(project, "Assets/DressSort/Art/Share");
+            if (!Directory.Exists(srcDir)) return;
+            Directory.CreateDirectory(imagesDir);
+            int n = 0;
+            foreach (string file in Directory.GetFiles(srcDir, "share_*.jpg"))
+            {
+                File.Copy(file, Path.Combine(imagesDir, Path.GetFileName(file)), true);
+                n++;
+            }
+            if (n > 0)
+                Debug.Log("[一裙又一裙] 已写入转发图 " + n + " 张到 images/");
+        }
+
         static void PatchLoadingVideo()
         {
             string project = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
@@ -303,12 +319,14 @@ namespace DressSort.EditorTools
             string gameJs = Path.Combine(minigame, "game.js");
             if (!File.Exists(src))
             {
+                CopyShareImages(images);
                 Debug.LogWarning("[一裙又一裙] 找不到 Assets/DressSort/Art/Loading/loading.mp4，封面还是静图。");
                 return;
             }
 
             Directory.CreateDirectory(images);
             File.Copy(src, dst, true);
+            CopyShareImages(images);
 
             if (File.Exists(gameJs))
             {

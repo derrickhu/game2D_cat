@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b087983e010c9483cb7da0ebf73a9ba9, type: 3}
+  m_Name: hair_lilac_streak
+  m_EditorClassIdentifier: 
+  id: hair_lilac_streak
+  displayName: "\u7D2B\u85E4\u6311\u67D3"
+  slot: 2
+  icon: {fileID: 21300000, guid: e7e4fa53ef424cfe8c6a60bc7d0f3f97, type: 3}
+  worn: {fileID: 21300000, guid: 7ca1ec6ab2ef4d75831bd17bfd64ed40, type: 3}
+  wornBack: {fileID: 21300000, guid: f98c67210f074efd8c636bd47e0d7f50, type: 3}
+  boardEligible: 0
+  accent: {r: 0.9411765, g: 0.78431374, b: 0.2901961, a: 1}
+  unlockedFromStart: 0
+  layeredWithHair: 0

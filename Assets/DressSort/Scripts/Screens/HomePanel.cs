@@ -41,7 +41,7 @@ namespace DressSort
 
             hud.ApplyChromeLayout();
             hud.Wire(OnStart, () => app.Show(ScreenId.DressUp), OnEnergyPlus, OnWipe, OpenGm, OnSide);
-            Sfx.BindClick(hud.shareButton, OnDailyShare);
+            hud.RefreshGm();
 
             if (root.parent is RectTransform frame)
                 hud.BindStage(frame);
@@ -53,8 +53,14 @@ namespace DressSort
                     new Vector2(640f, 780f));
         }
 
+        public void RefreshGm()
+        {
+            if (hud != null) hud.RefreshGm();
+        }
+
         public override void OnShow()
         {
+            RefreshGm();
             if (doll != null)
                 doll.Show(app.Wardrobe.EquippedDress, app.Wardrobe.EquippedWings,
                     app.Wardrobe.EquippedHair);
@@ -67,7 +73,6 @@ namespace DressSort
                 LevelDef next = app.NextLevel;
                 hud.SetStartCaption(next != null ? "第" + next.index + "关" : "已通关");
                 hud.EnsureShare(app.Database);
-                hud.SetShareReady(app.Wardrobe.ShareReady);
             }
             if (!string.IsNullOrEmpty(app.Notice))
             {
@@ -103,32 +108,6 @@ namespace DressSort
             OpenEnergy(null);
         }
 
-        bool shareBusy;
-
-        void OnDailyShare()
-        {
-            if (shareBusy) return;
-            if (app.Wardrobe == null || !app.Wardrobe.ShareReady)
-            {
-                Toast("今天已经分享过了");
-                return;
-            }
-            shareBusy = true;
-            WxBridge.Share("来叠一裙又一裙", () =>
-            {
-                shareBusy = false;
-                if (app == null || app.Wardrobe == null) return;
-                int which = app.Wardrobe.ClaimShareTool();
-                if (hud != null)
-                    hud.SetShareReady(app.Wardrobe.ShareReady);
-                if (!isActiveAndEnabled) return;
-                if (which < 0)
-                    Toast("今天已经分享过了");
-                else
-                    Toast(which == 0 ? "得到一次交换，今天有效" : "得到一次随机，今天有效");
-            });
-        }
-
         void OpenEnergy(Action follow)
         {
             RectTransform layer = root.parent as RectTransform ?? root;
@@ -139,13 +118,14 @@ namespace DressSort
 
         void OnWipe()
         {
+            if (!WxBridge.AllowGm) return;
             app.Wardrobe.Wipe();
             OnShow();
         }
 
         void OpenGm()
         {
-            if (gmLayer != null) return;
+            if (!WxBridge.AllowGm || gmLayer != null) return;
             LevelDef next = app.NextLevel;
             gmPick = next != null ? next.index : 1;
             RectTransform layer = root.parent as RectTransform ?? root;

@@ -205,11 +205,18 @@ namespace DressSort
             EnsureStepsAd(db);
         }
 
-        /// <summary>步数牌右下角。旧预制没有这颗时补一颗。</summary>
+        /// <summary>步数牌右下角。一键通关只给编辑器和开发者工具。</summary>
         public void EnsureClear(GameDatabase db)
         {
-            if (clearButton != null) return;
-            clearButton = ClearButton(topBar != null ? topBar : transform, db);
+            if (clearButton == null)
+                clearButton = ClearButton(topBar != null ? topBar : transform, db);
+            RefreshGm();
+        }
+
+        public void RefreshGm()
+        {
+            if (clearButton != null)
+                clearButton.gameObject.SetActive(WxBridge.AllowGm);
         }
 
         Button ClearButton(Transform parent, GameDatabase db)
@@ -230,15 +237,22 @@ namespace DressSort
         /// <summary>步数牌正下方、一键通关左边。剩 5 步以内才亮。</summary>
         public void EnsureStepsAd(GameDatabase db)
         {
-            if (stepsAdButton != null) return;
+            if (stepsAdButton != null)
+            {
+                AdButton.Apply(stepsAdButton, db);
+                return;
+            }
             Transform parent = topBar != null ? topBar : transform;
             Transform existing = parent.Find("StepsAd");
             if (existing != null)
                 stepsAdButton = existing.GetComponent<Button>();
-            if (stepsAdButton != null) return;
+            if (stepsAdButton != null)
+            {
+                AdButton.Apply(stepsAdButton, db);
+                return;
+            }
 
-            Sprite sprite = db != null ? db.rewardBtn : null;
-            Image face = Capsule(parent, "StepsAd", sprite, Vector2.zero, new Vector2(292f, 80f));
+            Image face = Capsule(parent, "StepsAd", AdButton.Face(db), Vector2.zero, new Vector2(292f, 80f));
             if (face.sprite == null)
             {
                 face.sprite = UiKit.Rounded;
@@ -250,11 +264,11 @@ namespace DressSort
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(1f, 1f);
             rect.anchoredPosition = new Vector2(-36f, -128f);
-            rect.sizeDelta = new Vector2(300f, 76f);
+            rect.sizeDelta = new Vector2(360f, 76f);
             Text label = Label(face.transform, "看广告 +5步", new Vector2(0f, 2f), new Vector2(280f, 64f), 30, Color.white);
             label.fontStyle = FontStyle.Bold;
-            Shade(label);
             stepsAdButton = MakeHit(face);
+            AdButton.Apply(stepsAdButton, db);
             stepsAdButton.gameObject.SetActive(false);
         }
 
@@ -333,6 +347,8 @@ namespace DressSort
                 Transform oldUndo = failLayer.Find("Board/Btn_撤回一步");
                 if (oldUndo != null)
                     oldUndo.gameObject.SetActive(false);
+                if (failAdButton != null)
+                    AdButton.Apply(failAdButton, db);
                 return;
             }
             failLayer = UiKit.Stretch(transform, "Fail");
@@ -353,7 +369,8 @@ namespace DressSort
             failBody = Label(board.transform, "看广告，再加 5 步", new Vector2(0f, 210f), new Vector2(520f, 64f), 32, Cocoa);
             failBody.fontStyle = FontStyle.Bold;
 
-            failAdButton = PauseButton(board.transform, "看广告 +5步", db != null ? db.rewardBtn : null, 80f, Color.white);
+            failAdButton = PauseButton(board.transform, "看广告 +5步", AdButton.Face(db), 80f, Cocoa);
+            AdButton.Apply(failAdButton, db);
             failRestartButton = PauseButton(board.transform, "重新开始", db != null ? db.dressupSave : null, -160f, Color.white);
             failHomeButton = PauseButton(board.transform, "回到首页", db != null ? db.dressupTabTrack : null, -280f, Color.white);
             failLayer.gameObject.SetActive(false);

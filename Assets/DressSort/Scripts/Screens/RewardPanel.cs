@@ -642,19 +642,17 @@ namespace DressSort
                 const float buttonH = 124f;
                 doubleButton = UiKit.Button(hud.transform, "看广告 材料翻倍", new Vector2(0.5f, 0.204f),
                     Vector2.zero, new Vector2(580f, buttonH),
-                    app.Database != null ? app.Database.rewardBtn : null, Color.white, 42, OnDoubleMaterials);
-                UiKit.FitPill(doubleButton.targetGraphic as Image,
-                    app.Database != null ? app.Database.rewardBtn : null, buttonH);
+                    AdButton.Face(app.Database), Color.white, 42, OnDoubleMaterials);
+                AdButton.Apply(doubleButton, app.Database);
                 Text label = doubleButton.GetComponentInChildren<Text>();
                 if (label != null)
                 {
                     label.fontStyle = FontStyle.Bold;
                     label.alignment = TextAnchor.MiddleCenter;
-                    label.rectTransform.anchoredPosition = new Vector2(0f, 4f);
-                    label.rectTransform.sizeDelta = new Vector2(540f, 100f);
-                    CraftView.AddRim(label, new Color(0.45f, 0.24f, 0.05f), 3f);
                 }
             }
+            else
+                AdButton.Apply(doubleButton, app.Database);
             doubleButton.interactable = true;
             Text caption = doubleButton.GetComponentInChildren<Text>();
             if (caption != null)
@@ -671,15 +669,15 @@ namespace DressSort
             matAdBusy = true;
             doubleButton.interactable = false;
             const string scene = "reward_mats";
-            Analytics.AdRequest(scene, WxBridge.ToolAdUnitId);
-            WxBridge.ShowRewarded(WxBridge.ToolAdUnitId, () =>
+            Analytics.AdRequest(scene, WxBridge.RewardAdUnitId);
+            WxBridge.ShowRewarded(WxBridge.RewardAdUnitId, () =>
             {
                 matAdBusy = false;
                 matsDoubled = true;
                 if (!app.GmPlay)
                     app.Wardrobe.AddMaterials(mats);
-                Analytics.AdShow(scene, WxBridge.ToolAdUnitId);
-                Analytics.AdClose(scene, WxBridge.ToolAdUnitId, true);
+                Analytics.AdShow(scene, WxBridge.RewardAdUnitId);
+                Analytics.AdClose(scene, WxBridge.RewardAdUnitId, true);
                 if (doubleButton != null)
                     doubleButton.gameObject.SetActive(false);
                 if (hintLabel != null)

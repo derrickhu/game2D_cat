@@ -16,7 +16,31 @@ namespace DressSort
         public bool isMe;
     }
 
-    /// <summary>各接口的 data 字段并在一起：login 用 token 那几个，rank/list 用 list/mine，游戏圈用 postCount。</summary>
+    /// <summary>云端存档只有一个 key：meta，值是衣柜 JSON 原文。JsonUtility 读不了字典，所以 payload 按固定字段写死。</summary>
+    [Serializable]
+    public sealed class CloudPayload
+    {
+        public string meta;
+    }
+
+    [Serializable]
+    public sealed class CloudRemote
+    {
+        public long updatedAt;
+        public CloudPayload payload;
+    }
+
+    [Serializable]
+    public sealed class PushBody
+    {
+        public int schemaVersion;
+        public long updatedAt;
+        public long baseRemoteUpdatedAt;
+        public string clientFingerprint;
+        public CloudPayload payload;
+    }
+
+    /// <summary>各接口的 data 字段并在一起：login 用 token，pull/push 用 exists/payload/updatedAt，409 带 remote，rank/list 用 list/mine，游戏圈用 postCount。</summary>
     [Serializable]
     public sealed class CloudData
     {
@@ -24,6 +48,10 @@ namespace DressSort
         public string userId;
         public string platform;
         public long expiresAt;
+        public bool exists;
+        public long updatedAt;
+        public CloudPayload payload;
+        public CloudRemote remote;
         public RankRow[] list;
         public RankRow mine;
         public int postCount;
@@ -68,7 +96,7 @@ namespace DressSort
         static bool UseWx => WxBridge.IsMiniGame && !Application.isEditor;
         static string PlatformCode => UseWx ? "wx" : "anon";
 
-        static long NowMs() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        public static long NowMs() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         /// <summary>done(null) 表示拿到了有效 token，否则是失败原因。</summary>
         public static IEnumerator EnsureToken(Action<string> done)

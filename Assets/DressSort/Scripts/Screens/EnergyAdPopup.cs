@@ -15,6 +15,7 @@ namespace DressSort
         {
             if (watchButton != null)
                 watchButton.onClick.AddListener(OnWatch);
+            AdButton.Apply(watchButton, app != null ? app.Database : null);
             Text[] labels = GetComponentsInChildren<Text>(true);
             for (int i = 0; i < labels.Length; i++)
             {
@@ -34,7 +35,7 @@ namespace DressSort
                 Analytics.AdShow("energy", WxBridge.EnergyAdUnitId);
                 Analytics.AdClose("energy", WxBridge.EnergyAdUnitId, true);
                 app.Wardrobe.GainEnergy(WardrobeService.EnergyAdReward);
-                Sfx.Play(SfxId.Heart);
+                FlyEnergy();
                 changed?.Invoke();
                 Action follow = Follow;
                 Close(false);
@@ -47,6 +48,22 @@ namespace DressSort
                 Sfx.Play(SfxId.Deny);
                 Toast("广告没看完");
             });
+        }
+
+        void FlyEnergy()
+        {
+            Sprite sprite = app.Database != null ? app.Database.iconHomeEnergy : null;
+            Vector3 world = watchButton != null ? watchButton.transform.position : transform.position;
+            RewardFly.Play(this, new[]
+            {
+                new RewardFly.Bit
+                {
+                    sprite = sprite,
+                    count = WardrobeService.EnergyAdReward,
+                    world = world,
+                    energy = true,
+                },
+            }, app.Database);
         }
     }
 }

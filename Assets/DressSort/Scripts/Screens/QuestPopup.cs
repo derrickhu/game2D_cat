@@ -162,8 +162,8 @@ namespace DressSort
                 Sfx.Play(SfxId.Deny);
                 return;
             }
-            Sfx.Play(SfxId.Claim);
             TaskCatalog.Reward reward = TaskCatalog.Track[index];
+            FlyReward(index, reward);
             if (reward.items != null)
             {
                 for (int i = 0; i < reward.items.Length; i++)
@@ -173,9 +173,33 @@ namespace DressSort
                         app.Wardrobe.Equip(item);
                 }
             }
-            Toast("领到了 " + TaskCatalog.Describe(reward, app.Database));
             changed?.Invoke();
             Fill();
+        }
+
+        void FlyReward(int index, TaskCatalog.Reward reward)
+        {
+            TaskCatalog.Icons(reward, app.Database, icons);
+            int shown = Mathf.Min(3, icons.Count);
+            if (shown == 0)
+            {
+                Sfx.Play(SfxId.Claim);
+                return;
+            }
+            Transform row = content != null ? content.Find("Row" + index) : null;
+            var bits = new RewardFly.Bit[shown];
+            for (int n = 0; n < shown; n++)
+            {
+                Transform icon = row != null ? row.Find("Icon" + n) : null;
+                bits[n] = new RewardFly.Bit
+                {
+                    sprite = icons[n].sprite,
+                    count = icons[n].count,
+                    world = icon != null ? icon.position : transform.position,
+                    nudge = icon != null ? 0f : (n - (shown - 1) * 0.5f) * 90f,
+                };
+            }
+            RewardFly.Play(this, bits, app.Database);
         }
     }
 }

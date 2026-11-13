@@ -3,6 +3,35 @@ using UnityEngine;
 
 namespace DressSort
 {
+    public readonly struct ShareCard
+    {
+        public readonly string title;
+        public readonly string image;
+
+        public ShareCard(string title, string image)
+        {
+            this.title = title;
+            this.image = image;
+        }
+    }
+
+    /// <summary>
+    /// 会话转发卡片。图在小游戏包 images/ 下，5:4。
+    /// 下次打微信包时由 WxMiniGameMenu 从 Art/Share 拷进去。
+    /// </summary>
+    public static class ShareCards
+    {
+        public static readonly ShareCard[] All =
+        {
+            new ShareCard("就差这一件裙子，你来收尾", "images/share_01.jpg"),
+        };
+
+        public static ShareCard Pick()
+        {
+            return All[UnityEngine.Random.Range(0, All.Length)];
+        }
+    }
+
     /// <summary>
     /// 微信 SDK 用反射调用，编辑器里没有 Wx 程序集也能编译。
     /// 做法对齐 black-rosa：胶囊、安全区、触摸覆盖、启动保活。
@@ -80,10 +109,57 @@ namespace DressSort
 #endif
         }
 
+        static bool _shareInstalled;
+
         public static void ShowShareMenu()
         {
             var wx = WxType();
             wx?.GetMethod("ShowShareMenu", Type.EmptyTypes)?.Invoke(null, null);
+            InstallShareCards();
+        }
+
+        /// <summary>
+        /// 右上角「转发」和朋友圈都用这张卡片。点下去先记经分，再把图交出去。
+        /// </summary>
+        public static void InstallShareCards()
+        {
+            if (_shareInstalled) return;
+#if UNITY_MINIGAME || WEIXINMINIGAME || UNITY_WEIXINMINIGAME || MINIGAME_SUBPLATFORM_WEIXIN
+            if (Application.isEditor) return;
+            try
+            {
+                ShareCard card = ShareCards.Pick();
+                WeChatWASM.WX.OnShareAppMessage(new WeChatWASM.WXShareAppMessageParam
+                {
+                    title = card.title,
+                    imageUrl = card.image,
+                }, reply =>
+                {
+                    ShareCard next = ShareCards.Pick();
+                    Analytics.ShareApp("wx_menu", next.title, next.image);
+                    reply(new WeChatWASM.WXShareAppMessageParam
+                    {
+                        title = next.title,
+                        imageUrl = next.image,
+                    });
+                });
+                WeChatWASM.WX.OnShareTimeline(done =>
+                {
+                    ShareCard next = ShareCards.Pick();
+                    Analytics.ShareTimeline(next.title, next.image);
+                    done(new WeChatWASM.OnShareTimelineListenerResult
+                    {
+                        title = next.title,
+                        imageUrl = next.image,
+                    });
+                });
+                _shareInstalled = true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[一裙又一裙] 转发菜单 " + e.Message);
+            }
+#endif
         }
 
         /// <summary>
@@ -92,14 +168,23 @@ namespace DressSort
         /// </summary>
         public static void Share(string title, Action returned)
         {
+            ShareCard card = ShareCards.Pick();
+            Share(string.IsNullOrEmpty(title) ? card.title : title, card.image, returned, "api_share_game");
+        }
+
+        public static void Share(string title, string imageUrl, Action returned, string entry = "api_share_game")
+        {
+            string shown = string.IsNullOrEmpty(title) ? "来叠一裙又一裙" : title;
 #if UNITY_MINIGAME || WEIXINMINIGAME || UNITY_WEIXINMINIGAME || MINIGAME_SUBPLATFORM_WEIXIN
             if (!Application.isEditor)
             {
                 try
                 {
+                    Analytics.ShareApp(entry, shown, imageUrl);
                     WeChatWASM.WX.ShareAppMessage(new WeChatWASM.ShareAppMessageOption
                     {
-                        title = string.IsNullOrEmpty(title) ? "来叠一裙又一裙" : title,
+                        title = shown,
+                        imageUrl = imageUrl,
                     });
                     Action<WeChatWASM.OnShowListenerResult> back = null;
                     back = _ =>
@@ -156,6 +241,47 @@ namespace DressSort
 #else
             return false;
 #endif
+        }
+
+        static int _gmKnown = -1;
+
+        /// <summary>
+        /// GM 只留给 Unity 编辑器和微信开发者工具。
+        /// 真机 platform 是 ios、android、ohos、windows、mac，一律关掉。
+        /// 还读不到 platform 时也关掉，避免真机先闪出按钮。
+        /// </summary>
+        public static bool AllowGm
+        {
+            get
+            {
+                if (_gmKnown >= 0) return _gmKnown == 1;
+                if (Application.isEditor)
+                {
+                    _gmKnown = 1;
+                    return true;
+                }
+                string platform = ReadPlatform();
+                if (string.IsNullOrEmpty(platform)) return false;
+                bool allow = platform.Equals("devtools", StringComparison.OrdinalIgnoreCase);
+                _gmKnown = allow ? 1 : 0;
+                Debug.Log("[一裙又一裙] 运行平台 " + platform + (allow ? "，GM 可用" : "，GM 已关闭"));
+                return allow;
+            }
+        }
+
+        /// <summary>已经分清是开发者工具还是真机。还读不到时为 false，可以过几帧再问。</summary>
+        public static bool GmSettled => _gmKnown >= 0;
+
+        static string ReadPlatform()
+        {
+            try
+            {
+                return Member(SystemInfo(), "platform") as string;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         /// <summary>真机上才有微信原生的授权按钮和游戏圈按钮。</summary>
@@ -477,10 +603,13 @@ namespace DressSort
         /// <summary>
         /// 激励视频。编辑器里直接当看完。
         /// 真机按广告位走微信 CreateRewardedVideoAd，看完才算成功。
-        /// 体力、道具是两个广告位，不能混用。
+        /// 五个广告位分开，不能混用。
         /// </summary>
         public const string EnergyAdUnitId = "adunit-52cee388fc325d1f";
         public const string ToolAdUnitId = "adunit-171dd316cf2b835d";
+        public const string ActivityAdUnitId = "adunit-06f32c27fa9a0121";
+        public const string CheckInAdUnitId = "adunit-65c6b2d2c18dc4e4";
+        public const string RewardAdUnitId = "adunit-4f93e4825434f218";
 
         public static void ShowRewarded(string adUnitId, Action success, Action fail)
         {

@@ -112,6 +112,8 @@ namespace DressSort.EditorTools
             new DressInfo { id = "tennis_dress", label = "网球裙", accent = new Color32(0x3C, 0x8C, 0x4A, 0xFF), wardrobeOnly = true },
             new DressInfo { id = "starfish_dress", label = "海星沙滩裙", accent = new Color32(0xF0, 0xC8, 0x70, 0xFF), wardrobeOnly = true },
             new DressInfo { id = "night_gown", label = "夜空礼服", accent = new Color32(0x1A, 0x2C, 0x78, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "cream_collar", label = "奶油领裙", accent = new Color32(0xC4, 0x96, 0x58, 0xFF), wardrobeOnly = true },
+            new DressInfo { id = "cocoa_bow", label = "可可领结裙", accent = new Color32(0x8A, 0x5A, 0x3C, 0xFF), wardrobeOnly = true },
         };
 
         /// <summary>身上穿着的这一头。杏橙、紫藤、雾蓝改到任务里领。奶茶长发给图纸，粉红马尾留给活动。</summary>
@@ -122,26 +124,47 @@ namespace DressSort.EditorTools
             ("wing_aqua", "湖水蝶翼"),
             ("wing_rose", "蜜桃花瓣翼"),
             ("wing_wisteria", "紫藤心翼"),
+            ("wing_sunflower", "葵花光翼"),
+            ("wing_sea", "海玻璃鳍"),
+            ("wing_sakura", "樱瓣蝶翼"),
+            ("wing_plum", "李子金边燕尾"),
+            ("wing_pearl", "珍珠贝翼"),
+            ("wing_moon", "银月长尾蛾"),
+            ("wing_mint", "薄荷露翼"),
+            ("wing_lilac", "丁香蕾丝翼"),
+            ("wing_glacier", "冰川棱翼"),
+            ("wing_cocoa", "可可圆点翼"),
         };
 
+        // 开局和任务里能拿到的放最前。华丽长发和原来的图纸发型交叉，新的靠前。
         static readonly (string id, string label)[] Hairs =
         {
-            ("hair_apricot", "杏橙"),
             ("hair_milktea", "奶茶棕"),
-            ("hair_milktea_long", "奶茶长发"),
-            ("hair_wisteria", "紫藤"),
+            ("hair_apricot", "杏橙"),
             ("hair_caramel", "焦糖栗"),
             ("hair_baguette", "奶油金"),
+            ("hair_wisteria", "紫藤"),
             ("hair_denim", "雾蓝"),
             ("hair_pink", "粉红马尾"),
+            ("hair_ice_wave", "冰川大波浪"),
+            ("hair_milktea_long", "奶茶长发"),
+            ("hair_honey_cascade", "蜂蜜侧瀑"),
             ("hair_berry", "草莓丸子"),
+            ("hair_sakura_bow", "樱粉大结"),
             ("hair_ink", "墨金丸子"),
+            ("hair_grape_gloss", "葡萄内扣"),
             ("hair_coral", "珊瑚侧环"),
+            ("hair_coral_wings", "珊瑚鬓翼"),
             ("hair_matcha", "抹茶辫"),
+            ("hair_navy_curl", "夜海卷尾"),
             ("hair_glacier", "冰川辫"),
+            ("hair_cream_twins", "奶白双卷"),
             ("hair_sakura", "樱花丸子"),
+            ("hair_tea_crown", "红茶花冠"),
             ("hair_jewel", "紫藤珠辫"),
+            ("hair_mint_hook", "薄荷勾卷"),
             ("hair_maple_beret", "枫叶贝雷"),
+            ("hair_lilac_streak", "紫藤挑染"),
             ("hair_peach_bun", "白桃丸子"),
             ("hair_cafe_tails", "咖啡双尾"),
             ("hair_tennis_pony", "网球马尾"),
@@ -435,6 +458,7 @@ namespace DressSort.EditorTools
                 item.slot = ItemSlot.Wings;
                 item.icon = TryLoadSprite("Icons/ui_" + id);
                 item.worn = TryLoadSprite("Wings/" + id);
+                item.boardEligible = false;
                 item.unlockedFromStart = false;
                 EditorUtility.SetDirty(item);
                 if (!database.items.Contains(item))
@@ -463,6 +487,8 @@ namespace DressSort.EditorTools
                     apricot = item;
             }
 
+            OrderHairs(database);
+
             ItemDef milktea = database.Find("hair_milktea");
             database.defaultHair = milktea != null && milktea.worn != null ? milktea : apricot;
             if (database.defaultDress == null)
@@ -471,6 +497,27 @@ namespace DressSort.EditorTools
             EditorUtility.SetDirty(database);
             AssetDatabase.SaveAssets();
             return true;
+        }
+
+        /// <summary>衣柜里的发型按 Hairs 的顺序排，新的华丽长发和旧发型交叉，不堆在最后。</summary>
+        static void OrderHairs(GameDatabase database)
+        {
+            var rank = new Dictionary<string, int>();
+            for (int i = 0; i < Hairs.Length; i++)
+                rank[Hairs[i].id] = i;
+            var hairs = new List<ItemDef>();
+            var rest = new List<ItemDef>();
+            for (int i = 0; i < database.items.Count; i++)
+            {
+                ItemDef item = database.items[i];
+                if (item != null && item.slot == ItemSlot.Hair && rank.ContainsKey(item.id))
+                    hairs.Add(item);
+                else
+                    rest.Add(item);
+            }
+            hairs.Sort((a, b) => rank[a.id].CompareTo(rank[b.id]));
+            rest.AddRange(hairs);
+            database.items = rest;
         }
 
         static bool IsStartHair(string id)
